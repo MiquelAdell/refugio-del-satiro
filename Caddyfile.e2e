@@ -24,6 +24,12 @@
 # How to validate:
 #   caddy validate --config Caddyfile.e2e --adapter caddyfile
 
+# Disable the admin API so Caddy doesn't try to bind :2019 — avoids port
+# conflicts in CI where another Caddy instance may be running.
+{
+	admin off
+}
+
 :8090 {
 	# App (lending flow) — keeps its /prestamos prefix.
 	handle_path /prestamos/* {
