@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from backend.data.bgg_client import BggClient
-from backend.domain.entities.game import Game
 from backend.domain.repositories.game_repository import GameRepository
 
 

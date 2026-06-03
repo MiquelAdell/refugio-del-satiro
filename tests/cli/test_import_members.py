@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import sqlite3
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from backend.cli.main import app
-from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.migrations.runner import run_migrations
 
 runner = CliRunner()
 

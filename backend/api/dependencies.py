@@ -12,7 +12,9 @@ from backend.data.database import get_connection
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.data.repositories.sqlite_password_token_repository import SqlitePasswordTokenRepository
+from backend.data.repositories.sqlite_password_token_repository import (
+    SqlitePasswordTokenRepository,
+)
 from backend.domain.entities.member import Member
 from backend.domain.use_cases.authenticate import AuthenticateUseCase
 from backend.domain.use_cases.get_game import GetGameUseCase

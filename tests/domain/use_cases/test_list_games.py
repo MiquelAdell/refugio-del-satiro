@@ -8,7 +8,6 @@ from backend.domain.entities.member import Member
 from backend.domain.slug import slugify
 from backend.domain.use_cases.list_games import ListGamesUseCase
 
-
 # ── Fake repositories ──────────────────────────────────────────────
 
 

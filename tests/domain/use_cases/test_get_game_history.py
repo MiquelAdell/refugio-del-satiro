@@ -7,7 +7,6 @@ from backend.domain.entities.loan import Loan
 from backend.domain.entities.member import Member
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
 
-
 # ── Fake repositories ──────────────────────────────────────────────
 
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.domain.entities.loan import Loan
 from backend.domain.repositories.game_repository import GameRepository
 from backend.domain.repositories.loan_repository import LoanRepository
 

@@ -26,7 +26,7 @@ from bs4.element import Tag
 class NavItem:
     label: str
     href: str
-    children: tuple["NavItem", ...] = field(default_factory=tuple)
+    children: tuple[NavItem, ...] = field(default_factory=tuple)
 
 
 _PRIMARY_NAV_ID = "yuynLe"

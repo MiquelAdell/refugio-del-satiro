@@ -6,7 +6,6 @@ import bcrypt
 import jwt
 from fastapi import Request, Response
 
-
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_DAYS = 7
 COOKIE_NAME = "session_token"

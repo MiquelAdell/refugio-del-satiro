@@ -63,7 +63,7 @@ class BggClient:
         headers = self._get_auth_headers()
         backoff = self.INITIAL_BACKOFF
 
-        for attempt in range(self.MAX_RETRIES):
+        for _attempt in range(self.MAX_RETRIES):
             try:
                 response = httpx.get(url, headers=headers, timeout=30.0)
             except httpx.HTTPError:
@@ -178,8 +178,8 @@ class BggClient:
                 thumb_el = item.find("thumbnail")
                 thumbnail_url = thumb_el.text if thumb_el is not None and thumb_el.text else ""
 
-                def _int_val(el_name: str) -> int:
-                    el = item.find(el_name)
+                def _int_val(el_name: str, _item: object = item) -> int:  # noqa: B023
+                    el = _item.find(el_name)  # type: ignore[union-attr]
                     if el is None:
                         return 0
                     return int(el.get("value", "0") or el.text or "0")
