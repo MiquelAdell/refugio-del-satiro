@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 
+export interface NavChildItem {
+  readonly label: string;
+  readonly href: string;
+}
+
 export interface NavItem {
   readonly label: string;
   readonly href: string;
+  readonly children?: readonly NavChildItem[];
 }
 
 interface NavJson {
@@ -18,12 +24,24 @@ export interface NavItemsState {
   readonly status: NavStatus;
 }
 
-function isNavItem(value: unknown): value is NavItem {
+function isNavChildItem(value: unknown): value is NavChildItem {
   return (
     typeof value === "object" &&
     value !== null &&
     typeof (value as Record<string, unknown>).label === "string" &&
     typeof (value as Record<string, unknown>).href === "string"
+  );
+}
+
+function isNavItem(value: unknown): value is NavItem {
+  const v = value as Record<string, unknown>;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof v.label === "string" &&
+    typeof v.href === "string" &&
+    (v.children === undefined ||
+      (Array.isArray(v.children) && v.children.every(isNavChildItem)))
   );
 }
 

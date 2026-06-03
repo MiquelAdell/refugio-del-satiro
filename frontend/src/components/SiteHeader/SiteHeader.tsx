@@ -152,6 +152,7 @@ export function SiteHeader() {
   const { items, status } = useNavItemsContext();
   const { member, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
   const [prestamosExpanded, setPrestamosExpanded] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -203,6 +204,7 @@ export function SiteHeader() {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
+    setExpandedDrawerHref(null);
     setPrestamosExpanded(false);
     setAdminExpanded(false);
   };
@@ -224,19 +226,33 @@ export function SiteHeader() {
         <nav className={styles.desktopNav} aria-label="Principal">
           <ul className={styles.navList}>
             {status !== "error" &&
-              items.map((item) => (
-                <li
-                  key={item.href}
-                  className={`${styles.navItem} ${
-                    typeof window !== "undefined" &&
-                    window.location.pathname === item.href
-                      ? styles.active
-                      : ""
-                  }`}
-                >
-                  <a href={item.href}>{item.label}</a>
-                </li>
-              ))}
+              items.map((item) => {
+                const isActive =
+                  typeof window !== "undefined" &&
+                  window.location.pathname.startsWith(item.href);
+                const hasChildren =
+                  item.children !== undefined && item.children.length > 0;
+                return (
+                  <li
+                    key={item.href}
+                    className={`${styles.navItem} ${hasChildren ? styles.hasSubmenu : ""} ${isActive ? styles.active : ""}`}
+                  >
+                    <a href={item.href} aria-haspopup={hasChildren ? "menu" : undefined}>
+                      {item.label}
+                      {hasChildren && <ChevronDown />}
+                    </a>
+                    {hasChildren && (
+                      <ul className={styles.submenu} role="menu">
+                        {item.children!.map((child) => (
+                          <li key={child.href} className={styles.submenuItem} role="menuitem">
+                            <a href={child.href}>{child.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
 
             {/* Préstamos parent */}
             <li
@@ -331,13 +347,46 @@ export function SiteHeader() {
             )}
 
             {status !== "error" &&
-              items.map((item) => (
-                <li key={item.href} className={styles.drawerItem}>
-                  <a href={item.href} onClick={closeDrawer}>
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+              items.map((item) => {
+                const hasChildren =
+                  item.children !== undefined && item.children.length > 0;
+                const isExpanded = expandedDrawerHref === item.href;
+                return (
+                  <li key={item.href} className={styles.drawerItem}>
+                    {hasChildren ? (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.drawerParent}
+                          aria-haspopup="menu"
+                          aria-expanded={isExpanded}
+                          onClick={() =>
+                            setExpandedDrawerHref(isExpanded ? null : item.href)
+                          }
+                        >
+                          {item.label}
+                          <ChevronDown />
+                        </button>
+                        {isExpanded && (
+                          <ul className={styles.submenu} role="menu">
+                            {item.children!.map((child) => (
+                              <li key={child.href} className={styles.submenuItem} role="menuitem">
+                                <a href={child.href} onClick={closeDrawer}>
+                                  {child.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <a href={item.href} onClick={closeDrawer}>
+                        {item.label}
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
 
             {/* Préstamos in drawer */}
             <li className={styles.drawerItem}>

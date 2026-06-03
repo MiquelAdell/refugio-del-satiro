@@ -8,6 +8,18 @@ const VALID_ITEMS = [
   { label: "Eventos", href: "/eventos" },
 ] as const;
 
+const ITEMS_WITH_CHILDREN = [
+  { label: "Inicio", href: "/inicio" },
+  {
+    label: "Juegos de Rol",
+    href: "/juegos-de-rol",
+    children: [
+      { label: "Campañas", href: "/juegos-de-rol/campanas" },
+      { label: "Oneshots", href: "/juegos-de-rol/oneshots" },
+    ],
+  },
+];
+
 const VALID_NAV_JSON = {
   version: 1,
   generated_at: "2026-05-01T12:00:00Z",
@@ -64,6 +76,19 @@ describe("useNavItems", () => {
       await waitFor(() => expect(result.current.status).toEqual("ready"));
 
       expect(fetch).toHaveBeenCalledWith("/_nav.json", { cache: "no-store" });
+    });
+
+    it("returns items with children when the JSON includes nested L2 items", async () => {
+      mockFetchOk({
+        version: 1,
+        generated_at: "2026-05-01T12:00:00Z",
+        items: ITEMS_WITH_CHILDREN,
+      });
+
+      const { result } = renderHook(() => useNavItems());
+      await waitFor(() => expect(result.current.status).toEqual("ready"));
+
+      expect(result.current.items).toEqual(ITEMS_WITH_CHILDREN);
     });
   });
 
@@ -132,6 +157,32 @@ describe("useNavItems", () => {
 
     it("returns status error when the payload is not an object", async () => {
       mockFetchOk(null);
+
+      const { result } = renderHook(() => useNavItems());
+      await waitFor(() => expect(result.current.status).toEqual("error"));
+
+      expect(result.current.items).toEqual([]);
+    });
+
+    it("returns status error when children is not an array", async () => {
+      mockFetchOk({
+        version: 1,
+        generated_at: "2026-01-01T00:00:00Z",
+        items: [{ label: "Eventos", href: "/eventos", children: "not-an-array" }],
+      });
+
+      const { result } = renderHook(() => useNavItems());
+      await waitFor(() => expect(result.current.status).toEqual("error"));
+
+      expect(result.current.items).toEqual([]);
+    });
+
+    it("returns status error when a child item is missing href", async () => {
+      mockFetchOk({
+        version: 1,
+        generated_at: "2026-01-01T00:00:00Z",
+        items: [{ label: "Eventos", href: "/eventos", children: [{ label: "Sub" }] }],
+      });
 
       const { result } = renderHook(() => useNavItems());
       await waitFor(() => expect(result.current.status).toEqual("error"));
