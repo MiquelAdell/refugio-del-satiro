@@ -24,6 +24,12 @@
 # How to validate:
 #   caddy validate --config Caddyfile.e2e --adapter caddyfile
 
+# Disable the admin API so Caddy doesn't try to bind :2019 — avoids port
+# conflicts in CI where another Caddy instance may be running.
+{
+	admin off
+}
+
 :8090 {
 	# App (lending flow) — keeps its /prestamos prefix.
 	handle_path /prestamos/* {
@@ -74,6 +80,9 @@
 		file_server
 		encode gzip zstd
 
+		# site-shell.js is rebuilt on every deploy and must not be cached immutably.
+		@site_shell path /_assets/site-shell.js
+		header @site_shell Cache-Control "public, max-age=300"
 		@assets path /_assets/*
 		header @assets Cache-Control "public, max-age=31536000, immutable"
 		@html path *.html

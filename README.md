@@ -157,6 +157,7 @@ refugio import-members --email x@y.com --name "First Last"  # Add a single membe
 refugio content run                      # Scrape Google Sites → frontend/public/content-mirror/
 refugio content run --dry-run            # Preview, don't write anything
 refugio content list-urls                # Enumerate pages without scraping
+refugio content inject-shell             # Retrofit existing HTML files with site-shell scaffolding
 python -m scraper                        # Equivalent to `refugio content run`
 ```
 

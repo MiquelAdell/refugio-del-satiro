@@ -18,7 +18,7 @@ def _row_to_member(row: sqlite3.Row) -> Member:
         display_name=row["display_name"],
         password_hash=row["password_hash"],
         is_admin=bool(row["is_admin"]),
-        is_active=bool(row["is_active"]) if "is_active" in row.keys() else True,
+        is_active=bool(row["is_active"]) if "is_active" in row.keys() else True,  # noqa: SIM118
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
     )

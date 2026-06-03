@@ -225,4 +225,40 @@ The lending app's previous bespoke navigation component SHALL be removed once th
 #### Scenario: NavBar files deleted
 - **WHEN** the directory `frontend/src/components/` is listed
 - **THEN** there SHALL be no `NavBar.tsx`, `NavBar.css`, or `NavBar.test.tsx` file
+
+### Requirement: Site-shell embed on static content-mirror pages
+
+**Resolves design.md S-Q4.** Every static content-mirror page SHALL include the React SiteHeader via a standalone IIFE embed bundle, so Préstamos and the auth-aware user actions are accessible from any page on the domain.
+
+The scraper SHALL inject, into every page it writes:
+
+1. `<div id="site-shell-root"></div>` as the first child of `<body>` — the React mount point.
+2. A `data-gs-header="1"` attribute on the original Google Sites `<header>` element — used by the bundle to hide it via CSS.
+3. `<script src="/_assets/site-shell.js" defer></script>` before `</body>` — loads the IIFE bundle.
+
+The injection SHALL be idempotent (safe to apply twice).
+
+A standalone `vite build --config vite.config.site-shell.ts` SHALL produce `frontend/public/content-mirror/_assets/site-shell.js` as a single, self-contained IIFE bundle (React bundled in, CSS injected at runtime). Caddy SHALL serve this file with `Cache-Control: public, max-age=300` (not immutable).
+
+#### Scenario: Shell mount point injected
+- **WHEN** the scraper writes any page
+- **THEN** the output HTML SHALL contain `<div id="site-shell-root">` as the first child of `<body>`
+- **AND** the original `<header>` SHALL have `data-gs-header="1"`
+- **AND** `<script src="/_assets/site-shell.js" defer>` SHALL appear before `</body>`
+
+#### Scenario: Injection is idempotent
+- **WHEN** inject_site_shell() is called twice on the same document
+- **THEN** exactly one `#site-shell-root` div SHALL exist
+- **AND** exactly one `/_assets/site-shell.js` script SHALL exist
+
+#### Scenario: Guest on static page sees Iniciar sesión
+- **WHEN** an unauthenticated user visits a static content-mirror page (e.g. `/calendario/`)
+- **THEN** `#site-shell-root` SHALL be visible in the DOM
+- **AND** an "Iniciar sesión" link pointing to `/prestamos/login` SHALL be visible
+- **AND** `[data-gs-header]` SHALL be hidden
+
+#### Scenario: Member on static page sees display name and Cerrar sesión
+- **WHEN** an authenticated member visits a static content-mirror page
+- **THEN** the member's display name SHALL be visible in the header actions area
+- **AND** a "Cerrar sesión" button SHALL be visible
 - **AND** no source file under `frontend/src/` SHALL import a component named `NavBar`

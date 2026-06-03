@@ -6,7 +6,6 @@ from pathlib import Path
 
 from backend.domain.slug import ensure_unique, slugify
 
-
 MIGRATIONS_DIR = Path(__file__).parent
 
 

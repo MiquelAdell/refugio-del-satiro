@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Optional
+from typing import Any
 
 # --- Helpers ---
 
@@ -141,7 +141,7 @@ def text(
     index: str = "a1",
 ) -> dict:
     lines = content.split("\n")
-    max_line = max(len(l) for l in lines)
+    max_line = max(len(line) for line in lines)
     est_w = max_line * size * 0.55
     est_h = len(lines) * size * 1.25
     el = _base(

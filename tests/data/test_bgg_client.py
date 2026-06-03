@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from backend.data.bgg_client import BggClient
 
-
 SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>
 <items totalitems="3" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse" pubdate="Mon, 31 Mar 2026 00:00:00 +0000">
     <item objecttype="thing" objectid="13" subtype="boardgame" collid="1001">

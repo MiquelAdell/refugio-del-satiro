@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:site-shell && tsc -b && vite build",
+    "build:site-shell": "vite build --config vite.config.site-shell.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
@@ -38,6 +39,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^8.0.1",
+    "vite-plugin-css-injected-by-js": "^5.0.1",
     "vitest": "^4.1.2"
   }
 }

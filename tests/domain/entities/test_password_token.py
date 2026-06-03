@@ -46,6 +46,6 @@ class TestPasswordToken:
         )
         try:
             token.used_at = now  # type: ignore[misc]
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass

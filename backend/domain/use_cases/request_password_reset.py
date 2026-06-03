@@ -3,7 +3,9 @@ from __future__ import annotations
 from backend.config import Settings
 from backend.data.email_client import EmailClient
 from backend.domain.repositories.member_repository import MemberRepository
-from backend.domain.repositories.password_token_repository import PasswordTokenRepository
+from backend.domain.repositories.password_token_repository import (
+    PasswordTokenRepository,
+)
 
 
 class RequestPasswordResetUseCase:

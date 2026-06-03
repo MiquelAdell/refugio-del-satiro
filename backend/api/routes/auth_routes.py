@@ -8,10 +8,8 @@ from pydantic import BaseModel
 from backend.api.auth import clear_auth_cookie, create_jwt, set_auth_cookie
 from backend.api.dependencies import (
     CurrentMember,
-    MemberRepo,
     _settings,
     get_authenticate_use_case,
-    get_current_member,
     get_request_password_reset_use_case,
     get_set_password_use_case,
 )
@@ -105,5 +103,5 @@ def set_password(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
     return OkResponse()

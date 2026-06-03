@@ -44,16 +44,19 @@ line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TC"]
+# E501 line-length is enforced by Black at format time; ruff shouldn't re-flag it.
+ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-# Scraper modules use imports at runtime (isinstance checks, Path as parameter
-# types) and pre-date the TCH rule enforcement. Suppress until a dedicated
-# refactor pass adds proper TYPE_CHECKING guards across the whole module.
-"scraper/*.py" = ["TCH001", "TCH002", "TCH003"]
+# Scraper and backend modules use imports at runtime (isinstance checks, Path
+# as parameter types) and pre-date the TC rule enforcement.
+"scraper/*.py" = ["TC001", "TC002", "TC003"]
+"backend/**/*.py" = ["TC001", "TC002", "TC003"]
 # Test files always need runtime imports for fixtures, pytest marks, and
 # isinstance checks — TYPE_CHECKING guards would break them.
-"tests/**/*.py" = ["TCH001", "TCH002", "TCH003"]
+"tests/**/*.py" = ["TC001", "TC002", "TC003"]
+"scripts/**/*.py" = ["TC001", "TC002", "TC003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

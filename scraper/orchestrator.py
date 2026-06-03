@@ -23,6 +23,7 @@ from scraper.linker import (
 )
 from scraper.manifest import Manifest, PageRecord
 from scraper.nav_extractor import extract_nav
+from scraper.shell_injector import inject_site_shell
 from scraper.stripper import ContentExtractionError, strip
 from scraper.writer import (
     DeletionGuardError,
@@ -329,6 +330,8 @@ async def run(
             )
             total_downloaded += downloaded
             total_reused += reused
+
+            inject_site_shell(stripped.document)
 
             document_html = _render_document(stripped.document)
             output_file = path_to_output(canonical, config.assets_subdir)

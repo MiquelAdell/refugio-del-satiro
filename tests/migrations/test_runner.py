@@ -1,4 +1,3 @@
-import sqlite3
 
 from backend.data.database import get_memory_connection
 from backend.migrations.runner import run_migrations

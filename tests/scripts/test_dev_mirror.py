@@ -126,7 +126,7 @@ class TestCaddyfileDrift:
         are not literal path-to-path mappings that dev's REDIRECTS can express.
         """
         caddy = _caddyfile_redirects()
-        assert REDIRECTS == caddy, (
+        assert caddy == REDIRECTS, (
             "scripts/dev_mirror.py REDIRECTS has drifted from Caddyfile. "
             f"Missing from dev: {set(caddy) - set(REDIRECTS)}; "
             f"extra in dev: {set(REDIRECTS) - set(caddy)}"

@@ -48,6 +48,9 @@
 		file_server
 		encode gzip zstd
 
+		# site-shell.js is rebuilt on every deploy and must not be cached immutably.
+		@site_shell path /_assets/site-shell.js
+		header @site_shell Cache-Control "public, max-age=300"
 		@assets path /_assets/*
 		header @assets Cache-Control "public, max-age=31536000, immutable"
 		@html path *.html

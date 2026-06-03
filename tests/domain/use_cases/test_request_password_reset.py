@@ -4,7 +4,9 @@ import sqlite3
 
 from backend.config import Settings
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.data.repositories.sqlite_password_token_repository import SqlitePasswordTokenRepository
+from backend.data.repositories.sqlite_password_token_repository import (
+    SqlitePasswordTokenRepository,
+)
 from backend.domain.use_cases.request_password_reset import RequestPasswordResetUseCase
 
 

@@ -5,7 +5,9 @@ from datetime import UTC, datetime
 from backend.api.auth import hash_password
 from backend.domain.entities.member import Member
 from backend.domain.repositories.member_repository import MemberRepository
-from backend.domain.repositories.password_token_repository import PasswordTokenRepository
+from backend.domain.repositories.password_token_repository import (
+    PasswordTokenRepository,
+)
 
 
 class SetPasswordError(Exception):

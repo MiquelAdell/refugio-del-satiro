@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from backend.api.dependencies import (
@@ -10,7 +8,6 @@ from backend.api.dependencies import (
     GameRepo,
     LoanRepo,
 )
-from backend.domain.entities.member import Member
 from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseCase
 from backend.domain.use_cases.return_game import ReturnGameError, ReturnGameUseCase
 
@@ -44,7 +41,7 @@ def borrow_game(
     try:
         loan = use_case.execute(body.game_id, member.id)
     except BorrowGameError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
     return LoanResponse(
         id=loan.id,
         game_id=loan.game_id,
@@ -64,7 +61,7 @@ def return_game(
     try:
         loan = use_case.execute(loan_id, member)
     except ReturnGameError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
     return LoanResponse(
         id=loan.id,
         game_id=loan.game_id,

@@ -12,6 +12,7 @@ import typer
 from scraper.config import ScraperConfig, default_config
 from scraper.events import ScraperEvent
 from scraper.orchestrator import run
+from scraper.shell_injector import inject_site_shell
 
 app = typer.Typer(
     name="scraper",
@@ -109,6 +110,49 @@ def list_urls_cmd() -> None:
                 )
 
     asyncio.run(_list())
+
+
+@app.command("inject-shell")
+def inject_shell_cmd(
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Override content-mirror directory (default: frontend/public/content-mirror).",
+        ),
+    ] = None,
+) -> None:
+    """Retrofit existing content-mirror HTML files with the site-shell embed scaffolding.
+
+    Reads every *.html under the content-mirror directory, applies
+    inject_site_shell(), and writes the result back in-place.  Safe to run
+    multiple times — the injection is idempotent.
+    """
+    from bs4 import BeautifulSoup
+
+    config = _build_config(output)
+    content_dir = config.output_dir
+
+    html_files = list(content_dir.rglob("*.html"))
+    if not html_files:
+        typer.echo(f"No HTML files found under {content_dir}", err=True)
+        raise typer.Exit(1)
+
+    modified = 0
+    for path in html_files:
+        original = path.read_text(encoding="utf-8")
+        soup = BeautifulSoup(original, "html.parser")
+        inject_site_shell(soup)
+        updated = soup.decode(formatter="html5")
+        if not updated.lstrip().lower().startswith("<!doctype"):
+            updated = "<!doctype html>\n" + updated
+        if updated != original:
+            path.write_text(updated, encoding="utf-8")
+            modified += 1
+            typer.echo(f"  updated {path.relative_to(content_dir)}")
+
+    typer.echo(f"Done — {modified}/{len(html_files)} files updated.")
 
 
 def _invoke_from_module() -> None:

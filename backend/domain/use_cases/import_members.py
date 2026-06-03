@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from backend.domain.entities.member import Member
 from backend.domain.entities.password_token import PasswordToken
 from backend.domain.repositories.member_repository import MemberRepository
-from backend.domain.repositories.password_token_repository import PasswordTokenRepository
+from backend.domain.repositories.password_token_repository import (
+    PasswordTokenRepository,
+)
 
 
 @dataclass(frozen=True)
