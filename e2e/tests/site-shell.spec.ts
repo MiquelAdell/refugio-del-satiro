@@ -90,8 +90,10 @@ test.describe("site-shell @ member", () => {
     await expect(
       page.getByRole("menuitem", { name: "Mis préstamos" }).first(),
     ).toBeVisible();
+    // "Cerrar sesión" lives in the header actions slot (desktop) / drawer user row
+    // (mobile), not inside the Préstamos submenu — so its ARIA role is "button".
     await expect(
-      page.getByRole("menuitem", { name: "Cerrar sesión" }).first(),
+      page.getByRole("button", { name: "Cerrar sesión" }).first(),
     ).toBeVisible();
     await expect(
       page.locator("text=Administración"),
@@ -115,10 +117,10 @@ test.describe("site-shell @ member", () => {
       )
       .toBe("1");
 
-    // Reveal the submenu via hover before activating Cerrar sesión.
-    await revealPrestamosSubmenuOnDesktop(page);
+    // "Cerrar sesión" is in the header actions slot — always visible on desktop,
+    // no need to hover the Préstamos submenu first.
     await page
-      .getByRole("menuitem", { name: "Cerrar sesión" })
+      .getByRole("button", { name: "Cerrar sesión" })
       .first()
       .click();
 
@@ -188,7 +190,10 @@ test.describe("site-shell @ static page (guest)", () => {
     }
     const link = page.getByRole("link", { name: new RegExp(`^${PRESTAMOS_LABEL}`) }).first();
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", "/prestamos/");
+    // React Router with basename="/prestamos" generates href="/prestamos" (no trailing
+    // slash) for <Link to="/">. The Caddyfile 301-redirects /prestamos → /prestamos/
+    // at the network layer, so both work functionally.
+    await expect(link).toHaveAttribute("href", "/prestamos");
   });
 
   test("static-shell-3: Iniciar sesión link visible for guest", async ({
