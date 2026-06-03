@@ -7,6 +7,11 @@ export default defineConfig({
   // Disable publicDir so Vite doesn't try to copy public/ into the outDir
   // (which would recurse since outDir lives inside public/).
   publicDir: false,
+  // Lib builds don't replace process.env.NODE_ENV automatically; do it here
+  // so the IIFE runs in the browser without a ReferenceError on `process`.
+  define: {
+    "process.env.NODE_ENV": '"production"',
+  },
   build: {
     lib: {
       entry: "src/site-shell-embed.tsx",

@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthState {
   const context = useContext(AuthContext);
   if (context === null) {

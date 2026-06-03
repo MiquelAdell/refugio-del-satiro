@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
+import "./tokens.css";
+import "./site-shell-embed.css";
 import { AuthProvider } from "./context/AuthContext";
 import { SiteNavProvider } from "./context/SiteNavProvider";
 import { SiteHeader } from "./components/SiteHeader/SiteHeader";
@@ -25,15 +27,21 @@ if (rootEl) {
     true,
   );
 
+  // MemoryRouter instead of BrowserRouter: the embed runs on static pages
+  // (e.g. /calendario/) whose URLs don't start with the /prestamos basename.
+  // React Router v7's BrowserRouter refuses to render in that situation.
+  // MemoryRouter ignores the actual URL, so the Router always renders, and
+  // basename="/prestamos" still makes <Link> hrefs resolve to /prestamos/….
+  // Navigation is handled by the capture-phase click listener above anyway.
   createRoot(rootEl).render(
     <StrictMode>
-      <BrowserRouter basename="/prestamos">
+      <MemoryRouter basename="/prestamos" initialEntries={["/prestamos/"]}>
         <AuthProvider>
           <SiteNavProvider>
             <SiteHeader />
           </SiteNavProvider>
         </AuthProvider>
-      </BrowserRouter>
+      </MemoryRouter>
     </StrictMode>,
   );
 }
