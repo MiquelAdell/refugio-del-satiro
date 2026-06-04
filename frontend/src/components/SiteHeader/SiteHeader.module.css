@@ -17,8 +17,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  max-width: var(--bp-xl);
-  margin: 0 auto;
   padding: 0 var(--space-lg);
   height: var(--header-height);
 }
@@ -35,6 +33,21 @@
   height: 40px;
   width: auto;
   display: block;
+}
+
+.logoText {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-header-fg);
+  white-space: nowrap;
+  margin-left: var(--space-sm);
+}
+
+@media (max-width: 767px) {
+  .logoText {
+    display: none;
+  }
 }
 
 /* ─── Desktop nav ───────────────────────────────────────────────────── */
