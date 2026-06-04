@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { SiteNavProvider } from "./context/SiteNavProvider";
 import { PageLayout } from "./components/PageLayout";
-import { MinimalPageLayout } from "./components/MinimalPageLayout";
 import { CatalogPage } from "./pages/CatalogPage";
 import { GameDetailPage } from "./pages/GameDetailPage";
 import { MyLoansPage } from "./pages/MyLoansPage";
@@ -61,25 +60,25 @@ export default function App() {
             <Route
               path="/login"
               element={
-                <MinimalPageLayout>
+                <PageLayout>
                   <LoginPage />
-                </MinimalPageLayout>
+                </PageLayout>
               }
             />
             <Route
               path="/forgot-password"
               element={
-                <MinimalPageLayout>
+                <PageLayout>
                   <ForgotPasswordPage />
-                </MinimalPageLayout>
+                </PageLayout>
               }
             />
             <Route
               path="/set-password"
               element={
-                <MinimalPageLayout>
+                <PageLayout>
                   <SetPasswordPage />
-                </MinimalPageLayout>
+                </PageLayout>
               }
             />
           </Routes>
