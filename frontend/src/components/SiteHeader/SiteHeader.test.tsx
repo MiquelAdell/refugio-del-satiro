@@ -164,9 +164,9 @@ describe("SiteHeader", () => {
       expect(screen.queryByText("Administración")).toBeNull();
     });
 
-    it("renders the Iniciar sesión action link in the header for guest", () => {
+    it("renders the Iniciar sesión action link in the header for guest on a non-login route", () => {
       setGuest();
-      const { container } = renderHeader();
+      const { container } = renderHeader("/forgot-password");
 
       const loginLinks = Array.from(container.querySelectorAll("a")).filter(
         (el) => el.textContent?.trim() === "Iniciar sesión"
@@ -176,6 +176,16 @@ describe("SiteHeader", () => {
       loginLinks.forEach((link) => {
         expect(link).toHaveAttribute("href", "/login");
       });
+    });
+
+    it("does not render the Iniciar sesión action link for guest on /login", () => {
+      setGuest();
+      const { container } = renderHeader("/login");
+
+      const loginLinks = Array.from(container.querySelectorAll("a")).filter(
+        (el) => el.textContent?.trim() === "Iniciar sesión"
+      );
+      expect(loginLinks.length).toEqual(0);
     });
 
     it("does not show Iniciar sesión inside the Préstamos submenu", () => {

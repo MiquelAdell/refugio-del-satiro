@@ -1,1 +1,0 @@
-export { MinimalPageLayout } from "./MinimalPageLayout";

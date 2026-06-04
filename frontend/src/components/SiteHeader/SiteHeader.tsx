@@ -167,6 +167,8 @@ export function SiteHeader() {
     (typeof window !== "undefined" &&
       window.location.pathname.startsWith("/prestamos"));
 
+  const isLoginRoute = Boolean(useMatch("/login"));
+
   const role: SubmenuRole =
     member?.is_admin === true
       ? "admin"
@@ -282,9 +284,11 @@ export function SiteHeader() {
         {/* Right-side actions */}
         <div className={styles.headerActions}>
           {role === "guest" ? (
-            <Link to="/login" className={styles.loginAction}>
-              Iniciar sesión
-            </Link>
+            !isLoginRoute && (
+              <Link to="/login" className={styles.loginAction}>
+                Iniciar sesión
+              </Link>
+            )
           ) : (
             <>
               <span className={styles.userDisplayName}>{member!.display_name}</span>
@@ -324,15 +328,17 @@ export function SiteHeader() {
         <nav aria-label="Principal">
           <ul className={styles.drawerList}>
             {role === "guest" ? (
-              <li className={styles.drawerItem}>
-                <Link
-                  to="/login"
-                  className={styles.drawerLoginAction}
-                  onClick={closeDrawer}
-                >
-                  Iniciar sesión
-                </Link>
-              </li>
+              !isLoginRoute && (
+                <li className={styles.drawerItem}>
+                  <Link
+                    to="/login"
+                    className={styles.drawerLoginAction}
+                    onClick={closeDrawer}
+                  >
+                    Iniciar sesión
+                  </Link>
+                </li>
+              )
             ) : (
               <li className={`${styles.drawerItem} ${styles.drawerUserRow}`}>
                 <span className={styles.drawerUserDisplayName}>{member!.display_name}</span>
