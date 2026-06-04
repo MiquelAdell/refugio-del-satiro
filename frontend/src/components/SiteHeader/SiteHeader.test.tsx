@@ -112,7 +112,7 @@ describe("SiteHeader", () => {
       ]);
     });
 
-    it("renders only the Préstamos parent when status is error", () => {
+    it("renders only the Ludoteca parent when status is error", () => {
       mockNavState = { items: [], status: "error" };
       const { container } = renderHeader();
 
@@ -126,7 +126,7 @@ describe("SiteHeader", () => {
       expect(navLinks).not.toContain("Calendario");
     });
 
-    it("renders only the Préstamos parent when items is empty with ready status", () => {
+    it("renders only the Ludoteca parent when items is empty with ready status", () => {
       mockNavState = { items: [], status: "ready" };
       const { container } = renderHeader();
 
@@ -137,17 +137,17 @@ describe("SiteHeader", () => {
         const link = li.querySelector(":scope > a, :scope > button");
         return link?.textContent ?? "";
       });
-      // With empty items, only Préstamos should be in the top-level nav
-      expect(topLevelItems.map((t) => t.trim())).toEqual(["Préstamos"]);
+      // With empty items, only Ludoteca should be in the top-level nav
+      expect(topLevelItems.map((t) => t.trim())).toEqual(["Ludoteca"]);
     });
   });
 
-  describe("Préstamos submenu — guest", () => {
-    it("renders Préstamos as a plain link with no submenu and no chevron", () => {
+  describe("Ludoteca submenu — guest", () => {
+    it("renders Ludoteca as a plain link with no submenu and no chevron", () => {
       setGuest();
       renderHeader();
 
-      // No menuitem roles at all — Préstamos is a plain link, no submenu rendered
+      // No menuitem roles at all — Ludoteca is a plain link, no submenu rendered
       expect(screen.queryAllByRole("menuitem")).toEqual([]);
       // No aria-haspopup anywhere
       expect(
@@ -188,7 +188,7 @@ describe("SiteHeader", () => {
       expect(loginLinks.length).toEqual(0);
     });
 
-    it("does not show Iniciar sesión inside the Préstamos submenu", () => {
+    it("does not show Iniciar sesión inside the Ludoteca submenu", () => {
       setGuest();
       renderHeader();
 
@@ -222,7 +222,7 @@ describe("SiteHeader", () => {
     });
   });
 
-  describe("Préstamos submenu — member", () => {
+  describe("Ludoteca submenu — member", () => {
     it("renders exactly Mis préstamos in submenu (not Cerrar sesión) for member", () => {
       setMember();
       renderHeader();
@@ -263,7 +263,7 @@ describe("SiteHeader", () => {
     });
   });
 
-  describe("Préstamos submenu — admin", () => {
+  describe("Ludoteca submenu — admin", () => {
     it("renders Mis préstamos in submenu but not Cerrar sesión for admin", () => {
       setAdmin();
       renderHeader();
@@ -349,7 +349,7 @@ describe("SiteHeader", () => {
       expect(menuitems).not.toContain("Cerrar sesión");
     });
 
-    it("does not show Cerrar sesión in Préstamos submenu for member", () => {
+    it("does not show Cerrar sesión in Ludoteca submenu for member", () => {
       setMember();
       renderHeader();
 
@@ -357,7 +357,7 @@ describe("SiteHeader", () => {
       expect(menuitems).toEqual(["Mis préstamos"]);
     });
 
-    it("shows display_name and Cerrar sesión in drawer without expanding Préstamos", () => {
+    it("shows display_name and Cerrar sesión in drawer without expanding Ludoteca", () => {
       setMember();
       mockLogout.mockResolvedValue(undefined);
       const { container } = renderHeader();
@@ -384,26 +384,26 @@ describe("SiteHeader", () => {
   });
 
   describe("active-route highlighting", () => {
-    it("Préstamos parent has active class when at /prestamos/my-loans", () => {
+    it("Ludoteca parent has active class when at /prestamos/my-loans", () => {
       setMember();
       const { container } = renderHeader("/prestamos/my-loans");
 
-      // Find the Préstamos <Link> element in the desktop nav (not the mobile drawer button)
+      // Find the Ludoteca <Link> element in the desktop nav (not the mobile drawer button)
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const prestamosNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Préstamos")
+      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
+        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
       );
-      expect(prestamosNavItem?.className).toContain("active");
+      expect(ludotecaNavItem?.className).toContain("active");
     });
 
-    it("Préstamos parent has active class when at /prestamos/", () => {
+    it("Ludoteca parent has active class when at /prestamos/", () => {
       const { container } = renderHeader("/prestamos/");
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const prestamosNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Préstamos")
+      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
+        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
       );
-      expect(prestamosNavItem?.className).toContain("active");
+      expect(ludotecaNavItem?.className).toContain("active");
     });
   });
 
@@ -452,7 +452,7 @@ describe("SiteHeader", () => {
       expect(hamburger.getAttribute("aria-expanded")).toEqual("false");
     });
 
-    it("tapping Préstamos in drawer toggles prestamos submenu", () => {
+    it("tapping Ludoteca in drawer toggles ludoteca submenu", () => {
       setMember();
       renderHeader();
 
@@ -460,19 +460,19 @@ describe("SiteHeader", () => {
       const hamburger = screen.getByRole("button", { name: "Abrir menú" });
       fireEvent.click(hamburger);
 
-      // There are two "Préstamos" triggers: one in desktop nav (Link), one in drawer (button)
-      const prestamosButtons = screen.getAllByRole("button").filter(
-        (el) => el.textContent?.includes("Préstamos")
+      // There are two "Ludoteca" triggers: one in desktop nav (Link), one in drawer (button)
+      const ludotecaButtons = screen.getAllByRole("button").filter(
+        (el) => el.textContent?.includes("Ludoteca")
       );
       // The drawer one has aria-haspopup
-      const drawerPrestamos = prestamosButtons.find(
+      const drawerLudoteca = ludotecaButtons.find(
         (el) => el.getAttribute("aria-haspopup") === "menu"
       );
-      expect(drawerPrestamos).toBeDefined();
+      expect(drawerLudoteca).toBeDefined();
 
-      expect(drawerPrestamos!.getAttribute("aria-expanded")).toEqual("false");
-      fireEvent.click(drawerPrestamos!);
-      expect(drawerPrestamos!.getAttribute("aria-expanded")).toEqual("true");
+      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("false");
+      fireEvent.click(drawerLudoteca!);
+      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("true");
     });
 
     // draw-6: nested Administración expands inside drawer
@@ -487,16 +487,16 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Open Préstamos in drawer
-      const drawerPrestamos = within(drawer)
+      // Open Ludoteca in drawer
+      const drawerLudoteca = within(drawer)
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Préstamos") &&
+            el.textContent?.includes("Ludoteca") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerPrestamos).toBeDefined();
-      fireEvent.click(drawerPrestamos!);
+      expect(drawerLudoteca).toBeDefined();
+      fireEvent.click(drawerLudoteca!);
 
       // Click the Administración nested trigger
       const adminTrigger = within(drawer)
@@ -534,7 +534,7 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Cerrar sesión is at the top of the drawer — no need to expand Préstamos submenu
+      // Cerrar sesión is at the top of the drawer — no need to expand Ludoteca submenu
       const cerrarBtn = within(drawer).getByRole("button", { name: "Cerrar sesión" });
       fireEvent.click(cerrarBtn);
 
@@ -603,16 +603,16 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Open Préstamos in drawer
-      const drawerPrestamos = within(drawer)
+      // Open Ludoteca in drawer
+      const drawerLudoteca = within(drawer)
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Préstamos") &&
+            el.textContent?.includes("Ludoteca") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerPrestamos).toBeDefined();
-      fireEvent.click(drawerPrestamos!);
+      expect(drawerLudoteca).toBeDefined();
+      fireEvent.click(drawerLudoteca!);
 
       // Find Administración nested trigger inside drawer
       const adminTrigger = within(drawer)
@@ -630,57 +630,57 @@ describe("SiteHeader", () => {
 
   // chev-1: chevron SVG presence by auth state
   describe("chevron SVG presence (chev-1)", () => {
-    it("Préstamos parent in desktop nav contains a chevron SVG for member", () => {
+    it("Ludoteca parent in desktop nav contains a chevron SVG for member", () => {
       setMember();
       const { container } = renderHeader();
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
       expect(desktopNav).not.toBeNull();
 
-      // The Préstamos link element contains the ChevronDown SVG
-      const prestamosLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.includes("Préstamos")
+      // The Ludoteca link element contains the ChevronDown SVG
+      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
+        (li) => li.textContent?.includes("Ludoteca")
       );
-      expect(prestamosLi).toBeDefined();
-      const chevrons = prestamosLi!.querySelectorAll("svg");
+      expect(ludotecaLi).toBeDefined();
+      const chevrons = ludotecaLi!.querySelectorAll("svg");
       expect(chevrons.length).toEqual(1);
     });
 
-    it("Préstamos parent in desktop nav contains a chevron SVG for admin", () => {
+    it("Ludoteca parent in desktop nav contains a chevron SVG for admin", () => {
       setAdmin();
       const { container } = renderHeader();
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
       expect(desktopNav).not.toBeNull();
 
-      const prestamosLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.includes("Préstamos")
+      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
+        (li) => li.textContent?.includes("Ludoteca")
       );
-      expect(prestamosLi).toBeDefined();
-      // Admin: 2 SVGs — one for Préstamos link chevron, one for Administración nested trigger chevron
-      const chevrons = prestamosLi!.querySelectorAll("svg");
+      expect(ludotecaLi).toBeDefined();
+      // Admin: 2 SVGs — one for Ludoteca link chevron, one for Administración nested trigger chevron
+      const chevrons = ludotecaLi!.querySelectorAll("svg");
       expect(chevrons.length).toEqual(2);
     });
 
-    it("Préstamos item in desktop nav has no chevron SVG for guest", () => {
+    it("Ludoteca item in desktop nav has no chevron SVG for guest", () => {
       setGuest();
       const { container } = renderHeader();
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
       expect(desktopNav).not.toBeNull();
 
-      const prestamosLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.trim() === "Préstamos"
+      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
+        (li) => li.textContent?.trim() === "Ludoteca"
       );
-      expect(prestamosLi).toBeDefined();
-      const chevrons = prestamosLi!.querySelectorAll("svg");
+      expect(ludotecaLi).toBeDefined();
+      const chevrons = ludotecaLi!.querySelectorAll("svg");
       expect(chevrons.length).toEqual(0);
     });
   });
 
-  // err-2: rapid double-click on drawer Préstamos trigger leaves aria-expanded deterministic
+  // err-2: rapid double-click on drawer Ludoteca trigger leaves aria-expanded deterministic
   describe("rapid toggle is deterministic (err-2)", () => {
-    it("double-click on drawer Préstamos trigger results in closed state", () => {
+    it("double-click on drawer Ludoteca trigger results in closed state", () => {
       setMember();
       renderHeader();
 
@@ -688,20 +688,20 @@ describe("SiteHeader", () => {
       const hamburger = screen.getByRole("button", { name: "Abrir menú" });
       fireEvent.click(hamburger);
 
-      const drawerPrestamos = screen
+      const drawerLudoteca = screen
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Préstamos") &&
+            el.textContent?.includes("Ludoteca") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerPrestamos).toBeDefined();
+      expect(drawerLudoteca).toBeDefined();
 
       // Rapid double-click: open then immediately close
-      fireEvent.click(drawerPrestamos!);
-      fireEvent.click(drawerPrestamos!);
+      fireEvent.click(drawerLudoteca!);
+      fireEvent.click(drawerLudoteca!);
 
-      expect(drawerPrestamos!.getAttribute("aria-expanded")).toEqual("false");
+      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("false");
     });
   });
 });
