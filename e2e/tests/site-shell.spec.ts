@@ -20,27 +20,27 @@ const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 
 const HOME = "/prestamos/";
 const LOGIN_PATH = "/prestamos/login";
-const PRESTAMOS_LABEL = "Préstamos";
+const LUDOTECA_LABEL = "Ludoteca";
 
 const isMobileProject = (projectName: string) => projectName === "chromium-mobile";
 const isDesktopProject = (projectName: string) => projectName === "chromium-desktop";
 
-async function openPrestamosSubmenuOnMobile(page: Page) {
+async function openLudotecaSubmenuOnMobile(page: Page) {
   await page.getByRole("button", { name: "Abrir menú" }).click();
   await page
     .locator("#mobile-drawer")
-    .getByRole("button", { name: new RegExp(`^${PRESTAMOS_LABEL}`) })
+    .getByRole("button", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
     .click();
 }
 
 /**
  * On desktop the submenu is CSS-revealed via `:hover` / `:focus-within` on
- * the Préstamos parent. Hovering the parent link makes the submenu visible
+ * the Ludoteca parent. Hovering the parent link makes the submenu visible
  * and reachable for accessibility-tree queries.
  */
-async function revealPrestamosSubmenuOnDesktop(page: Page) {
+async function revealLudotecaSubmenuOnDesktop(page: Page) {
   await page
-    .getByRole("link", { name: new RegExp(`^${PRESTAMOS_LABEL}`) })
+    .getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
     .first()
     .hover();
 }
@@ -82,16 +82,16 @@ test.describe("site-shell @ member", () => {
     await page.goto(HOME);
 
     if (isMobileProject(testInfo.project.name)) {
-      await openPrestamosSubmenuOnMobile(page);
+      await openLudotecaSubmenuOnMobile(page);
     } else {
-      await revealPrestamosSubmenuOnDesktop(page);
+      await revealLudotecaSubmenuOnDesktop(page);
     }
 
     await expect(
       page.getByRole("menuitem", { name: "Mis préstamos" }).first(),
     ).toBeVisible();
     // "Cerrar sesión" lives in the header actions slot (desktop) / drawer user row
-    // (mobile), not inside the Préstamos submenu — so its ARIA role is "button".
+    // (mobile), not inside the Ludoteca submenu — so its ARIA role is "button".
     await expect(
       page.getByRole("button", { name: "Cerrar sesión" }).first(),
     ).toBeVisible();
@@ -118,7 +118,7 @@ test.describe("site-shell @ member", () => {
       .toBe("1");
 
     // "Cerrar sesión" is in the header actions slot — always visible on desktop,
-    // no need to hover the Préstamos submenu first.
+    // no need to hover the Ludoteca submenu first.
     await page
       .getByRole("button", { name: "Cerrar sesión" })
       .first()
@@ -141,13 +141,13 @@ test.describe("site-shell @ admin", () => {
     await page.goto(HOME);
 
     if (isMobileProject(testInfo.project.name)) {
-      await openPrestamosSubmenuOnMobile(page);
+      await openLudotecaSubmenuOnMobile(page);
       await page
         .locator("#mobile-drawer")
         .getByRole("button", { name: /Administración/ })
         .click();
     } else {
-      await revealPrestamosSubmenuOnDesktop(page);
+      await revealLudotecaSubmenuOnDesktop(page);
       // Hover the nested Administración trigger so its child list reveals.
       await page
         .getByRole("button", { name: /Administración/ })
@@ -181,14 +181,14 @@ test.describe("site-shell @ static page (guest)", () => {
     await expect(page.locator("#site-shell-root")).toBeVisible();
   });
 
-  test("static-shell-2: Préstamos link href points to /prestamos/", async ({
+  test("static-shell-2: Ludoteca link href points to /prestamos/", async ({
     page,
   }, testInfo) => {
     await page.goto(STATIC_PAGE);
     if (isMobileProject(testInfo.project.name)) {
       await page.getByRole("button", { name: "Abrir menú" }).click();
     }
-    const link = page.getByRole("link", { name: new RegExp(`^${PRESTAMOS_LABEL}`) }).first();
+    const link = page.getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) }).first();
     await expect(link).toBeVisible();
     // React Router with basename="/prestamos" generates href="/prestamos" (no trailing
     // slash) for <Link to="/">. The Caddyfile 301-redirects /prestamos → /prestamos/

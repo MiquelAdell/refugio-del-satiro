@@ -45,7 +45,7 @@ type SubmenuItem = LinkSubmenuItem | NestedSubmenuItem;
 
 // `to` values are router-relative (inside `<BrowserRouter basename="/prestamos">`),
 // so they omit the `/prestamos` prefix — the router prepends it.
-const PRESTAMOS_SUBMENU: readonly SubmenuItem[] = [
+const LUDOTECA_SUBMENU: readonly SubmenuItem[] = [
   { type: "link", label: "Mis préstamos", to: "/my-loans", roles: ["member", "admin"] },
   {
     type: "nested",
@@ -101,22 +101,22 @@ function AdminNestedSubmenu({
   );
 }
 
-// ─── PrestamosSubmenu ─────────────────────────────────────────────────────────
+// ─── LudotecaSubmenu ──────────────────────────────────────────────────────────
 
-interface PrestamosSubmenuProps {
+interface LudotecaSubmenuProps {
   readonly role: SubmenuRole;
   readonly adminExpanded: boolean;
   readonly onToggleAdmin: () => void;
   readonly onItemClick?: () => void;
 }
 
-function PrestamosSubmenu({
+function LudotecaSubmenu({
   role,
   adminExpanded,
   onToggleAdmin,
   onItemClick,
-}: PrestamosSubmenuProps) {
-  const visibleItems = PRESTAMOS_SUBMENU.filter((item) =>
+}: LudotecaSubmenuProps) {
+  const visibleItems = LUDOTECA_SUBMENU.filter((item) =>
     item.roles.includes(role)
   );
 
@@ -153,7 +153,7 @@ export function SiteHeader() {
   const { member, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
-  const [prestamosExpanded, setPrestamosExpanded] = useState(false);
+  const [ludotecaExpanded, setLudotecaExpanded] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
@@ -162,7 +162,7 @@ export function SiteHeader() {
   // location. In tests we mount under a plain MemoryRouter where the path
   // does start with "/prestamos". Cover both by also checking the raw
   // browser pathname when it's available.
-  const isPrestamosActive =
+  const isLudotecaActive =
     useMatch("/prestamos/*") !== null ||
     (typeof window !== "undefined" &&
       window.location.pathname.startsWith("/prestamos"));
@@ -176,7 +176,7 @@ export function SiteHeader() {
         ? "member"
         : "guest";
 
-  const hasPrestamosSubmenu = PRESTAMOS_SUBMENU.some((item) =>
+  const hasLudotecaSubmenu = LUDOTECA_SUBMENU.some((item) =>
     item.roles.includes(role)
   );
 
@@ -207,7 +207,7 @@ export function SiteHeader() {
   const closeDrawer = () => {
     setDrawerOpen(false);
     setExpandedDrawerHref(null);
-    setPrestamosExpanded(false);
+    setLudotecaExpanded(false);
     setAdminExpanded(false);
   };
 
@@ -257,26 +257,26 @@ export function SiteHeader() {
                 );
               })}
 
-            {/* Préstamos parent */}
+            {/* Ludoteca parent */}
             <li
-              className={`${styles.navItem} ${hasPrestamosSubmenu ? styles.hasSubmenu : ""} ${
-                isPrestamosActive ? styles.active : ""
+              className={`${styles.navItem} ${hasLudotecaSubmenu ? styles.hasSubmenu : ""} ${
+                isLudotecaActive ? styles.active : ""
               }`}
             >
-              {hasPrestamosSubmenu ? (
+              {hasLudotecaSubmenu ? (
                 <>
                   <Link to="/" aria-haspopup="menu" aria-expanded={false}>
-                    Préstamos
+                    Ludoteca
                     <ChevronDown />
                   </Link>
-                  <PrestamosSubmenu
+                  <LudotecaSubmenu
                     role={role}
                     adminExpanded={false}
                     onToggleAdmin={() => undefined}
                   />
                 </>
               ) : (
-                <Link to="/">Préstamos</Link>
+                <Link to="/">Ludoteca</Link>
               )}
             </li>
           </ul>
@@ -395,22 +395,22 @@ export function SiteHeader() {
                 );
               })}
 
-            {/* Préstamos in drawer */}
+            {/* Ludoteca in drawer */}
             <li className={styles.drawerItem}>
-              {hasPrestamosSubmenu ? (
+              {hasLudotecaSubmenu ? (
                 <>
                   <button
                     type="button"
                     className={styles.drawerParent}
                     aria-haspopup="menu"
-                    aria-expanded={prestamosExpanded}
-                    onClick={() => setPrestamosExpanded((prev) => !prev)}
+                    aria-expanded={ludotecaExpanded}
+                    onClick={() => setLudotecaExpanded((prev) => !prev)}
                   >
-                    Préstamos
+                    Ludoteca
                     <ChevronDown />
                   </button>
-                  {prestamosExpanded && (
-                    <PrestamosSubmenu
+                  {ludotecaExpanded && (
+                    <LudotecaSubmenu
                       role={role}
                       adminExpanded={adminExpanded}
                       onToggleAdmin={() => setAdminExpanded((prev) => !prev)}
@@ -420,7 +420,7 @@ export function SiteHeader() {
                 </>
               ) : (
                 <Link to="/" onClick={closeDrawer}>
-                  Préstamos
+                  Ludoteca
                 </Link>
               )}
             </li>
