@@ -1,0 +1,474 @@
+/* SiteHeader styles
+ * Visual reference: frontend/public/content-mirror/index.html scraped header
+ * Header bg: rgb(0,0,0) from nav#yuynLe inline style
+ * Link color: rgba(255,255,255,1) from .fOU46b .YSH9J
+ * Active color: rgba(190,0,0,1) from .fOU46b .aCIEDd .YSH9J
+ */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--header-z);
+  background-color: var(--color-header-bg);
+  color: var(--color-header-fg);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: var(--bp-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  height: var(--header-height);
+}
+
+/* ─── Logo ─────────────────────────────────────────────────────────── */
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* ─── Desktop nav ───────────────────────────────────────────────────── */
+
+.desktopNav {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.navItem {
+  position: relative;
+}
+
+.navItem > a,
+.navItem > button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-header-fg);
+  text-decoration: none;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.navItem > a:hover,
+.navItem > button:hover {
+  color: var(--color-header-fg-hover);
+}
+
+.navItem.active > a,
+.navItem.active > button {
+  color: var(--color-header-fg-active);
+}
+
+/* ─── Submenu (desktop CSS-driven) ──────────────────────────────────── */
+
+.hasSubmenu {
+  position: relative;
+}
+
+.submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: var(--header-z);
+  min-width: 180px;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-xs) 0;
+  background-color: var(--color-header-bg);
+  border: 1px solid var(--color-header-divider);
+  border-top: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submenu {
+    transition: none;
+  }
+}
+
+.hasSubmenu:hover > .submenu,
+.hasSubmenu:focus-within > .submenu {
+  visibility: visible;
+  opacity: 1;
+}
+
+.submenuItem {
+  position: relative;
+}
+
+.submenuItem > a,
+.submenuButton {
+  display: block;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-header-fg);
+  text-decoration: none;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.submenuItem > a:hover,
+.submenuButton:hover {
+  background-color: var(--color-header-divider);
+}
+
+/* ─── Nested admin submenu (desktop CSS-driven) ──────────────────────── */
+
+.hasNested {
+  position: relative;
+}
+
+.nestedTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-header-fg);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.nestedTrigger:hover {
+  background-color: var(--color-header-divider);
+}
+
+.nestedList {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  left: auto;
+  z-index: var(--header-z);
+  min-width: 160px;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-xs) 0;
+  background-color: var(--color-header-bg);
+  border: 1px solid var(--color-header-divider);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nestedList {
+    transition: none;
+  }
+}
+
+.hasNested:hover > .nestedList,
+.hasNested:focus-within > .nestedList {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* When mobile-open (state-driven) */
+.nestedListOpen {
+  position: static;
+  visibility: visible;
+  opacity: 1;
+  border: none;
+  padding-left: var(--space-lg);
+}
+
+.nestedItem > a {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-header-fg);
+  text-decoration: none;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  white-space: nowrap;
+  transition: background-color 0.1s ease;
+}
+
+.nestedItem > a:hover {
+  background-color: var(--color-header-divider);
+}
+
+/* ─── Chevron ────────────────────────────────────────────────────────── */
+
+.chevron {
+  width: 1em;
+  height: 1em;
+  transition: transform 0.15s ease;
+}
+
+/* Desktop: rotate when the submenu is revealed by hover/focus-within. */
+.hasSubmenu:hover > a > .chevron,
+.hasSubmenu:focus-within > a > .chevron,
+.hasNested:hover > .nestedTrigger > .chevron,
+.hasNested:focus-within > .nestedTrigger > .chevron {
+  transform: rotate(180deg);
+}
+
+/* Mobile drawer + nested admin: rotate based on real aria-expanded state. */
+.drawerParent[aria-expanded="true"] > .chevron,
+.nestedTrigger[aria-expanded="true"] > .chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* ─── Header actions (right-aligned slot for login / utility links) ──── */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: var(--space-md);
+}
+
+@media (max-width: 767px) {
+  .headerActions {
+    display: none;
+  }
+}
+
+.loginAction {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-md);
+  color: var(--color-header-fg);
+  text-decoration: none;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--color-header-fg);
+  border-radius: var(--radius-sm, 4px);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.loginAction:hover,
+.loginAction:focus-visible {
+  background-color: var(--color-header-fg);
+  color: var(--color-header-bg);
+}
+
+.drawerLoginAction {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-header-fg-active);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+/* ─── User actions (authenticated state) ──────────────────────────── */
+
+.userDisplayName {
+  color: var(--color-header-fg);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.logoutAction {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-md);
+  color: var(--color-header-fg);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--color-header-fg);
+  border-radius: var(--radius-sm, 4px);
+  white-space: nowrap;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.logoutAction:hover,
+.logoutAction:focus-visible {
+  background-color: var(--color-header-fg);
+  color: var(--color-header-bg);
+}
+
+.drawerUserRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawerUserDisplayName {
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-header-fg);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.drawerLogoutAction {
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-header-fg-active);
+  font-size: var(--font-size-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family-body);
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+}
+
+/* ─── Hamburger ──────────────────────────────────────────────────────── */
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: var(--space-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.hamburgerBar {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--color-header-fg);
+  border-radius: 1px;
+}
+
+/* ─── Mobile drawer ──────────────────────────────────────────────────── */
+
+.drawer {
+  display: none;
+  background-color: var(--color-header-bg);
+  border-top: 1px solid var(--color-header-divider);
+  overflow-y: auto;
+  max-height: calc(100vh - var(--header-height));
+}
+
+.drawerList {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-sm) 0;
+}
+
+.drawerItem {
+  border-bottom: 1px solid var(--color-header-divider);
+}
+
+.drawerItem > a,
+.drawerParent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-header-fg);
+  text-decoration: none;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Drawer submenu (state-driven) */
+.drawer .submenu {
+  position: static;
+  visibility: visible;
+  opacity: 1;
+  border: none;
+  background-color: transparent;
+  padding-left: var(--space-lg);
+}
+
+.drawer .submenuItem > a,
+.drawer .submenuButton {
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* ─── Breakpoints ────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .desktopNav {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .drawerOpen {
+    display: block;
+  }
+}
+
+@media (min-width: 768px) {
+  .drawer {
+    display: none !important;
+  }
+}
+
+/* Focus-visible ring on dark background */
+.navItem > a:focus-visible,
+.navItem > button:focus-visible,
+.submenuItem > a:focus-visible,
+.submenuButton:focus-visible,
+.nestedTrigger:focus-visible,
+.nestedItem > a:focus-visible,
+.hamburger:focus-visible,
+.drawerItem > a:focus-visible,
+.drawerParent:focus-visible,
+.logoLink:focus-visible,
+.logoutAction:focus-visible,
+.drawerLogoutAction:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

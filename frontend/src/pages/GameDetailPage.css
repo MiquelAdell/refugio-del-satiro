@@ -53,6 +53,13 @@
   color: var(--color-warning);
 }
 
+.game-detail-actions {
+  margin-top: var(--space-md);
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .game-detail-bgg {
   margin-top: var(--space-md);
 }

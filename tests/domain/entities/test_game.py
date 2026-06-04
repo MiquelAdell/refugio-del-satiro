@@ -10,7 +10,9 @@ class TestGame:
             id=1,
             bgg_id=12345,
             name="Catan",
+            slug="catan",
             thumbnail_url="https://example.com/catan.jpg",
+            image_url="https://example.com/catan_full.jpg",
             year_published=1995,
             min_players=3,
             max_players=4,
@@ -24,6 +26,7 @@ class TestGame:
         assert game.bgg_id == 12345
         assert game.name == "Catan"
         assert game.thumbnail_url == "https://example.com/catan.jpg"
+        assert game.image_url == "https://example.com/catan_full.jpg"
         assert game.year_published == 1995
 
     def test_game_is_frozen(self) -> None:
@@ -32,7 +35,9 @@ class TestGame:
             id=1,
             bgg_id=12345,
             name="Catan",
+            slug="catan",
             thumbnail_url="https://example.com/catan.jpg",
+            image_url="https://example.com/catan_full.jpg",
             year_published=1995,
             min_players=3,
             max_players=4,
@@ -44,6 +49,6 @@ class TestGame:
         )
         try:
             game.name = "Modified"  # type: ignore[misc]
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass

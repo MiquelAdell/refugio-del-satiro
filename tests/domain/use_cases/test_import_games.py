@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from backend.data.bgg_client import BggGame
 from backend.domain.entities.game import Game
+from backend.domain.slug import ensure_unique, slugify
 from backend.domain.use_cases.import_games import ImportGamesUseCase
 
 
@@ -23,6 +24,9 @@ class FakeGameRepository:
     def get_by_id(self, game_id: int) -> Game | None:
         return self._games.get(game_id)
 
+    def get_by_slug(self, slug: str) -> Game | None:
+        return next((g for g in self._games.values() if g.slug == slug), None)
+
     def get_by_bgg_id(self, bgg_id: int) -> Game | None:
         return next((g for g in self._games.values() if g.bgg_id == bgg_id), None)
 
@@ -30,16 +34,26 @@ class FakeGameRepository:
         return sorted(self._games.values(), key=lambda g: g.name)
 
     def upsert_by_bgg_id(
-        self, bgg_id: int, name: str, thumbnail_url: str, year_published: int,
+        self, bgg_id: int, name: str, thumbnail_url: str, image_url: str = "",
+        year_published: int = 0,
         min_players: int = 0, max_players: int = 0, playing_time: int = 0,
         bgg_rating: float = 0.0, location: str = "armari",
     ) -> Game:
         now = datetime.now(UTC)
         existing = self.get_by_bgg_id(bgg_id)
+        slug = (
+            existing.slug
+            if existing and slugify(existing.name) == slugify(name)
+            else ensure_unique(
+                slugify(name),
+                (g.slug for g in self._games.values() if g.bgg_id != bgg_id),
+            )
+        )
         if existing:
             game = Game(
-                id=existing.id, bgg_id=bgg_id, name=name,
-                thumbnail_url=thumbnail_url, year_published=year_published,
+                id=existing.id, bgg_id=bgg_id, name=name, slug=slug,
+                thumbnail_url=thumbnail_url, image_url=image_url,
+                year_published=year_published,
                 min_players=min_players, max_players=max_players,
                 playing_time=playing_time, bgg_rating=bgg_rating, location=location,
                 created_at=existing.created_at, updated_at=now,
@@ -47,8 +61,9 @@ class FakeGameRepository:
             self._games[game.id] = game
             return game
         game = Game(
-            id=self._next_id, bgg_id=bgg_id, name=name,
-            thumbnail_url=thumbnail_url, year_published=year_published,
+            id=self._next_id, bgg_id=bgg_id, name=name, slug=slug,
+            thumbnail_url=thumbnail_url, image_url=image_url,
+            year_published=year_published,
             min_players=min_players, max_players=max_players,
             playing_time=playing_time, bgg_rating=bgg_rating, location=location,
             created_at=now, updated_at=now,

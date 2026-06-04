@@ -17,7 +17,7 @@ export function useGames(): UseGamesResult {
   const fetchGames = useCallback(() => {
     setLoading(true);
     setError(null);
-    apiFetch<readonly GameWithStatus[]>("/games")
+    apiFetch<readonly GameWithStatus[]>("/juegos")
       .then(setGames)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));

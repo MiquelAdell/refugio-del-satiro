@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.domain.entities.loan import Loan
 from backend.domain.repositories.game_repository import GameRepository
 from backend.domain.repositories.loan_repository import LoanRepository
 
@@ -13,6 +12,7 @@ class ActiveLoanWithGame:
     game_id: int
     game_name: str
     game_thumbnail_url: str
+    game_image_url: str
     borrowed_at: str
 
 
@@ -37,6 +37,7 @@ class GetMemberLoansUseCase:
                 game_id=game.id,
                 game_name=game.name,
                 game_thumbnail_url=game.thumbnail_url,
+                game_image_url=game.image_url,
                 borrowed_at=loan.borrowed_at.isoformat(),
             ))
         return result

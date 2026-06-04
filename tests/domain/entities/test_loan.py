@@ -36,6 +36,6 @@ class TestLoan:
         loan = Loan(id=1, game_id=5, member_id=3, borrowed_at=now, returned_at=None)
         try:
             loan.returned_at = now  # type: ignore[misc]
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass

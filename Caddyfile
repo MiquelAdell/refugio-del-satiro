@@ -1,0 +1,61 @@
+{$DOMAIN:localhost} {
+	# App (lending flow) — keeps its /prestamos prefix.
+	handle_path /prestamos/* {
+		reverse_proxy app:8000
+	}
+
+	# 301 redirects for legacy Google Sites slugs.
+	redir /inicio / permanent
+	redir /inicio/ / permanent
+	redir /socios/ludoteca /ludoteca permanent
+	redir /socios/ludoteca/ /ludoteca permanent
+	redir /Validacion-Membresia /validacion permanent
+	redir /Validacion-Membresia/ /validacion permanent
+	redir /juegos-de-rol/campa%C3%B1as /juegos-de-rol/campanas permanent
+	redir /juegos-de-rol/campañas /juegos-de-rol/campanas permanent
+	redir /juegos-de-rol/campa%C3%B1as/ /juegos-de-rol/campanas/ permanent
+	redir /juegos-de-rol/campañas/ /juegos-de-rol/campanas/ permanent
+
+	# Canonicalize directory-style URLs to a trailing slash. Search engines
+	# treat /calendario and /calendario/ as separate URLs unless we 301 one
+	# to the other; this picks the trailing-slash form (which is also what
+	# the SPA's <base href="/prestamos/"> requires).
+	#
+	# Excluded:
+	#   - "/" itself (already canonical)
+	#   - "/prestamos/*" — the SPA owns its own routes (React Router would
+	#     break if /prestamos/games/1 redirected to /prestamos/games/1/)
+	#   - paths already ending in "/"
+	#   - paths with a "." in them (assumed to be files: /_assets/foo.css,
+	#     /favicon.ico, /manifest.json)
+	#
+	# Note: "/prestamos" (no slash) IS redirected here, since it does not
+	# match "/prestamos/*". Result: /prestamos → /prestamos/.
+	@needs_trailing_slash {
+		not path /
+		not path /prestamos/*
+		not path */
+		not path *.*
+	}
+	redir @needs_trailing_slash {path}/ 301
+
+	# Content mirror served from a VPS volume. The volume is seeded from the
+	# git-checked-in content on every deploy; admin-triggered syncs rewrite it
+	# live without needing a commit.
+	handle {
+		root * /srv/content
+		try_files {path} {path}/ {path}/index.html
+		file_server
+		encode gzip zstd
+
+		# site-shell.js is rebuilt on every deploy and must not be cached immutably.
+		@site_shell path /_assets/site-shell.js
+		header @site_shell Cache-Control "public, max-age=300"
+		@assets path /_assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		@html path *.html
+		header @html Cache-Control "public, max-age=300"
+		@nav path /_nav.json
+		header @nav Cache-Control "public, max-age=300"
+	}
+}

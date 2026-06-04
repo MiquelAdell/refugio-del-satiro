@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { apiFetch } from "../api/client";
+import { Button } from "../ui/Button";
 import "./SetPasswordPage.css";
 
 export function SetPasswordPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
-  const { t } = useTranslation();
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -20,17 +19,17 @@ export function SetPasswordPage() {
     setError(null);
 
     if (!token) {
-      setError(t("setPassword.errorInvalidToken"));
+      setError("Token no válido o ausente.");
       return;
     }
 
     if (password.length < 4) {
-      setError(t("setPassword.errorMinLength"));
+      setError("La contraseña debe tener al menos 4 caracteres.");
       return;
     }
 
     if (password !== confirm) {
-      setError(t("setPassword.errorMismatch"));
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
@@ -42,7 +41,7 @@ export function SetPasswordPage() {
       });
       setSuccess(true);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t("setPassword.unknownError");
+      const message = err instanceof Error ? err.message : "Error desconocido";
       setError(message);
     } finally {
       setLoading(false);
@@ -53,10 +52,10 @@ export function SetPasswordPage() {
     return (
       <div className="set-password-page">
         <div className="set-password-form">
-          <h1>{t("setPassword.successTitle")}</h1>
+          <h1>Contraseña establecida</h1>
           <div className="set-password-success">
-            {t("setPassword.successMessage")}{" "}
-            <Link to="/login">{t("setPassword.loginLink")}</Link>
+            La contraseña se ha establecido correctamente.{" "}
+            <Link to="/login">Inicia sesión</Link>
           </div>
         </div>
       </div>
@@ -66,12 +65,12 @@ export function SetPasswordPage() {
   return (
     <div className="set-password-page">
       <form className="set-password-form" onSubmit={(e) => void handleSubmit(e)}>
-        <h1>{t("setPassword.title")}</h1>
+        <h1>Establecer contraseña</h1>
 
         {error && <div className="set-password-error">{error}</div>}
 
         <div className="set-password-field">
-          <label htmlFor="password">{t("setPassword.password")}</label>
+          <label htmlFor="password">Contraseña</label>
           <input
             id="password"
             type="password"
@@ -83,7 +82,7 @@ export function SetPasswordPage() {
         </div>
 
         <div className="set-password-field">
-          <label htmlFor="confirm">{t("setPassword.confirm")}</label>
+          <label htmlFor="confirm">Confirmar contraseña</label>
           <input
             id="confirm"
             type="password"
@@ -94,9 +93,9 @@ export function SetPasswordPage() {
           />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={loading}>
-          {loading ? t("setPassword.submitting") : t("setPassword.submit")}
-        </button>
+        <Button variant="primary" type="submit" disabled={loading}>
+          {loading ? "Estableciendo..." : "Establecer contraseña"}
+        </Button>
       </form>
     </div>
   );

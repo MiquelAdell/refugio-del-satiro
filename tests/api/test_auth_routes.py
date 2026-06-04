@@ -7,9 +7,10 @@ from fastapi.testclient import TestClient
 from backend.api.app import create_app
 from backend.api.auth import hash_password
 from backend.api.dependencies import get_db_conn
-from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.data.repositories.sqlite_password_token_repository import SqlitePasswordTokenRepository
+from backend.data.repositories.sqlite_password_token_repository import (
+    SqlitePasswordTokenRepository,
+)
 from backend.migrations.runner import run_migrations
 
 

@@ -12,9 +12,16 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    plugins: { 'react-hooks': reactHooks },
+    rules: {
+      // v7 ships React-Compiler rules in its `recommended` preset, but this
+      // project does not use the React Compiler. Opt in to only the two
+      // stable, well-understood rules from the pre-compiler era.
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

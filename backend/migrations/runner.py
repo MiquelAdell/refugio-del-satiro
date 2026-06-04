@@ -1,10 +1,40 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from pathlib import Path
 
+from backend.domain.slug import ensure_unique, slugify
 
 MIGRATIONS_DIR = Path(__file__).parent
+
+
+def _backfill_game_slugs(conn: sqlite3.Connection) -> None:
+    """Generate slugs for games that don't yet have one.
+
+    Run after ``005_add_game_slug.sql`` adds the column with an empty default.
+    """
+    rows = conn.execute(
+        "SELECT id, name FROM games WHERE slug = '' OR slug IS NULL"
+    ).fetchall()
+    if not rows:
+        return
+    taken = {
+        r[0]
+        for r in conn.execute(
+            "SELECT slug FROM games WHERE slug != ''"
+        ).fetchall()
+    }
+    for row in rows:
+        unique = ensure_unique(slugify(row["name"]), taken)
+        conn.execute("UPDATE games SET slug = ? WHERE id = ?", (unique, row["id"]))
+        taken.add(unique)
+    conn.commit()
+
+
+POST_MIGRATION_HOOKS: dict[str, Callable[[sqlite3.Connection], None]] = {
+    "005_add_game_slug": _backfill_game_slugs,
+}
 
 
 def _ensure_schema_table(conn: sqlite3.Connection) -> None:
@@ -45,6 +75,9 @@ def run_migrations(conn: sqlite3.Connection) -> list[str]:
     applied_now: list[str] = []
     for version, sql in pending:
         conn.executescript(sql)
+        hook = POST_MIGRATION_HOOKS.get(version)
+        if hook is not None:
+            hook(conn)
         conn.execute(
             "INSERT INTO schema_migrations (version) VALUES (?)", (version,)
         )

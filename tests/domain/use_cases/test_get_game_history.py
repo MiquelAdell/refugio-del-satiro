@@ -2,12 +2,51 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from backend.domain.entities.game import Game
 from backend.domain.entities.loan import Loan
 from backend.domain.entities.member import Member
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
 
-
 # ── Fake repositories ──────────────────────────────────────────────
+
+
+class FakeGameRepository:
+    def __init__(self, games: list[Game] | None = None) -> None:
+        self._games: list[Game] = games or []
+
+    def get_by_id(self, game_id: int) -> Game | None:
+        return next((g for g in self._games if g.id == game_id), None)
+
+    def get_by_slug(self, slug: str) -> Game | None:
+        return next((g for g in self._games if g.slug == slug), None)
+
+    def get_by_bgg_id(self, bgg_id: int) -> Game | None:
+        return next((g for g in self._games if g.bgg_id == bgg_id), None)
+
+    def list_all(self) -> list[Game]:
+        return list(self._games)
+
+    def upsert_by_bgg_id(self, **kwargs: object) -> Game:
+        raise NotImplementedError
+
+
+def _make_game(id: int, slug: str = "catan") -> Game:
+    return Game(
+        id=id,
+        bgg_id=id * 100,
+        name=slug.replace("-", " ").title(),
+        slug=slug,
+        thumbnail_url="https://example.com/x.jpg",
+        image_url="https://example.com/x_full.jpg",
+        year_published=2020,
+        min_players=2,
+        max_players=4,
+        playing_time=60,
+        bgg_rating=7.0,
+        location="armari",
+        created_at=NOW,
+        updated_at=NOW,
+    )
 
 
 class FakeLoanRepository:
@@ -106,19 +145,33 @@ def _make_loan(
 
 
 class TestGetGameHistoryUseCase:
-    def test_no_history(self) -> None:
+    def test_unknown_slug_returns_none(self) -> None:
         use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository(),
             loan_repo=FakeLoanRepository(),
             member_repo=FakeMemberRepository(),
         )
 
-        result = use_case.execute(game_id=999)
+        result = use_case.execute(slug="no-existe")
+
+        assert result is None
+
+    def test_known_game_with_no_loans_returns_empty_list(self) -> None:
+        game = _make_game(1, "catan")
+        use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository([game]),
+            loan_repo=FakeLoanRepository(),
+            member_repo=FakeMemberRepository(),
+        )
+
+        result = use_case.execute(slug="catan")
 
         assert result == []
 
     def test_mixed_active_and_returned_loans(self) -> None:
         alice = _make_member(1, "Alice")
         bob = _make_member(2, "Bob")
+        game = _make_game(1, "catan")
 
         borrowed_earlier = datetime(2025, 1, 1, tzinfo=UTC)
         returned_date = datetime(2025, 1, 15, tzinfo=UTC)
@@ -139,12 +192,14 @@ class TestGetGameHistoryUseCase:
         )
 
         use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository([game]),
             loan_repo=FakeLoanRepository([returned_loan, active_loan]),
             member_repo=FakeMemberRepository([alice, bob]),
         )
 
-        result = use_case.execute(game_id=1)
+        result = use_case.execute(slug="catan")
 
+        assert result is not None
         assert len(result) == 2
 
         # Most recent first

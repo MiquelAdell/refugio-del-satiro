@@ -1,0 +1,49 @@
+# Dev Caddy configuration — single entry point for local development.
+#
+# Purpose:
+#   Provides the same /prestamos vs. static-content routing split as
+#   production, without needing separate browser tabs for :5173 and :8080.
+#
+# Differences from production Caddyfile:
+#   - Listens on :2015 (plain HTTP, no TLS / ACME).
+#   - /prestamos/* reverse-proxies to the Vite dev server (:5173) instead
+#     of the built app container.
+#   - /@* reverse-proxies to Vite as well — Vite injects /@vite/client and
+#     other /@* paths into HTML; they must reach Vite, not the content mirror.
+#   - Everything else reverse-proxies to dev_mirror.py (:8080) instead of
+#     file_server from a volume.
+#   - Legacy redirects and cache-control headers are omitted (not needed in dev).
+#
+# How to run (from repo root):
+#   caddy run --config Caddyfile.dev --adapter caddyfile
+#
+# How to validate:
+#   caddy validate --config Caddyfile.dev --adapter caddyfile
+
+:2015 {
+    # Lending SPA — proxied to Vite dev server with HMR support.
+    handle /prestamos/* {
+        reverse_proxy localhost:5173
+    }
+
+    # Vite internals (HMR client, virtual modules, FS access).
+    # Must reach Vite directly or HMR breaks when accessed through this proxy.
+    handle /@* {
+        reverse_proxy localhost:5173
+    }
+
+    # Canonicalize /prestamos (no slash) → /prestamos/ so the SPA's
+    # <base href="/prestamos/"> resolves correctly.
+    @needs_trailing_slash {
+        not path /
+        not path /prestamos/*
+        not path */
+        not path *.*
+    }
+    redir @needs_trailing_slash {path}/ 301
+
+    # Static content mirror (all other routes).
+    handle {
+        reverse_proxy localhost:8080
+    }
+}

@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Button } from "../ui/Button";
 import "./LoginPage.css";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +21,7 @@ export function LoginPage() {
       await login(email, password);
       navigate("/");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t("login.unknownError");
+      const message = err instanceof Error ? err.message : "Error desconocido";
       setError(message);
     } finally {
       setLoading(false);
@@ -32,12 +31,12 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <form className="login-form" onSubmit={(e) => void handleSubmit(e)}>
-        <h1>{t("login.title")}</h1>
+        <h1>Iniciar sesión</h1>
 
         {error && <div className="login-error">{error}</div>}
 
         <div className="login-field">
-          <label htmlFor="email">{t("login.email")}</label>
+          <label htmlFor="email">Correo electrónico</label>
           <input
             id="email"
             type="email"
@@ -49,7 +48,7 @@ export function LoginPage() {
         </div>
 
         <div className="login-field">
-          <label htmlFor="password">{t("login.password")}</label>
+          <label htmlFor="password">Contraseña</label>
           <input
             id="password"
             type="password"
@@ -60,9 +59,13 @@ export function LoginPage() {
           />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={loading}>
-          {loading ? t("login.submitting") : t("login.submit")}
-        </button>
+        <Button variant="primary" type="submit" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
+
+        <p style={{ marginTop: "var(--space-md)", textAlign: "center", fontSize: "var(--font-size-sm)" }}>
+          <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+        </p>
       </form>
     </div>
   );

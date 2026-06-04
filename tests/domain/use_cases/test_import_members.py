@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import secrets
-from collections import Counter
 from datetime import UTC, datetime, timedelta
 
 from backend.domain.entities.member import Member

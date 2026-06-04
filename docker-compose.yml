@@ -1,0 +1,46 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/data/db
+      - content-cache:/srv/content
+    environment:
+      - REFUGIO_DB_PATH=/app/data/db/refugio.db
+      - REFUGIO_JWT_SECRET=${REFUGIO_JWT_SECRET}
+      - REFUGIO_BASE_URL=${REFUGIO_BASE_URL:-http://localhost/prestamos}
+      - REFUGIO_CONTENT_MIRROR_DIR=/srv/content
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - BGG_BEARER_TOKEN=${BGG_BEARER_TOKEN:-}
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - content-cache:/srv/content:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    depends_on:
+      - app
+
+volumes:
+  app-data:
+    name: refugio_app_data
+  caddy-data:
+    name: refugio_caddy_data
+  caddy-config:
+    name: refugio_caddy_config
+  content-cache:
+    name: refugio_content_cache

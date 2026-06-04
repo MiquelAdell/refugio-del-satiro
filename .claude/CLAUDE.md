@@ -97,6 +97,22 @@ Write tests that validate behavior precisely and are easy to maintain:
 - When CI workflows are added, do not restrict the `pull_request` trigger to specific branches — leave it unrestricted so all PRs get checked regardless of branch naming. Listing patterns like `feature/**` is fragile and misses other conventions (`fix/**`, `hotfix/**`, etc.). Keep `push` triggers limited to `main` and `development`.
 - Every PR should get automated feedback (lint, type-check, tests) before merge.
 
+## Verification Before Calling Work Done
+
+Automated unit/integration tests are necessary but not sufficient. Every change — feature, refactor, or bug fix — must also be verified end-to-end before being declared done:
+
+1. **Smoke test in a real browser.** Start the backend (`uvicorn`) and frontend (`vite`) locally, then exercise the changed flow through the UI:
+   - The golden path of the feature you changed.
+   - At least one obvious edge case (empty state, error state, not-found, unauthorised, etc.).
+   - One adjacent flow that could plausibly regress (e.g. if you touched a shared hook or component).
+   Use the Chrome DevTools MCP or Playwright MCP to drive the browser. Inspect the network tab to confirm requests look right (correct endpoint, no unexpected extra calls, expected payload size) and the console for errors/warnings.
+
+2. **Visual inspection.** Take a screenshot of the changed screen(s) and check rendering — layout, copy (Spanish for user-facing text on TFM-derived screens), images loading, no broken styles. Compare against the previous behaviour where relevant.
+
+3. **If you cannot run the smoke test**, say so explicitly in the response. Do not claim the work is done. Acceptable reasons: missing credentials, external service down, environment cannot be started. "I forgot" or "the unit tests passed" are not acceptable reasons.
+
+The repo has a `design-smoke-test` skill for building reusable smoke-test skills per feature/PR — use it when a flow will be re-tested often.
+
 ## After Every Feature Change
 
 After implementing any feature addition, modification, or bug fix, always update **all** of the following before considering the work done:

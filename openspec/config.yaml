@@ -1,15 +1,18 @@
 schema: spec-driven
 
 context: |
-  Project: Préstecs Sàtirs
+  Project: Refugio del Sátiro
 
   What it is:
-  - A web interface to manage board/role-playing game lending for the "Refugio del Sátiro" RPG group
-  - Members can browse available games, request loans, and track who has what
+  - The website for the "Refugio del Sátiro" RPG association.
+  - Current scope: the game-lending app, mounted at `/prestamos`. Members can
+    browse available games, request loans, and track who has what.
+  - The root path `/` serves a work-in-progress placeholder; the home page
+    is planned as a future addition.
 
   Tech stack:
   - Python 3.12+ with FastAPI for the backend API
-  - Typer for CLI commands (`game-lending` console script)
+  - Typer for CLI commands (`refugio` console script)
   - SQLite for persistence (file-based, no server required)
   - React with TypeScript (strict mode) for the frontend
   - Vite for frontend dev server and builds
@@ -56,10 +59,10 @@ context: |
   - e2e/                  # Playwright end-to-end tests
 
   Configuration:
-  - PRESTECS_DB_PATH: SQLite database file path (default: prestecs.db)
-  - PRESTECS_JWT_SECRET: JWT signing secret (required in production)
-  - PRESTECS_BASE_URL: App public URL (default: http://localhost:8000)
-  - VITE_API_URL: Frontend API base URL (default: /api)
+  - REFUGIO_DB_PATH: SQLite database file path (default: refugio.db)
+  - REFUGIO_JWT_SECRET: JWT signing secret (required in production)
+  - REFUGIO_BASE_URL: Lending app public URL, used in reset-password email links (default: http://localhost:5173/prestamos)
+  - VITE_API_URL: Frontend API base URL (default: /prestamos/api)
 
   Canonical commands:
   - Backend install: pip install -e ".[dev]"
@@ -69,7 +72,7 @@ context: |
   - Backend lint: ruff check backend/ tests/
   - Backend format: black backend/ tests/
   - Backend typecheck: mypy backend/
-  - CLI: game-lending import-games / game-lending import-members members.csv / game-lending migrate
+  - CLI: refugio import-games / refugio import-members members.csv / refugio migrate
   - Frontend install: cd frontend && npm install
   - Frontend dev: cd frontend && npm run dev
   - Frontend build: cd frontend && npm run build

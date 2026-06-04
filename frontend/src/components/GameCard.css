@@ -111,10 +111,3 @@
   color: var(--color-warning);
 }
 
-.game-card-actions {
-  padding: 0 var(--space-md) var(--space-md);
-}
-
-.game-card-actions button {
-  width: 100%;
-}

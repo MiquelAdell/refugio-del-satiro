@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: prestamos-satirs
+    runtime: python
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: uvicorn backend.api.app:create_app --factory --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: NODE_VERSION
+        value: "20"
+      - key: REFUGIO_JWT_SECRET
+        generateValue: true
+      - key: REFUGIO_BASE_URL
+        value: https://prestamos-satirs.onrender.com
+      - key: REFUGIO_DB_PATH
+        value: /opt/render/project/data/prestamos.db
+    disk:
+      name: prestamos-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1

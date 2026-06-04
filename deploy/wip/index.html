@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ca">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Refugio del Sátiro</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				--fg: #1a1a1a;
+				--bg: #faf7f2;
+				--accent: #8b4a2b;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root { --fg: #f0ece4; --bg: #1a1410; --accent: #d98b5f; }
+			}
+			* { box-sizing: border-box; }
+			html, body { margin: 0; padding: 0; height: 100%; }
+			body {
+				font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+				color: var(--fg);
+				background: var(--bg);
+				display: grid;
+				place-items: center;
+				padding: 2rem;
+				line-height: 1.5;
+			}
+			main {
+				text-align: center;
+				max-width: 32rem;
+			}
+			h1 {
+				font-size: clamp(2rem, 6vw, 3rem);
+				margin: 0 0 1rem;
+				letter-spacing: -0.02em;
+			}
+			p { margin: 0 0 2rem; opacity: 0.8; }
+			a {
+				display: inline-block;
+				padding: 0.75rem 1.5rem;
+				background: var(--accent);
+				color: #fff;
+				text-decoration: none;
+				border-radius: 0.5rem;
+				font-weight: 600;
+			}
+			a:hover { filter: brightness(1.1); }
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Refugio del Sátiro</h1>
+			<p>Lloc web en construcció.</p>
+			<a href="/prestamos/">Préstecs de jocs</a>
+		</main>
+	</body>
+</html>

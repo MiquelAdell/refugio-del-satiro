@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-import sqlite3
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from backend.cli.main import app
-from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.migrations.runner import run_migrations
 
 runner = CliRunner()
 
-CSV_PATH = str(Path(__file__).resolve().parent.parent.parent / "members.csv")
+_CSV_FILE = Path(__file__).resolve().parent.parent.parent / "members.csv"
+CSV_PATH = str(_CSV_FILE)
 
 
+@pytest.mark.skipif(
+    not _CSV_FILE.exists(),
+    reason="members.csv not present (local-only fixture)",
+)
 def test_import_members_csv(monkeypatch: object, tmp_path: Path) -> None:
     """Import the actual members.csv and verify correct count and admin flag."""
     import backend.cli.main as cli_module

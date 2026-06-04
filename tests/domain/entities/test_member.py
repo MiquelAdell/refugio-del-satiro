@@ -90,6 +90,6 @@ class TestMember:
         )
         try:
             member.email = "changed@example.com"  # type: ignore[misc]
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass

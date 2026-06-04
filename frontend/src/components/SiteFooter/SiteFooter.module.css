@@ -1,0 +1,53 @@
+/* SiteFooter — mirrors the scraped club site footer, language selector omitted */
+
+.footer {
+  background-color: var(--color-header-bg);
+  color: var(--color-header-fg);
+  padding: var(--space-lg) 0;
+  margin-top: auto;
+}
+
+.inner {
+  max-width: var(--bp-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.socialList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+  border-radius: var(--radius-sm);
+}
+
+.socialLink:hover {
+  opacity: 1;
+}
+
+.socialLink:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.socialIcon {
+  display: block;
+  width: 32px;
+  height: 32px;
+}

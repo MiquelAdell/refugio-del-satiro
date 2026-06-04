@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from backend.data.bgg_client import BggClient
-from backend.domain.entities.game import Game
 from backend.domain.repositories.game_repository import GameRepository
 
 
@@ -34,6 +33,7 @@ class ImportGamesUseCase:
                 bgg_id=bgg_game.bgg_id,
                 name=bgg_game.name,
                 thumbnail_url=bgg_game.thumbnail_url,
+                image_url="",
                 year_published=bgg_game.year_published,
             )
             if existing is None:

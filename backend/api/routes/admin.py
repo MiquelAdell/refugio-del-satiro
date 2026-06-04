@@ -116,7 +116,6 @@ def create_member(
     token = token_repo.create(member.id)
     token_url = f"{_settings.base_url}/set-password?token={token.token}"
 
-    active_loans = []
     return CreateMemberResponse(
         member=MemberListItem(
             id=member.id,

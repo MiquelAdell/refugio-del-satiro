@@ -1,5 +1,7 @@
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.data.repositories.sqlite_password_token_repository import SqlitePasswordTokenRepository
+from backend.data.repositories.sqlite_password_token_repository import (
+    SqlitePasswordTokenRepository,
+)
 
 
 class TestSqlitePasswordTokenRepository:

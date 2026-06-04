@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 from backend.domain.entities.game import Game
 from backend.domain.entities.loan import Loan
 from backend.domain.entities.member import Member
+from backend.domain.slug import slugify
 from backend.domain.use_cases.list_games import ListGamesUseCase
-
 
 # ── Fake repositories ──────────────────────────────────────────────
 
@@ -18,6 +18,9 @@ class FakeGameRepository:
     def get_by_id(self, game_id: int) -> Game | None:
         return self._games.get(game_id)
 
+    def get_by_slug(self, slug: str) -> Game | None:
+        return next((g for g in self._games.values() if g.slug == slug), None)
+
     def get_by_bgg_id(self, bgg_id: int) -> Game | None:
         return next((g for g in self._games.values() if g.bgg_id == bgg_id), None)
 
@@ -25,7 +28,8 @@ class FakeGameRepository:
         return list(self._games.values())
 
     def upsert_by_bgg_id(
-        self, bgg_id: int, name: str, thumbnail_url: str, year_published: int
+        self, bgg_id: int, name: str, thumbnail_url: str, image_url: str = "",
+        year_published: int = 0,
     ) -> Game:
         raise NotImplementedError
 
@@ -89,7 +93,9 @@ def _make_game(id: int, name: str = "Test Game") -> Game:
         id=id,
         bgg_id=id * 100,
         name=name,
+        slug=slugify(name),
         thumbnail_url=f"https://example.com/{id}.jpg",
+        image_url=f"https://example.com/{id}_full.jpg",
         year_published=2020,
         min_players=2,
         max_players=4,

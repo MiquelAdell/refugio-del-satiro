@@ -1,0 +1,12 @@
+# Done
+- [2026-03-31] Buy RackNerd VPS
+- [2026-03-31] Server initial setup (SSH keys, UFW, Docker)
+- [2026-03-31] `Dockerfile`, `docker-compose.yml`, `Caddyfile`
+- [2026-03-31] Deploy + automatic HTTPS via Caddy
+- [2026-03-31] Initial data import
+- [2026-03-31] GitHub Actions auto-deploy on push to `development`
+- [2026-03-31] Build the `/` home page (currently a WIP placeholder served by Caddy from `deploy/wip/`).
+- [2026-05-01] Change https://test.refugiodelsatiro.es/prestecs/set-password/ to https://test.refugiodelsatiro.es/prestamos/set-password/ (commit 6fe1e54)
+- [2026-05-01] Invite refugio del sátiro to racknerd
+- [2026-05-01] review that the database doesn't get erased on a docker cycle
+- [2026-05-01] change resend from miquel's account to a new refugio account

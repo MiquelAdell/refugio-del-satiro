@@ -8,7 +8,9 @@ from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
-from backend.data.repositories.sqlite_password_token_repository import SqlitePasswordTokenRepository
+from backend.data.repositories.sqlite_password_token_repository import (
+    SqlitePasswordTokenRepository,
+)
 from backend.migrations.runner import run_migrations
 
 

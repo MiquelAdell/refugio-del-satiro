@@ -28,6 +28,34 @@ class TestSqliteGameRepository:
     def test_get_by_id_not_found(self, game_repo: SqliteGameRepository) -> None:
         assert game_repo.get_by_id(999) is None
 
+    def test_upsert_generates_slug_from_name(self, game_repo: SqliteGameRepository) -> None:
+        game = game_repo.upsert_by_bgg_id(13, "1,2,3! Now you see me...", "https://x.jpg", 2020)
+        assert game.slug == "1-2-3-now-you-see-me"
+
+    def test_upsert_assigns_unique_slug_when_names_collide(
+        self, game_repo: SqliteGameRepository
+    ) -> None:
+        first = game_repo.upsert_by_bgg_id(13, "Catan", "https://a.jpg", 1995)
+        second = game_repo.upsert_by_bgg_id(14, "Catan", "https://b.jpg", 1995)
+        assert first.slug == "catan"
+        assert second.slug == "catan-2"
+
+    def test_upsert_keeps_slug_when_name_unchanged(
+        self, game_repo: SqliteGameRepository
+    ) -> None:
+        first = game_repo.upsert_by_bgg_id(13, "Catan", "https://a.jpg", 1995)
+        again = game_repo.upsert_by_bgg_id(13, "Catan", "https://b.jpg", 1995)
+        assert again.slug == first.slug
+
+    def test_get_by_slug(self, game_repo: SqliteGameRepository) -> None:
+        game_repo.upsert_by_bgg_id(13, "Catan", "https://example.com/catan.jpg", 1995)
+        found = game_repo.get_by_slug("catan")
+        assert found is not None
+        assert found.bgg_id == 13
+
+    def test_get_by_slug_not_found(self, game_repo: SqliteGameRepository) -> None:
+        assert game_repo.get_by_slug("no-existe") is None
+
     def test_get_by_bgg_id(self, game_repo: SqliteGameRepository) -> None:
         game_repo.upsert_by_bgg_id(13, "Catan", "https://example.com/catan.jpg", 1995)
         found = game_repo.get_by_bgg_id(13)

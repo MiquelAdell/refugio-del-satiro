@@ -1,0 +1,6 @@
+/* Hide the original Google Sites header once the React site-shell is mounted.
+   The scraper tags it with data-gs-header="1" so we can target it without
+   depending on obfuscated Google Sites class names. */
+[data-gs-header] {
+  display: none !important;
+}

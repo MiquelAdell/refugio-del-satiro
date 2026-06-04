@@ -17,6 +17,17 @@ class BggGame:
     year_published: int
 
 
+@dataclass(frozen=True)
+class BggGameDetails:
+    bgg_id: int
+    image_url: str
+    thumbnail_url: str
+    min_players: int
+    max_players: int
+    playing_time: int
+    bgg_rating: float
+
+
 _BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -52,7 +63,7 @@ class BggClient:
         headers = self._get_auth_headers()
         backoff = self.INITIAL_BACKOFF
 
-        for attempt in range(self.MAX_RETRIES):
+        for _attempt in range(self.MAX_RETRIES):
             try:
                 response = httpx.get(url, headers=headers, timeout=30.0)
             except httpx.HTTPError:
@@ -137,6 +148,70 @@ class BggClient:
             ))
 
         return games
+
+    def fetch_details(self, bgg_ids: list[int], batch_size: int = 20) -> dict[int, BggGameDetails]:
+        """Fetch full details (image, players, time, rating) from the BGG thing API.
+
+        Returns a mapping of bgg_id → BggGameDetails.
+        """
+        headers = self._get_auth_headers()
+        details: dict[int, BggGameDetails] = {}
+
+        for i in range(0, len(bgg_ids), batch_size):
+            batch = bgg_ids[i : i + batch_size]
+            ids_param = ",".join(str(bid) for bid in batch)
+            url = f"{self.THING_API_URL}?id={ids_param}&stats=1"
+
+            try:
+                response = httpx.get(url, headers=headers, timeout=30.0)
+            except httpx.HTTPError:
+                continue
+
+            if response.status_code != 200:
+                continue
+
+            root = ET.fromstring(response.text)
+            for item in root.findall("item"):
+                bgg_id = int(item.get("id", "0"))
+                image_el = item.find("image")
+                image_url = image_el.text if image_el is not None and image_el.text else ""
+                thumb_el = item.find("thumbnail")
+                thumbnail_url = thumb_el.text if thumb_el is not None and thumb_el.text else ""
+
+                def _int_val(el_name: str, _item: object = item) -> int:  # noqa: B023
+                    el = _item.find(el_name)  # type: ignore[union-attr]
+                    if el is None:
+                        return 0
+                    return int(el.get("value", "0") or el.text or "0")
+
+                min_p = _int_val("minplayers")
+                max_p = _int_val("maxplayers")
+                play_time = _int_val("playingtime")
+
+                # Rating is in statistics/ratings/average
+                rating = 0.0
+                stats = item.find("statistics")
+                if stats is not None:
+                    ratings = stats.find("ratings")
+                    if ratings is not None:
+                        avg = ratings.find("average")
+                        if avg is not None:
+                            rating = float(avg.get("value", "0") or "0")
+
+                details[bgg_id] = BggGameDetails(
+                    bgg_id=bgg_id,
+                    image_url=image_url,
+                    thumbnail_url=thumbnail_url,
+                    min_players=min_p,
+                    max_players=max_p,
+                    playing_time=play_time,
+                    bgg_rating=round(rating, 2),
+                )
+
+            if i + batch_size < len(bgg_ids):
+                time.sleep(1.0)
+
+        return details
 
     def _parse_xml_collection(self, xml_text: str) -> list[BggGame]:
         root = ET.fromstring(xml_text)

@@ -1,0 +1,29 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--color-surface-alt);
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.logoWrapper {
+  margin-bottom: var(--space-xl);
+}
+
+.logo {
+  height: 60px;
+  width: auto;
+  display: block;
+}
+
+.logoWrapper a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.main {
+  width: 100%;
+  max-width: 400px;
+}

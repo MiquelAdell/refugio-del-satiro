@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useGames } from "../hooks/useGames";
 import { GameCard } from "../components/GameCard";
 import { SearchBar } from "../components/SearchBar";
@@ -11,28 +10,28 @@ type SortValue = "name-asc" | "name-desc" | "rating" | "players-asc" | "players-
 type LocationValue = "all" | "armari" | "soterrani";
 type TimePreset = "all" | "lt30" | "30to60" | "1to2h" | "2hplus";
 
-const SORT_OPTIONS: readonly { readonly value: SortValue; readonly i18nKey: string }[] = [
-  { value: "name-asc", i18nKey: "catalog.sortName" },
-  { value: "name-desc", i18nKey: "catalog.sortNameDesc" },
-  { value: "rating", i18nKey: "catalog.sortRating" },
-  { value: "players-asc", i18nKey: "catalog.sortPlayers" },
-  { value: "players-desc", i18nKey: "catalog.sortPlayersDesc" },
-  { value: "time-asc", i18nKey: "catalog.sortTime" },
-  { value: "time-desc", i18nKey: "catalog.sortTimeDesc" },
+const SORT_OPTIONS: readonly { readonly value: SortValue; readonly label: string }[] = [
+  { value: "name-asc", label: "Nombre (A-Z)" },
+  { value: "name-desc", label: "Nombre (Z-A)" },
+  { value: "rating", label: "Valoración BGG (alta a baja)" },
+  { value: "players-asc", label: "Jugadores (menos a más)" },
+  { value: "players-desc", label: "Jugadores (más a menos)" },
+  { value: "time-asc", label: "Tiempo de juego (corto a largo)" },
+  { value: "time-desc", label: "Tiempo de juego (largo a corto)" },
 ];
 
-const LOCATION_KEYS: readonly { readonly value: LocationValue; readonly i18nKey: string }[] = [
-  { value: "all", i18nKey: "catalog.locationAll" },
-  { value: "armari", i18nKey: "catalog.locationArmari" },
-  { value: "soterrani", i18nKey: "catalog.locationSoterrani" },
+const LOCATION_OPTIONS: readonly { readonly value: LocationValue; readonly label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "armari", label: "Armario" },
+  { value: "soterrani", label: "Sótano" },
 ];
 
-const TIME_PRESETS: readonly { readonly value: TimePreset; readonly i18nKey: string }[] = [
-  { value: "all", i18nKey: "catalog.timeAll" },
-  { value: "lt30", i18nKey: "catalog.timeLess30" },
-  { value: "30to60", i18nKey: "catalog.time30to60" },
-  { value: "1to2h", i18nKey: "catalog.time1to2h" },
-  { value: "2hplus", i18nKey: "catalog.time2hPlus" },
+const TIME_PRESETS: readonly { readonly value: TimePreset; readonly label: string }[] = [
+  { value: "all", label: "Todo" },
+  { value: "lt30", label: "< 30 min" },
+  { value: "30to60", label: "30-60 min" },
+  { value: "1to2h", label: "1-2h" },
+  { value: "2hplus", label: "2h+" },
 ];
 
 function stripPunctuation(name: string): string {
@@ -57,7 +56,7 @@ function matchesTimePreset(playingTime: number, preset: TimePreset): boolean {
 const DESKTOP_MQ = "(min-width: 641px)";
 
 export function CatalogPage() {
-  const { games, loading, error, refetch } = useGames();
+  const { games, loading, error } = useGames();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterValue>("all");
   const [location, setLocation] = useState<LocationValue>("all");
@@ -66,10 +65,8 @@ export function CatalogPage() {
   const [timePreset, setTimePreset] = useState<TimePreset>("all");
   const [minRating, setMinRating] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(() => window.matchMedia(DESKTOP_MQ).matches);
-  const { t } = useTranslation();
   const sortRef = useRef<HTMLDivElement>(null);
 
-  // Compute player range bounds from data
   const playerBounds = useMemo(() => {
     return { min: 1, max: 12 };
   }, []);
@@ -77,7 +74,6 @@ export function CatalogPage() {
   const [playersMin, setPlayersMin] = useState<number | null>(null);
   const [playersMax, setPlayersMax] = useState<number | null>(null);
 
-  // Effective slider values (use bounds when null / uninitialized)
   const effectiveMin = playersMin ?? playerBounds.min;
   const effectiveMax = playersMax ?? playerBounds.max;
 
@@ -90,7 +86,6 @@ export function CatalogPage() {
     [games],
   );
 
-  // Count active filters (non-default values)
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (sort !== "name-asc") count++;
@@ -104,7 +99,6 @@ export function CatalogPage() {
     return count;
   }, [sort, filter, location, timePreset, minRating, effectiveMin, effectiveMax, playerBounds]);
 
-  // Close sort dropdown on outside click
   useEffect(() => {
     if (!sortOpen) return;
     function handleClick(e: MouseEvent) {
@@ -140,32 +134,27 @@ export function CatalogPage() {
   const filteredGames = useMemo(() => {
     let result: readonly GameWithStatus[] = games;
 
-    // Availability filter
     if (filter === "available") {
       result = result.filter((g) => g.status === "available");
     } else if (filter === "lent") {
       result = result.filter((g) => g.status === "lent");
     }
 
-    // Location filter
     if (location !== "all") {
       result = result.filter((g) => g.location === location);
     }
 
-    // Search filter
     if (search.trim() !== "") {
       const query = search.trim().toLowerCase();
       result = result.filter((g) => g.name.toLowerCase().includes(query));
     }
 
-    // Player count filter (range overlap)
     const pMin = effectiveMin;
     const pMax = effectiveMax;
     const isAtExtremes = pMin <= playerBounds.min && pMax >= playerBounds.max;
     if (!isAtExtremes) {
       result = result.filter((g) => {
         if (g.min_players <= 0 && g.max_players <= 0) return false;
-        // When max slider is at 12 (12+), don't cap — include any game supporting pMin or more
         const effectivePMax = pMax >= 12 ? Infinity : pMax;
         if (g.min_players > effectivePMax) return false;
         if (g.max_players > 0 && g.max_players < pMin) return false;
@@ -173,17 +162,14 @@ export function CatalogPage() {
       });
     }
 
-    // Time preset filter
     if (timePreset !== "all") {
       result = result.filter((g) => matchesTimePreset(g.playing_time, timePreset));
     }
 
-    // Rating filter
     if (minRating > 0) {
       result = result.filter((g) => g.bgg_rating >= minRating);
     }
 
-    // Sort
     const sorted = [...result];
     switch (sort) {
       case "name-asc":
@@ -219,7 +205,7 @@ export function CatalogPage() {
   if (loading) {
     return (
       <div className="catalog-page">
-        <p className="catalog-loading">{t("catalog.loading")}</p>
+        <p className="catalog-loading">Cargando juegos...</p>
       </div>
     );
   }
@@ -235,25 +221,20 @@ export function CatalogPage() {
   const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sort);
   const isPlayerRangeAll = effectiveMin <= playerBounds.min && effectiveMax >= playerBounds.max;
   const playerMaxLabel = effectiveMax >= 12 ? "12+" : String(effectiveMax);
-  const playerRangeLabel = isPlayerRangeAll
-    ? t("catalog.playerRangeAll")
-    : t("catalog.playerRange", { min: effectiveMin, max: playerMaxLabel });
+  const playerRangeLabel = isPlayerRangeAll ? "Todo" : `${effectiveMin} – ${playerMaxLabel}`;
 
-  const filtersToggleLabel = activeFilterCount > 0
-    ? t("catalog.filtersCount", { count: activeFilterCount })
-    : t("catalog.filtersToggle");
+  const filtersToggleLabel =
+    activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros y ordenación";
 
   return (
     <div className="catalog-page">
       <div className="catalog-header">
-        <h1>{t("catalog.title")}</h1>
+        <h1>Catálogo de juegos</h1>
 
-        {/* Search — always visible */}
         <div className="catalog-controls">
           <SearchBar value={search} onChange={setSearch} />
         </div>
 
-        {/* Filters toggle */}
         <button
           className="catalog-filters-toggle"
           onClick={() => setFiltersOpen((prev) => !prev)}
@@ -266,10 +247,8 @@ export function CatalogPage() {
           )}
         </button>
 
-        {/* Collapsible filters panel */}
         <div className={`catalog-filters-panel${filtersOpen ? " open" : ""}`}>
           <div className="catalog-filters-panel-inner">
-            {/* Sort */}
             <div className="catalog-sort-wrapper" ref={sortRef}>
               <button
                 className="catalog-sort-btn"
@@ -278,10 +257,10 @@ export function CatalogPage() {
                 aria-expanded={sortOpen}
               >
                 <span className="catalog-sort-icon" aria-hidden="true">⇅</span>
-                {currentSortLabel ? t(currentSortLabel.i18nKey) : t("catalog.sortLabel")}
+                {currentSortLabel ? currentSortLabel.label : "Ordenar"}
               </button>
               {sortOpen && (
-                <div className="catalog-sort-panel" role="listbox" aria-label={t("catalog.sortLabel")}>
+                <div className="catalog-sort-panel" role="listbox" aria-label="Ordenar">
                   {SORT_OPTIONS.map((option) => (
                     <button
                       key={option.value}
@@ -293,36 +272,34 @@ export function CatalogPage() {
                       <span className="catalog-sort-radio" aria-hidden="true">
                         {sort === option.value ? "●" : "○"}
                       </span>
-                      {t(option.i18nKey)}
+                      {option.label}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Availability + Location */}
             <div className="catalog-filters">
               <FilterControl value={filter} onChange={setFilter} />
-              <div className="filter-control" role="group" aria-label={t("catalog.locationAll")}>
-                {LOCATION_KEYS.map((option) => (
+              <div className="filter-control" role="group" aria-label="Ubicación">
+                {LOCATION_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     className={location === option.value ? "active" : ""}
                     onClick={() => setLocation(option.value)}
                     aria-pressed={location === option.value}
                   >
-                    {t(option.i18nKey)}
+                    {option.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Players + Time + Rating */}
             <div className="catalog-filters-row3">
               {hasPlayerData && (
                 <div className="catalog-filter-group">
                   <label className="catalog-filter-label">
-                    {t("catalog.players")}: {playerRangeLabel}
+                    Jugadores: {playerRangeLabel}
                   </label>
                   <div className="catalog-dual-slider">
                     <input
@@ -333,7 +310,7 @@ export function CatalogPage() {
                       step={1}
                       value={effectiveMin}
                       onChange={handlePlayersMinChange}
-                      aria-label={t("catalog.playersMin")}
+                      aria-label="Mínimo"
                     />
                     <input
                       type="range"
@@ -343,7 +320,7 @@ export function CatalogPage() {
                       step={1}
                       value={effectiveMax}
                       onChange={handlePlayersMaxChange}
-                      aria-label={t("catalog.playersMax")}
+                      aria-label="Máximo"
                     />
                     <div className="catalog-dual-slider-track">
                       <div
@@ -360,8 +337,8 @@ export function CatalogPage() {
 
               {hasTimeData && (
                 <div className="catalog-filter-group">
-                  <label className="catalog-filter-label">{t("catalog.sortTime")}</label>
-                  <div className="filter-control" role="group" aria-label={t("catalog.sortTime")}>
+                  <label className="catalog-filter-label">Tiempo de juego</label>
+                  <div className="filter-control" role="group" aria-label="Tiempo de juego">
                     {TIME_PRESETS.map((preset) => (
                       <button
                         key={preset.value}
@@ -369,7 +346,7 @@ export function CatalogPage() {
                         onClick={() => setTimePreset(preset.value)}
                         aria-pressed={timePreset === preset.value}
                       >
-                        {t(preset.i18nKey)}
+                        {preset.label}
                       </button>
                     ))}
                   </div>
@@ -378,7 +355,7 @@ export function CatalogPage() {
 
               <div className="catalog-filter-group">
                 <label className="catalog-filter-label" htmlFor="min-rating-input">
-                  {t("catalog.minRating")}: {minRating.toFixed(1)}
+                  Valoración mínima: {minRating.toFixed(1)}
                 </label>
                 <input
                   id="min-rating-input"
@@ -397,11 +374,11 @@ export function CatalogPage() {
       </div>
 
       {filteredGames.length === 0 ? (
-        <p className="catalog-empty">{t("catalog.empty")}</p>
+        <p className="catalog-empty">No se han encontrado juegos.</p>
       ) : (
         <div className="catalog-grid">
           {filteredGames.map((game) => (
-            <GameCard key={game.id} game={game} onAction={refetch} />
+            <GameCard key={game.id} game={game} />
           ))}
         </div>
       )}

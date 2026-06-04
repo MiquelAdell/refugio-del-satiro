@@ -19,27 +19,27 @@ class EmailClient:
         html = f"""\
 <html>
 <body style="font-family: system-ui, sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto;">
-    <h2>Hola {display_name}!</h2>
-    <p>Benvingut/da a <strong>Préstecs Sàtirs</strong>, l'aplicació de préstec de jocs del Refugio del Sátiro.</p>
-    <p>Per accedir-hi, fes clic al següent enllaç per establir la teva contrasenya:</p>
+    <h2>¡Hola {display_name}!</h2>
+    <p>Bienvenido/a a <strong>Préstamos Sátiros</strong>, la aplicación de préstamo de juegos del Refugio del Sátiro.</p>
+    <p>Para acceder, haz clic en el siguiente enlace para establecer tu contraseña:</p>
     <p style="margin: 24px 0;">
         <a href="{url}"
            style="background-color: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-            Establir contrasenya
+            Establecer contraseña
         </a>
     </p>
     <p style="color: #6b7280; font-size: 14px;">
-        Aquest enllaç caduca en 48 hores. Si no has sol·licitat aquest accés, ignora aquest missatge.
+        Este enlace caduca en 48 horas. Si no has solicitado este acceso, ignora este mensaje.
     </p>
     <p style="color: #6b7280; font-size: 14px;">
-        Si el botó no funciona, copia i enganxa aquest enllaç al teu navegador:<br>
+        Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
         <a href="{url}" style="color: #2563eb;">{url}</a>
     </p>
 </body>
 </html>"""
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Préstecs Sàtirs — Accés al teu compte"
+        msg["Subject"] = "Préstamos Sátiros — Acceso a tu cuenta"
         msg["From"] = self._settings.smtp_from  # type: ignore[assignment]
         msg["To"] = to_email
         msg.attach(MIMEText(html, "html"))

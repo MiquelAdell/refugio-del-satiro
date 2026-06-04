@@ -1,5 +1,7 @@
 # Claude Code local settings (per-user permissions, not shared)
 .claude/settings.local.json
+# Claude Code session worktrees (git worktrees created by isolated agent runs)
+.claude/worktrees/
 
 # OS files
 .DS_Store
@@ -40,6 +42,12 @@ htmlcov/
 # Playwright MCP (browser logs, screenshots, downloads)
 .playwright-mcp/
 
+# Playwright test output (per-run, regenerated)
+playwright-report/
+test-results/
+e2e/fixtures/*.json
+!e2e/fixtures/.gitkeep
+
 # Sensitive data
 members.csv
 
@@ -47,3 +55,10 @@ members.csv
 .env
 .env.local
 .env.*.local
+
+# other project things
+references
+references/*
+
+# Reference screenshots too large for GitHub (>100 MB). Kept locally only.
+tasks/lending-redesign/existing-site/pythonanywhere-catalog.png
