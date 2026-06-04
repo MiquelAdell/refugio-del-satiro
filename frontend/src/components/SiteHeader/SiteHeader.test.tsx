@@ -554,12 +554,15 @@ describe("SiteHeader", () => {
       expect(logoLink!.getAttribute("href")).toEqual("/inicio");
     });
 
-    // nav-logo-2: logo img has correct alt text
-    it("logo img has alt text 'El Refugio del Sátiro' (nav-logo-2)", () => {
-      renderHeader();
+    // nav-logo-2: logo shows site name as visible text next to the icon
+    it("logo renders site name text 'El Refugio del Sátiro' (nav-logo-2)", () => {
+      const { container } = renderHeader();
 
-      const logoImg = screen.getByAltText("El Refugio del Sátiro");
-      expect(logoImg.tagName).toEqual("IMG");
+      const logoLink = container.querySelector("a[aria-label='Refugio del Sátiro – Inicio']");
+      expect(logoLink!.textContent).toContain("El Refugio del Sátiro");
+      const logoImg = logoLink!.querySelector("img");
+      expect(logoImg).not.toBeNull();
+      expect(logoImg!.getAttribute("alt")).toEqual("");
     });
   });
 

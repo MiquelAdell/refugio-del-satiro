@@ -218,10 +218,11 @@ export function SiteHeader() {
         <a href="/inicio" className={styles.logoLink} aria-label="Refugio del Sátiro – Inicio">
           <img
             src="/_assets/200953ee27cc922e.png"
-            alt="El Refugio del Sátiro"
+            alt=""
             className={styles.logo}
             height="40"
           />
+          <span className={styles.logoText}>El Refugio del Sátiro</span>
         </a>
 
         {/* Desktop nav */}
