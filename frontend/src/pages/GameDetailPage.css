@@ -1,126 +1,177 @@
+/*
+ * Game detail (style-guide §5.8): two-column hero — cover left, name +
+ * meta + state-driven primary action right — with the loan history below.
+ */
+
 .game-detail-page {
-  padding: var(--space-xl);
-  max-width: 800px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
 }
 
-.game-detail-header {
-  display: flex;
-  gap: var(--space-xl);
-  margin-bottom: var(--space-xl);
-}
-
-.game-detail-thumbnail {
-  width: 200px;
-  height: 200px;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
-}
-
-.game-detail-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.game-detail-info h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  margin-bottom: var(--space-sm);
-}
-
-.game-detail-year {
-  font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-md);
-}
-
-.game-detail-status {
-  display: inline-block;
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
-
-.game-detail-status.available {
-  background-color: var(--color-available);
-  color: var(--color-success);
-}
-
-.game-detail-status.lent {
-  background-color: var(--color-lent);
-  color: var(--color-warning);
-}
-
-.game-detail-actions {
-  margin-top: var(--space-md);
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.game-detail-bgg {
-  margin-top: var(--space-md);
-}
-
-.game-detail-bgg a {
-  font-size: var(--font-size-sm);
-}
-
-.game-detail-history {
-  margin-top: var(--space-lg);
-}
-
-.game-detail-history h2 {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin-bottom: var(--space-md);
-}
-
-.game-detail-history-list {
-  background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.game-detail-no-history {
-  padding: var(--space-lg);
+.game-detail-loading,
+.game-detail-error {
   text-align: center;
-  color: var(--color-text-secondary);
-}
-
-.game-detail-loading {
-  text-align: center;
-  padding: var(--space-2xl);
-  color: var(--color-text-secondary);
+  padding: var(--space-2xl) 0;
+  color: var(--color-text-muted);
 }
 
 .game-detail-error {
-  text-align: center;
-  padding: var(--space-xl);
   color: var(--color-danger);
 }
 
 .game-detail-back {
   display: inline-block;
   margin-bottom: var(--space-lg);
+  color: var(--color-text-body);
+  text-decoration: none;
+}
+
+.game-detail-back:hover {
+  color: var(--color-brand);
+}
+
+/* ─── Hero ────────────────────────────────────────────────────────── */
+
+.game-detail-hero {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: flex-start;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+}
+
+.game-detail-cover {
+  flex: 0 0 260px;
+}
+
+.game-detail-cover-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background-color: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+}
+
+.game-detail-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.game-detail-name {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+  margin: 0;
+}
+
+.game-detail-year {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.game-detail-meta {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+}
+
+.game-detail-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  white-space: nowrap;
+}
+
+.game-detail-meta-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.game-detail-actions {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.game-detail-actions:empty {
+  display: none;
+}
+
+/* Login link styled as the primary CTA (guest path to borrowing) */
+.game-detail-login-link {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-lg);
+  background-color: var(--color-brand);
+  color: var(--color-brand-contrast);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.game-detail-login-link:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.game-detail-bgg a {
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
-@media (max-width: 640px) {
-  .game-detail-page {
+.game-detail-bgg a:hover {
+  color: var(--color-brand);
+}
+
+/* ─── History ─────────────────────────────────────────────────────── */
+
+.game-detail-history {
+  margin-top: var(--space-2xl);
+}
+
+.game-detail-history h2 {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.game-detail-no-history {
+  color: var(--color-text-muted);
+}
+
+.game-detail-history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Responsive: stack hero, keep CTA above the fold ─────────────── */
+
+@media (max-width: 767px) {
+  .game-detail-hero {
+    flex-direction: column;
     padding: var(--space-md);
   }
 
-  .game-detail-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .game-detail-thumbnail {
-    width: 160px;
-    height: 160px;
+  .game-detail-cover {
+    flex-basis: auto;
+    width: 100%;
+    max-width: 260px;
+    align-self: center;
   }
 }

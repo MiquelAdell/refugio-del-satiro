@@ -39,6 +39,18 @@ export function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
 
   return (
     <div className="search-bar">
+      <svg
+        className="search-bar-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5 L20.5 20.5" strokeLinecap="round" />
+      </svg>
       <input
         type="text"
         value={localValue}

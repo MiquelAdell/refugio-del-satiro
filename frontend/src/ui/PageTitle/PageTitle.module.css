@@ -1,0 +1,21 @@
+/* Centred Oswald uppercase page title with the short red underline
+   (style-guide §5.2; Figma TitleH1). Scales down from the 80px display
+   size on narrow viewports. */
+.title {
+  font-family: var(--font-family-heading);
+  font-size: clamp(var(--font-size-3xl), 6vw, var(--font-size-display));
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-text-heading);
+  margin: var(--space-2xl) 0 var(--space-xl);
+}
+
+.title::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 3px;
+  background-color: var(--color-brand);
+  margin: var(--space-md) auto 0;
+}

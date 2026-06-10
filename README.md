@@ -5,6 +5,8 @@ Website for the **Refugio del Sátiro** RPG association.
 Current scope: the game-lending feature (mounted at `/prestamos`). Members can
 browse the catalog, borrow games, and return them. The catalog is imported
 from [BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
+The same catalog is publicly browsable read-only at `/ludoteca` (no account
+needed; borrowing requires logging in at `/prestamos`).
 
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
@@ -296,7 +298,8 @@ A [`render.yaml`](render.yaml) blueprint is also included for deployment to [Ren
 - **Lending redesign (v1)** — visual + interaction rebuild of `/prestamos` to align with the club site (`refugiodelsatiro.es`) typography and color, based on the UOC TFM by Ariadna Ortega Rams. Roadmap and specs in [`openspec/changes/archive/2026-04-25-plan-lending-redesign/`](openspec/changes/archive/2026-04-25-plan-lending-redesign/). Implementation phases:
   - Phase A: design tokens + primitives + drop i18n — **complete**.
   - Site shell with data-driven nav and new "Préstamos" submenu — **in progress** ([`openspec/changes/site-shell-from-scraped-html/`](openspec/changes/site-shell-from-scraped-html/), PR #46). Submenu children from `_nav.json` deferred to a follow-up issue.
-  - Phase B (catalog rebuild), Phase B4+C1 (borrow with return date), Phase D (admin members restyle) — to be opened later.
+  - Phase B0–B3 (catalog rebuild: reconciled Figma tokens, cover-first cards, side-panel filters + chips, grid/list toggle, detail hero with borrow CTA, public `/ludoteca`) — **complete** ([`openspec/changes/lending-catalog-rebuild/`](openspec/changes/lending-catalog-rebuild/)).
+  - Phase B4+C1 (borrow with return date), Phase D (admin members restyle) — to be opened later.
 
 ## License
 

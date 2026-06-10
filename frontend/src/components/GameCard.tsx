@@ -1,31 +1,46 @@
 import { Link } from "react-router-dom";
+import { Badge } from "../ui/Badge";
+import { ClockIcon, PlayersIcon } from "./MetaIcons";
 import type { GameWithStatus } from "../types/game";
+import type { CatalogView } from "../types/catalog";
 import "./GameCard.css";
 
 interface GameCardProps {
   readonly game: GameWithStatus;
+  readonly view?: CatalogView;
 }
 
-export function GameCard({ game }: GameCardProps) {
+export function GameCard({ game, view = "grid" }: GameCardProps) {
+  const statusLabel = game.status === "available" ? "Disponible" : "Prestado";
+
   return (
-    <div className="game-card">
-      <Link to={`/juegos/${game.slug}`} className="game-card-link">
-        <div className="game-card-thumbnail-wrapper">
+    <article className={`game-card game-card-${view}`}>
+      <Link
+        to={`/juegos/${game.slug}`}
+        className="game-card-link"
+        aria-label={`${game.name} — ${statusLabel}`}
+      >
+        <div className="game-card-cover">
           {game.thumbnail_url ? (
             <img
-              className="game-card-thumbnail"
+              className="game-card-cover-img"
               src={game.thumbnail_url}
-              alt={game.name}
+              alt=""
               loading="lazy"
             />
           ) : (
-            <div className="game-card-thumbnail game-card-placeholder">
-              <span>{game.name.charAt(0)}</span>
+            <div className="game-card-cover-img game-card-placeholder">
+              <span aria-hidden="true">{game.name.charAt(0)}</span>
             </div>
           )}
+          <Badge variant={game.status} className="game-card-status">
+            {statusLabel}
+          </Badge>
           {game.bgg_rating > 0 && (
-            <span className="game-card-rating">
-              {`${game.bgg_rating.toFixed(1)} ★`}
+            <span className="game-card-rating-scrim">
+              <span className="game-card-rating">
+                {game.bgg_rating.toFixed(1)}
+              </span>
             </span>
           )}
         </div>
@@ -36,21 +51,20 @@ export function GameCard({ game }: GameCardProps) {
           )}
           <div className="game-card-meta">
             {game.min_players > 0 && game.max_players > 0 && (
-              <span className="game-card-players">
+              <span className="game-card-meta-item">
+                <PlayersIcon className="game-card-meta-icon" />
                 {`${game.min_players}-${game.max_players} jugadores`}
               </span>
             )}
             {game.playing_time > 0 && (
-              <span className="game-card-time">
+              <span className="game-card-meta-item">
+                <ClockIcon className="game-card-meta-icon" />
                 {`${game.playing_time} min`}
               </span>
             )}
           </div>
-          <span className={`game-card-status ${game.status}`}>
-            {game.status === "available" ? "Disponible" : "Prestado"}
-          </span>
         </div>
       </Link>
-    </div>
+    </article>
   );
 }

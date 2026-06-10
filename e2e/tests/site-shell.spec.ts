@@ -52,10 +52,10 @@ test.describe("site-shell @ guest", () => {
     await page.goto(HOME);
     const logo = page.getByRole("link", { name: /Refugio del Sátiro/i }).first();
     await expect(logo).toBeVisible();
-    await expect(logo.locator("img")).toHaveAttribute(
-      "alt",
-      "El Refugio del Sátiro",
-    );
+    // The shield img is decorative (alt=""); the accessible name comes from
+    // the link's aria-label plus the visible logo text.
+    await expect(logo.locator("img")).toHaveAttribute("alt", "");
+    await expect(logo.getByText("El Refugio del Sátiro")).toBeVisible();
   });
 
   test("nav-menu-guest-1: Iniciar sesión link points to /prestamos/login", async ({

@@ -9,7 +9,7 @@
 #
 # Differences from prod Caddyfile:
 #   - Listens on :8090 (plain HTTP, no TLS / ACME).
-#   - reverse_proxy points at localhost:8000 (uvicorn on the host) instead of
+#   - reverse_proxy points at localhost:$E2E_API_PORT, default 8000 (uvicorn on the host), instead of
 #     the `app` service in docker-compose.
 #   - Content root is taken from the E2E_CONTENT_ROOT env var, defaulting to
 #     ./frontend/public/content-mirror (relative to the cwd).
@@ -33,7 +33,15 @@
 :8090 {
 	# App (lending flow) — keeps its /prestamos prefix.
 	handle_path /prestamos/* {
-		reverse_proxy localhost:8000
+		reverse_proxy localhost:{$E2E_API_PORT:8000}
+	}
+
+	# Public read-only catalog — the same SPA bundle under a guest basename.
+	# Every /ludoteca/* path serves the SPA index (client-side routing); the
+	# bundle's assets and API calls still go through /prestamos/* above.
+	handle /ludoteca* {
+		rewrite * /
+		reverse_proxy localhost:{$E2E_API_PORT:8000}
 	}
 
 	# 301 redirects for legacy Google Sites slugs.
@@ -55,8 +63,9 @@
 	#
 	# Excluded:
 	#   - "/" itself (already canonical)
-	#   - "/prestamos/*" — the SPA owns its own routes (React Router would
-	#     break if /prestamos/games/1 redirected to /prestamos/games/1/)
+	#   - "/prestamos/*" and "/ludoteca/*" — the SPA owns its own routes
+	#     (React Router would break if /prestamos/games/1 redirected to
+	#     /prestamos/games/1/)
 	#   - paths already ending in "/"
 	#   - paths with a "." in them (assumed to be files: /_assets/foo.css,
 	#     /favicon.ico, /manifest.json)
@@ -66,6 +75,7 @@
 	@needs_trailing_slash {
 		not path /
 		not path /prestamos/*
+		not path /ludoteca/*
 		not path */
 		not path *.*
 	}
