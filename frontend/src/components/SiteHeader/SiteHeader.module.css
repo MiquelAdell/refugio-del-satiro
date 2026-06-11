@@ -44,7 +44,7 @@
   margin-left: var(--space-sm);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1399px) {
   .logoText {
     display: none;
   }
@@ -447,6 +447,25 @@
 }
 
 /* ─── Breakpoints ────────────────────────────────────────────────────── */
+
+/* Tight desktop range: logo text already hidden above; also reduce
+   inner gap and nav item padding so everything fits at 1280 px. */
+@media (min-width: 768px) and (max-width: 1399px) {
+  .inner {
+    gap: var(--space-sm);
+    padding: 0 var(--space-md);
+  }
+
+  .navItem > a,
+  .navItem > button {
+    padding: var(--space-sm) var(--space-sm);
+  }
+
+  .headerActions {
+    margin-left: var(--space-sm);
+    gap: var(--space-xs);
+  }
+}
 
 @media (max-width: 767px) {
   .desktopNav {
