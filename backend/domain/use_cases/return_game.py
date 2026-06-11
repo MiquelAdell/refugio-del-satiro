@@ -16,12 +16,12 @@ class ReturnGameUseCase:
     def execute(self, loan_id: int, member: Member) -> Loan:
         loan = self._loan_repo.get_by_id(loan_id)
         if loan is None:
-            raise ReturnGameError("Préstec no trobat.")
+            raise ReturnGameError("Préstamo no encontrado.")
 
         if loan.returned_at is not None:
-            raise ReturnGameError("Aquest joc ja ha estat retornat.")
+            raise ReturnGameError("Este juego ya ha sido devuelto.")
 
         if loan.member_id != member.id and not member.is_admin:
-            raise ReturnGameError("Només pots retornar els teus préstecs.")
+            raise ReturnGameError("Solo puedes devolver tus propios préstamos.")
 
         return self._loan_repo.mark_returned(loan_id)

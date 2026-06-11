@@ -31,7 +31,7 @@ def _require_admin(member: CurrentMember) -> Member:
     if not member.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Accés restringit a administradors.",
+            detail="Acceso restringido a administradores.",
         )
     return member
 

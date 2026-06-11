@@ -21,13 +21,13 @@ class BorrowGameUseCase:
     def execute(self, game_id: int, member_id: int) -> Loan:
         game = self._game_repo.get_by_id(game_id)
         if game is None:
-            raise BorrowGameError("Joc no trobat.")
+            raise BorrowGameError("Juego no encontrado.")
 
         if game.item_type != "boardgame":
-            raise BorrowGameError("Aquest ítem no es pot prestar.")
+            raise BorrowGameError("Este ítem no se puede prestar.")
 
         active_loan = self._loan_repo.get_active_by_game_id(game_id)
         if active_loan is not None:
-            raise BorrowGameError("Aquest joc ja està prestat.")
+            raise BorrowGameError("Este juego ya está prestado.")
 
         return self._loan_repo.create(game_id, member_id)

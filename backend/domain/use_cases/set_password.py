@@ -27,13 +27,13 @@ class SetPasswordUseCase:
         """Set a member's password using a one-time token. Raises SetPasswordError on failure."""
         password_token = self._token_repo.get_by_token(token)
         if password_token is None:
-            raise SetPasswordError("Token invàlid.")
+            raise SetPasswordError("Token inválido.")
 
         if password_token.used_at is not None:
-            raise SetPasswordError("Aquest enllaç ja ha estat utilitzat.")
+            raise SetPasswordError("Este enlace ya ha sido utilizado.")
 
         if datetime.now(UTC) > password_token.expires_at.replace(tzinfo=UTC):
-            raise SetPasswordError("Aquest enllaç ha caducat.")
+            raise SetPasswordError("Este enlace ha caducado.")
 
         hashed = hash_password(password)
         self._member_repo.set_password_hash(password_token.member_id, hashed)

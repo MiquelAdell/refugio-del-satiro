@@ -43,7 +43,7 @@ class TestReturnGameUseCase:
         loan = loan_repo.create(game.id, m1.id)
 
         use_case = ReturnGameUseCase(loan_repo)
-        with pytest.raises(ReturnGameError, match="Només pots retornar"):
+        with pytest.raises(ReturnGameError, match="Solo puedes devolver"):
             use_case.execute(loan.id, _make_member(id=2))
 
     def test_admin_can_return_any(
@@ -67,5 +67,5 @@ class TestReturnGameUseCase:
         loan_repo.mark_returned(loan.id)
 
         use_case = ReturnGameUseCase(loan_repo)
-        with pytest.raises(ReturnGameError, match="ja ha estat retornat"):
+        with pytest.raises(ReturnGameError, match="ya ha sido devuelto"):
             use_case.execute(loan.id, _make_member(id=member.id))

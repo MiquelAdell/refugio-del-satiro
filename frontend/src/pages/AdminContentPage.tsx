@@ -128,7 +128,7 @@ export function AdminContentPage() {
   if (!member?.is_admin) {
     return (
       <div className="admin-content-page">
-        <p>Accés restringit a administradors.</p>
+        <p>Acceso restringido a administradores.</p>
       </div>
     );
   }
