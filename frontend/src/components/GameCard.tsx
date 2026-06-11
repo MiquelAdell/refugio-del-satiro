@@ -21,10 +21,10 @@ export function GameCard({ game, view = "grid" }: GameCardProps) {
         aria-label={`${game.name} — ${statusLabel}`}
       >
         <div className="game-card-cover">
-          {game.thumbnail_url ? (
+          {game.image_url || game.thumbnail_url ? (
             <img
               className="game-card-cover-img"
-              src={game.thumbnail_url}
+              src={game.image_url || game.thumbnail_url}
               alt=""
               loading="lazy"
             />
