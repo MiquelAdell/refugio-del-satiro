@@ -23,22 +23,21 @@
   text-decoration: none;
 }
 
-/* ─── Cover (never force-cropped — §6.4 / DQ-3) ───────────────────── */
+/* ─── Cover ───────────────────────────────────────────────────────── */
 
 .game-card-cover {
   position: relative;
-  /* cqw units below size the cover cap relative to this container */
   container-type: inline-size;
   background-color: var(--color-surface-alt);
+  aspect-ratio: 1;
+  overflow: hidden;
 }
 
 .game-card-cover-img {
   display: block;
   width: 100%;
-  height: auto;
-  object-fit: contain;
-  /* DQ-3: portrait covers cap at 1.5× the column width, never cropped */
-  max-height: 150cqw;
+  height: 100%;
+  object-fit: cover;
 }
 
 .game-card-placeholder {
@@ -137,18 +136,6 @@
 .game-card-list .game-card-cover {
   flex: 0 0 110px;
   width: 110px;
-}
-
-.game-card-list .game-card-cover-img {
-  height: 100%;
-  max-height: 140px;
-  object-fit: contain;
-}
-
-.game-card-list .game-card-placeholder {
-  aspect-ratio: auto;
-  height: 100%;
-  min-height: 110px;
 }
 
 .game-card-list .game-card-rating-scrim {
