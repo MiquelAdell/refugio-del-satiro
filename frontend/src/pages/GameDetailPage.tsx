@@ -5,7 +5,6 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { ClockIcon, PlayersIcon } from "../components/MetaIcons";
 import { useAuth } from "../context/AuthContext";
-import { useCatalogMode } from "../context/CatalogModeContext";
 import { useGameHistory } from "../hooks/useGameHistory";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -15,7 +14,6 @@ export function GameDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { game, history, loading, error, refetch } = useGameHistory(slug);
   const { member } = useAuth();
-  const { isGuest } = useCatalogMode();
   const [confirmAction, setConfirmAction] = useState<
     { readonly action: "borrow"; readonly gameId: number } | { readonly action: "return" } | null
   >(null);
@@ -40,9 +38,8 @@ export function GameDetailPage() {
     );
   }
 
-  const canBorrow = !isGuest && member !== null && game.status === "available";
+  const canBorrow = member !== null && game.status === "available";
   const canReturn =
-    !isGuest &&
     member !== null &&
     game.status === "lent" &&
     game.loan_id !== null &&
@@ -152,12 +149,7 @@ export function GameDetailPage() {
                 Devolver
               </Button>
             )}
-            {isGuest && game.status === "available" && (
-              <a href="/prestamos/login" className="game-detail-login-link">
-                Iniciar sesión
-              </a>
-            )}
-            {!isGuest && member === null && game.status === "available" && (
+            {member === null && game.status === "available" && (
               <Link to="/login" className="game-detail-login-link">
                 Iniciar sesión
               </Link>

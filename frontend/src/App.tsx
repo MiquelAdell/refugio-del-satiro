@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { CatalogModeProvider } from "./context/CatalogModeContext";
 import { SiteNavProvider } from "./context/SiteNavProvider";
@@ -12,55 +12,16 @@ import { SetPasswordPage } from "./pages/SetPasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
 
-// The same SPA bundle serves two basenames: the authenticated member app at
-// /prestamos and the public read-only catalog at /ludoteca. The basename is
-// decided once at boot from the URL the document was served under.
-const GUEST_BASENAME = "/ludoteca";
-
-function isGuestMode(): boolean {
-  return window.location.pathname.startsWith(GUEST_BASENAME);
-}
-
-function GuestApp() {
+export default function App() {
   return (
-    <BrowserRouter basename={GUEST_BASENAME}>
+    <BrowserRouter basename="/ludoteca">
       <AuthProvider>
-        <CatalogModeProvider isGuest={true}>
+        <CatalogModeProvider>
           <SiteNavProvider>
             <Routes>
+              <Route path="/" element={<Navigate to="/juegos-de-mesa" replace />} />
               <Route
-                path="/"
-                element={
-                  <PageLayout>
-                    <CatalogPage />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/juegos/:slug"
-                element={
-                  <PageLayout>
-                    <GameDetailPage />
-                  </PageLayout>
-                }
-              />
-            </Routes>
-          </SiteNavProvider>
-        </CatalogModeProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
-
-function MemberApp() {
-  return (
-    <BrowserRouter basename="/prestamos">
-      <AuthProvider>
-        <CatalogModeProvider isGuest={false}>
-          <SiteNavProvider>
-            <Routes>
-              <Route
-                path="/"
+                path="/juegos-de-mesa"
                 element={
                   <PageLayout>
                     <CatalogPage />
@@ -129,8 +90,4 @@ function MemberApp() {
       </AuthProvider>
     </BrowserRouter>
   );
-}
-
-export default function App() {
-  return isGuestMode() ? <GuestApp /> : <MemberApp />;
 }

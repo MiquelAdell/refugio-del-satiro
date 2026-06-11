@@ -41,8 +41,12 @@ def _should_skip(href: str) -> bool:
         return True
     if any(href.startswith(p) for p in _ABSOLUTE_PREFIXES):
         return True
-    # Exclude /prestamos exactly or /prestamos/<anything> but NOT /prestamos-*.
-    return href == "/prestamos" or href.startswith("/prestamos/")
+    # Exclude SPA-owned paths: /prestamos and /ludoteca (exact or with sub-path),
+    # but NOT /prestamos-* or /ludoteca-* (different pages with that prefix).
+    return (
+        href == "/prestamos" or href.startswith("/prestamos/")
+        or href == "/ludoteca" or href.startswith("/ludoteca/")
+    )
 
 
 def _anchor_pair(anchor: Tag) -> tuple[str, str] | None:

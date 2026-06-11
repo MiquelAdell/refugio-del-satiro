@@ -31,17 +31,16 @@
 }
 
 :8090 {
-	# App (lending flow) — keeps its /prestamos prefix.
-	handle_path /prestamos/* {
+	# App (lending/catalog SPA) — strips the /ludoteca prefix before forwarding.
+	handle_path /ludoteca/* {
 		reverse_proxy localhost:{$E2E_API_PORT:8000}
 	}
 
-	# Public read-only catalog — the same SPA bundle under a guest basename.
-	# Every /ludoteca/* path serves the SPA index (client-side routing); the
-	# bundle's assets and API calls still go through /prestamos/* above.
-	handle /ludoteca* {
-		rewrite * /
-		reverse_proxy localhost:{$E2E_API_PORT:8000}
+	# 301 redirects: /prestamos/* → /ludoteca/* preserving path and query string.
+	redir /prestamos /ludoteca/ permanent
+	handle /prestamos/* {
+		uri strip_prefix /prestamos
+		redir * /ludoteca{uri} permanent
 	}
 
 	# 301 redirects for legacy Google Sites slugs.
@@ -56,25 +55,17 @@
 	redir /juegos-de-rol/campa%C3%B1as/ /juegos-de-rol/campanas/ permanent
 	redir /juegos-de-rol/campañas/ /juegos-de-rol/campanas/ permanent
 
-	# Canonicalize directory-style URLs to a trailing slash. Search engines
-	# treat /calendario and /calendario/ as separate URLs unless we 301 one
-	# to the other; this picks the trailing-slash form (which is also what
-	# the SPA's <base href="/prestamos/"> requires).
+	# Canonicalize directory-style URLs to a trailing slash.
 	#
 	# Excluded:
 	#   - "/" itself (already canonical)
-	#   - "/prestamos/*" and "/ludoteca/*" — the SPA owns its own routes
-	#     (React Router would break if /prestamos/games/1 redirected to
-	#     /prestamos/games/1/)
+	#   - "/ludoteca/*" — the SPA owns its own routes
 	#   - paths already ending in "/"
-	#   - paths with a "." in them (assumed to be files: /_assets/foo.css,
-	#     /favicon.ico, /manifest.json)
+	#   - paths with a "." in them (assumed to be files)
 	#
-	# Note: "/prestamos" (no slash) IS redirected here, since it does not
-	# match "/prestamos/*". Result: /prestamos → /prestamos/.
+	# Note: "/ludoteca" (no slash) IS redirected here → /ludoteca/.
 	@needs_trailing_slash {
 		not path /
-		not path /prestamos/*
 		not path /ludoteca/*
 		not path */
 		not path *.*

@@ -1,13 +1,14 @@
 # Dev Caddy configuration — single entry point for local development.
 #
 # Purpose:
-#   Provides the same /prestamos vs. static-content routing split as
-#   production, without needing separate browser tabs for :5173 and :8080.
+#   Provides the same /ludoteca routing as production, without needing separate
+#   browser tabs for :5173 and :8080.
 #
 # Differences from production Caddyfile:
 #   - Listens on :2015 (plain HTTP, no TLS / ACME).
-#   - /prestamos/* reverse-proxies to the Vite dev server (:5173) instead
-#     of the built app container.
+#   - /ludoteca/* reverse-proxies to the Vite dev server (:5173) instead of
+#     the built app container. Vite is configured with base="/ludoteca/" so the
+#     prefix must be kept (no strip) — Vite expects to see it.
 #   - /@* reverse-proxies to Vite as well — Vite injects /@vite/client and
 #     other /@* paths into HTML; they must reach Vite, not the content mirror.
 #   - Everything else reverse-proxies to dev_mirror.py (:8080) instead of
@@ -21,39 +22,38 @@
 #   caddy validate --config Caddyfile.dev --adapter caddyfile
 
 :2015 {
-    # Lending SPA — proxied to Vite dev server with HMR support.
-    handle /prestamos/* {
-        reverse_proxy localhost:5173
-    }
+	# Lending/catalog SPA — proxied to Vite dev server with HMR support.
+	# Keep the /ludoteca prefix: Vite's base is "/ludoteca/" so it must receive
+	# the full path.
+	handle /ludoteca/* {
+		reverse_proxy localhost:5173
+	}
 
-    # Vite internals (HMR client, virtual modules, FS access).
-    # Must reach Vite directly or HMR breaks when accessed through this proxy.
-    handle /@* {
-        reverse_proxy localhost:5173
-    }
+	# Vite internals (HMR client, virtual modules, FS access).
+	# Must reach Vite directly or HMR breaks when accessed through this proxy.
+	handle /@* {
+		reverse_proxy localhost:5173
+	}
 
-    # Public read-only catalog — same SPA under the guest basename. Vite only
-    # serves index.html at its base (/prestamos/), so rewrite before proxying;
-    # the browser URL stays on /ludoteca/* and React Router picks the guest
-    # basename from it.
-    handle /ludoteca* {
-        rewrite * /prestamos/
-        reverse_proxy localhost:5173
-    }
+	# /prestamos/* → /ludoteca/* redirect (mirrors production).
+	redir /prestamos /ludoteca/ permanent
+	handle /prestamos/* {
+		uri strip_prefix /prestamos
+		redir * /ludoteca{uri} permanent
+	}
 
-    # Canonicalize /prestamos (no slash) → /prestamos/ so the SPA's
-    # <base href="/prestamos/"> resolves correctly.
-    @needs_trailing_slash {
-        not path /
-        not path /prestamos/*
-        not path /ludoteca/*
-        not path */
-        not path *.*
-    }
-    redir @needs_trailing_slash {path}/ 301
+	# Canonicalize /ludoteca (no slash) → /ludoteca/ so the SPA's
+	# <base href="/ludoteca/"> resolves correctly.
+	@needs_trailing_slash {
+		not path /
+		not path /ludoteca/*
+		not path */
+		not path *.*
+	}
+	redir @needs_trailing_slash {path}/ 301
 
-    # Static content mirror (all other routes).
-    handle {
-        reverse_proxy localhost:8080
-    }
+	# Static content mirror (all other routes).
+	handle {
+		reverse_proxy localhost:8080
+	}
 }

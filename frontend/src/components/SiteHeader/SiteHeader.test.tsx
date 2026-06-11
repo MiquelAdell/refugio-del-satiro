@@ -23,6 +23,10 @@ vi.mock("../../context/AuthContext", () => ({
   useAuth: () => mockAuthState,
 }));
 
+vi.mock("../../context/CatalogModeContext", () => ({
+  useCatalogMode: () => ({ isGuest: mockAuthState.member === null }),
+}));
+
 let mockNavState: NavItemsState = { items: NAV_ITEMS, status: "ready" };
 
 interface MockAuthState {
@@ -40,7 +44,7 @@ let mockAuthState: MockAuthState = {
   logout: mockLogout,
 };
 
-function renderHeader(initialEntry = "/prestamos/") {
+function renderHeader(initialEntry = "/juegos-de-mesa") {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <SiteHeader />
@@ -384,9 +388,9 @@ describe("SiteHeader", () => {
   });
 
   describe("active-route highlighting", () => {
-    it("Ludoteca parent has active class when at /prestamos/my-loans", () => {
+    it("Ludoteca parent has active class when at /my-loans", () => {
       setMember();
-      const { container } = renderHeader("/prestamos/my-loans");
+      const { container } = renderHeader("/my-loans");
 
       // Find the Ludoteca <Link> element in the desktop nav (not the mobile drawer button)
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
@@ -396,8 +400,8 @@ describe("SiteHeader", () => {
       expect(ludotecaNavItem?.className).toContain("active");
     });
 
-    it("Ludoteca parent has active class when at /prestamos/", () => {
-      const { container } = renderHeader("/prestamos/");
+    it("Ludoteca parent has active class when at /juegos-de-mesa", () => {
+      const { container } = renderHeader("/juegos-de-mesa");
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
       const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(

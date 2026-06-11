@@ -44,8 +44,8 @@ interface NestedSubmenuItem {
 
 type SubmenuItem = LinkSubmenuItem | NestedSubmenuItem;
 
-// `to` values are router-relative (inside `<BrowserRouter basename="/prestamos">`),
-// so they omit the `/prestamos` prefix — the router prepends it.
+// `to` values are router-relative (inside `<BrowserRouter basename="/ludoteca">`),
+// so they omit the `/ludoteca` prefix — the router prepends it.
 const LUDOTECA_SUBMENU: readonly SubmenuItem[] = [
   { type: "link", label: "Mis préstamos", to: "/my-loans", roles: ["member", "admin"] },
   {
@@ -159,21 +159,15 @@ export function SiteHeader() {
   const [adminExpanded, setAdminExpanded] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
-  // In production the router runs under basename "/prestamos", so
-  // `useMatch("/prestamos/*")` never matches against the basename-stripped
-  // location. In tests we mount under a plain MemoryRouter where the path
-  // does start with "/prestamos". Cover both by also checking the raw
-  // browser pathname when it's available.
-  const isLudotecaActive =
-    useMatch("/prestamos/*") !== null ||
-    (typeof window !== "undefined" &&
-      (window.location.pathname.startsWith("/prestamos") ||
-        window.location.pathname.startsWith("/ludoteca")));
+  // The router runs under basename "/ludoteca", so useMatch matches against
+  // the basename-stripped location. "/" matches the catalog root; "/*" covers
+  // all nested routes.
+  const isLudotecaActive = useMatch("/*") !== null;
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
-  // Guest mode (/ludoteca) always renders the public header, even if a
-  // member session exists — member-only nav belongs to /prestamos.
+  // isGuest is derived from auth state via CatalogModeContext; determines
+  // which submenu items are visible.
   const role: SubmenuRole = isGuest
     ? "guest"
     : member?.is_admin === true
@@ -291,18 +285,10 @@ export function SiteHeader() {
         {/* Right-side actions */}
         <div className={styles.headerActions}>
           {role === "guest" ? (
-            // In guest mode the login page lives under the other basename, so
-            // it needs a full-page navigation rather than a router Link.
-            isGuest ? (
-              <a href="/prestamos/login" className={styles.loginAction}>
+            !isLoginRoute && (
+              <Link to="/login" className={styles.loginAction}>
                 Iniciar sesión
-              </a>
-            ) : (
-              !isLoginRoute && (
-                <Link to="/login" className={styles.loginAction}>
-                  Iniciar sesión
-                </Link>
-              )
+              </Link>
             )
           ) : (
             <>
@@ -343,28 +329,16 @@ export function SiteHeader() {
         <nav aria-label="Principal">
           <ul className={styles.drawerList}>
             {role === "guest" ? (
-              isGuest ? (
+              !isLoginRoute && (
                 <li className={styles.drawerItem}>
-                  <a
-                    href="/prestamos/login"
+                  <Link
+                    to="/login"
                     className={styles.drawerLoginAction}
                     onClick={closeDrawer}
                   >
                     Iniciar sesión
-                  </a>
+                  </Link>
                 </li>
-              ) : (
-                !isLoginRoute && (
-                  <li className={styles.drawerItem}>
-                    <Link
-                      to="/login"
-                      className={styles.drawerLoginAction}
-                      onClick={closeDrawer}
-                    >
-                      Iniciar sesión
-                    </Link>
-                  </li>
-                )
               )
             ) : (
               <li className={`${styles.drawerItem} ${styles.drawerUserRow}`}>
