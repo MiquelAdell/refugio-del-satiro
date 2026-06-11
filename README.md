@@ -2,11 +2,12 @@
 
 Website for the **Refugio del Sátiro** RPG association.
 
-Current scope: the game-lending feature (mounted at `/prestamos`). Members can
+Current scope: the game-lending feature (mounted at `/ludoteca`). Members can
 browse the catalog, borrow games, and return them. The catalog is imported
 from [BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
-The same catalog is publicly browsable read-only at `/ludoteca` (no account
-needed; borrowing requires logging in at `/prestamos`).
+The catalog is publicly browsable read-only (no account needed; borrowing
+requires logging in). Legacy `/prestamos` URLs redirect permanently to
+`/ludoteca`.
 
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
@@ -42,7 +43,7 @@ that exercises the feature you care about.
 
 ### Lending app only (fastest iteration, HMR)
 
-Backend + Vite dev server. Best for day-to-day work on `/prestamos`. Runs
+Backend + Vite dev server. Best for day-to-day work on `/ludoteca`. Runs
 natively — no Docker needed.
 
 ```bash
@@ -72,7 +73,8 @@ command.
 # One-time: migrate and seed the DB
 refugio migrate
 refugio import-games data/bgg_collection.json
-refugio import-members members.csv --base-url http://localhost:5173/prestamos
+refugio import-rol                           # Import RPG items from BGG API
+refugio import-members members.csv --base-url http://localhost:5173/ludoteca
 ```
 
 ```bash
@@ -97,9 +99,9 @@ Ctrl+C:
 | Vite | :5173 | React dev server (HMR) |
 | Caddy | :2015 | Single entry point |
 
-Open **http://localhost:2015**. Caddy routes `/prestamos/*` to the Vite dev
+Open **http://localhost:2015**. Caddy routes `/ludoteca/*` to the Vite dev
 server and everything else to the content mirror, so you can navigate between
-`/prestamos/` and `/calendario/` (or any other static page) without switching
+`/ludoteca/` and `/calendario/` (or any other static page) without switching
 ports — the same routing split as production. HMR works as usual.
 
 ### Scraped site only
@@ -116,12 +118,12 @@ cd frontend/public/content-mirror && python -m http.server 8080
 ```
 
 Open http://localhost:8080/. The lending app is not part of this — links to
-`/prestamos` will 404.
+`/ludoteca` will 404.
 
 ### Full stack (production-like, via Docker)
 
 Mirrors the VPS setup: Caddy at `:80`/`:443` routing `/` to the scraped site
-and `/prestamos` to the FastAPI app, with HTTPS via Caddy's local CA. Use this
+and `/ludoteca` to the FastAPI app, with HTTPS via Caddy's local CA. Use this
 to verify routing, redirects, or anything that depends on both halves living
 at the same origin.
 
@@ -135,7 +137,7 @@ docker compose exec app refugio import-games data/bgg_collection.json
 docker compose exec app sh -c 'mkdir -p /srv/content && cp -R /app/frontend/dist/content-mirror/. /srv/content/'
 ```
 
-Open https://localhost/ (scraped site) and https://localhost/prestamos
+Open https://localhost/ (scraped site) and https://localhost/ludoteca
 (lending app). The browser will warn about the cert — Caddy issues a
 self-signed cert from its local CA on first boot; click through to proceed,
 or install the CA in your keychain to silence it.
@@ -151,8 +153,9 @@ Stop with `docker compose down` (volumes survive) or `docker compose down -v`
 
 ```bash
 refugio migrate                          # Run migrations
-refugio import-games data/bgg_collection.json  # Import games from JSON
-refugio import-games                     # Import games from BGG API (requires BGG_BEARER_TOKEN)
+refugio import-games data/bgg_collection.json  # Import board games from JSON
+refugio import-games                     # Import board games from BGG API (requires BGG_BEARER_TOKEN)
+refugio import-rol                       # Import RPG items (libros de rol) from BGG API
 refugio import-members members.csv       # Import members from CSV
 refugio import-members --email x@y.com --name "First Last"  # Add a single member
 
@@ -211,10 +214,10 @@ frontend/
 |----------|------------|---------|
 | `REFUGIO_DB_PATH` | SQLite database file path | `refugio.db` |
 | `REFUGIO_JWT_SECRET` | JWT signing secret | (dev secret) |
-| `REFUGIO_BASE_URL` | Lending app public URL (used in reset-password emails) | `http://localhost:5173/prestamos` |
+| `REFUGIO_BASE_URL` | Lending app public URL (used in reset-password emails) | `http://localhost:5173/ludoteca` |
 | `REFUGIO_CONTENT_MIRROR_DIR` | Where the admin "Resync content" button writes scraped pages | `frontend/public/content-mirror` (dev) / `/srv/content` (prod) |
 | `BGG_BEARER_TOKEN` | BGG API bearer token (optional) | — |
-| `VITE_API_URL` | Frontend API base URL | `/prestamos/api` |
+| `VITE_API_URL` | Frontend API base URL | `/ludoteca/api` |
 
 ## Deployment (VPS with Docker)
 
@@ -278,7 +281,7 @@ Content changes on `www.refugiodelsatiro.es` flow into this repo manually:
 2. Review the diff under `frontend/public/content-mirror/`.
 3. Commit and push if it looks good.
 
-Editors can also hit the admin-only "Resync" button at `/prestamos/admin/content`
+Editors can also hit the admin-only "Resync" button at `/ludoteca/admin/content`
 to refresh the VPS cache immediately — changes are visible on
 `www.refugiodelsatiro.es` right away, but don't reach the repo until someone
 runs the local workflow above.

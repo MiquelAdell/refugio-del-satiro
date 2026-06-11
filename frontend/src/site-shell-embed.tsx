@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import "./tokens.css";
 import "./site-shell-embed.css";
 import { AuthProvider } from "./context/AuthContext";
+import { CatalogModeProvider } from "./context/CatalogModeContext";
 import { SiteNavProvider } from "./context/SiteNavProvider";
 import { SiteHeader } from "./components/SiteHeader/SiteHeader";
 
@@ -37,9 +38,11 @@ if (rootEl) {
     <StrictMode>
       <MemoryRouter basename="/ludoteca" initialEntries={["/ludoteca/"]}>
         <AuthProvider>
-          <SiteNavProvider>
-            <SiteHeader />
-          </SiteNavProvider>
+          <CatalogModeProvider>
+            <SiteNavProvider>
+              <SiteHeader />
+            </SiteNavProvider>
+          </CatalogModeProvider>
         </AuthProvider>
       </MemoryRouter>
     </StrictMode>,

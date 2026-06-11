@@ -36,11 +36,11 @@
 	}
 
 	# /prestamos/* → /ludoteca/* redirect (mirrors production).
+	# Using path_regexp because Caddy's {uri} placeholder in redir does not pick
+	# up mutations made by the `uri` directive in the same handle block.
 	redir /prestamos /ludoteca/ permanent
-	handle /prestamos/* {
-		uri strip_prefix /prestamos
-		redir * /ludoteca{uri} permanent
-	}
+	@prestamos_subpath path_regexp prestamos_sub ^/prestamos/(.*)$
+	redir @prestamos_subpath /ludoteca/{re.prestamos_sub.1}?{query} permanent
 
 	# Canonicalize /ludoteca (no slash) → /ludoteca/ so the SPA's
 	# <base href="/ludoteca/"> resolves correctly.

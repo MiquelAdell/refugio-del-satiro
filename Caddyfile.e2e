@@ -37,11 +37,11 @@
 	}
 
 	# 301 redirects: /prestamos/* → /ludoteca/* preserving path and query string.
+	# Using path_regexp because Caddy's {uri} placeholder in redir does not pick
+	# up mutations made by the `uri` directive in the same handle block.
 	redir /prestamos /ludoteca/ permanent
-	handle /prestamos/* {
-		uri strip_prefix /prestamos
-		redir * /ludoteca{uri} permanent
-	}
+	@prestamos_subpath path_regexp prestamos_sub ^/prestamos/(.*)$
+	redir @prestamos_subpath /ludoteca/{re.prestamos_sub.1}?{query} permanent
 
 	# 301 redirects for legacy Google Sites slugs.
 	redir /inicio / permanent
