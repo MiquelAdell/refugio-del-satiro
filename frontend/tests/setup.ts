@@ -1,5 +1,17 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
+import { installMatchMediaMock } from "./matchMedia";
+
+// jsdom has no matchMedia; default to every query matching (desktop-like).
+installMatchMediaMock();
+
+// jsdom has no ResizeObserver; Radix UI (slider) requires it.
+class ResizeObserverStub {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+global.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
 // Default fetch mock — returns a minimal valid _nav.json for any test that
 // does not override it. Tests that exercise specific nav scenarios supply their

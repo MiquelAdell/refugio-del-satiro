@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useMatch } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useCatalogMode } from "../../context/CatalogModeContext";
 import { useNavItemsContext } from "../../hooks/useNavItemsContext";
 import styles from "./SiteHeader.module.css";
 
@@ -151,6 +152,7 @@ function LudotecaSubmenu({
 export function SiteHeader() {
   const { items, status } = useNavItemsContext();
   const { member, logout } = useAuth();
+  const { isGuest } = useCatalogMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
   const [ludotecaExpanded, setLudotecaExpanded] = useState(false);
@@ -165,12 +167,16 @@ export function SiteHeader() {
   const isLudotecaActive =
     useMatch("/prestamos/*") !== null ||
     (typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/prestamos"));
+      (window.location.pathname.startsWith("/prestamos") ||
+        window.location.pathname.startsWith("/ludoteca")));
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
-  const role: SubmenuRole =
-    member?.is_admin === true
+  // Guest mode (/ludoteca) always renders the public header, even if a
+  // member session exists — member-only nav belongs to /prestamos.
+  const role: SubmenuRole = isGuest
+    ? "guest"
+    : member?.is_admin === true
       ? "admin"
       : member !== null
         ? "member"
@@ -285,10 +291,18 @@ export function SiteHeader() {
         {/* Right-side actions */}
         <div className={styles.headerActions}>
           {role === "guest" ? (
-            !isLoginRoute && (
-              <Link to="/login" className={styles.loginAction}>
+            // In guest mode the login page lives under the other basename, so
+            // it needs a full-page navigation rather than a router Link.
+            isGuest ? (
+              <a href="/prestamos/login" className={styles.loginAction}>
                 Iniciar sesión
-              </Link>
+              </a>
+            ) : (
+              !isLoginRoute && (
+                <Link to="/login" className={styles.loginAction}>
+                  Iniciar sesión
+                </Link>
+              )
             )
           ) : (
             <>
@@ -329,16 +343,28 @@ export function SiteHeader() {
         <nav aria-label="Principal">
           <ul className={styles.drawerList}>
             {role === "guest" ? (
-              !isLoginRoute && (
+              isGuest ? (
                 <li className={styles.drawerItem}>
-                  <Link
-                    to="/login"
+                  <a
+                    href="/prestamos/login"
                     className={styles.drawerLoginAction}
                     onClick={closeDrawer}
                   >
                     Iniciar sesión
-                  </Link>
+                  </a>
                 </li>
+              ) : (
+                !isLoginRoute && (
+                  <li className={styles.drawerItem}>
+                    <Link
+                      to="/login"
+                      className={styles.drawerLoginAction}
+                      onClick={closeDrawer}
+                    >
+                      Iniciar sesión
+                    </Link>
+                  </li>
+                )
               )
             ) : (
               <li className={`${styles.drawerItem} ${styles.drawerUserRow}`}>

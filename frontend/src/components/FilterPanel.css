@@ -1,0 +1,59 @@
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.filter-panel-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.filter-panel-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-heading);
+}
+
+/* ─── Radix slider (headless — styled to tokens) ──────────────────── */
+
+.filter-panel-slider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 1.5rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.filter-panel-slider-track {
+  position: relative;
+  flex-grow: 1;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.filter-panel-slider-range {
+  position: absolute;
+  height: 100%;
+  background-color: var(--color-brand);
+  border-radius: var(--radius-full);
+}
+
+.filter-panel-slider-thumb {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-brand);
+  border-radius: var(--radius-full);
+  cursor: grab;
+}
+
+.filter-panel-slider-thumb:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}

@@ -32,11 +32,21 @@
         reverse_proxy localhost:5173
     }
 
+    # Public read-only catalog — same SPA under the guest basename. Vite only
+    # serves index.html at its base (/prestamos/), so rewrite before proxying;
+    # the browser URL stays on /ludoteca/* and React Router picks the guest
+    # basename from it.
+    handle /ludoteca* {
+        rewrite * /prestamos/
+        reverse_proxy localhost:5173
+    }
+
     # Canonicalize /prestamos (no slash) → /prestamos/ so the SPA's
     # <base href="/prestamos/"> resolves correctly.
     @needs_trailing_slash {
         not path /
         not path /prestamos/*
+        not path /ludoteca/*
         not path */
         not path *.*
     }
