@@ -24,7 +24,7 @@ type ScraperEvent = {
 };
 
 const EVENT_STREAM_URL = `${
-  import.meta.env.VITE_API_URL ?? "/prestamos/api"
+  import.meta.env.VITE_API_URL ?? "/ludoteca/api"
 }/admin/content/events`;
 
 export function AdminContentPage() {

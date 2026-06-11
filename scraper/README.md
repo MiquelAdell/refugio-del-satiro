@@ -115,7 +115,7 @@ Add a host we want to rehost → add the substring to
   the diff under `frontend/public/content-mirror/`. This is how content
   changes enter the repo; nothing automated commits for us.
 - **Admin button (ephemeral VPS refresh)**: `POST /api/admin/content/resync`
-  (admin-only) in the lending React app, at `/prestamos/admin/content`.
+  (admin-only) in the lending React app, at `/ludoteca/admin/content`.
   Streams progress via SSE at `GET /api/admin/content/events`. The button
   writes to the VPS `content-cache` volume that Caddy serves — it does
   **not** touch the git checkout. Useful for editors who want to see their

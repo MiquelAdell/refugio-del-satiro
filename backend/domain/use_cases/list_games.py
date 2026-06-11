@@ -93,5 +93,5 @@ class ListGamesUseCase:
     def execute(self) -> list[GameWithStatus]:
         return [
             build_game_with_status(game, self._loan_repo, self._member_repo)
-            for game in self._game_repo.list_all()
+            for game in self._game_repo.list_by_type("boardgame")
         ]

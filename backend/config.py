@@ -14,7 +14,7 @@ class Settings:
     jwt_secret: str = os.environ.get(
         "REFUGIO_JWT_SECRET", "dev-secret-change-in-production-minimum-32-bytes"
     )
-    base_url: str = os.environ.get("REFUGIO_BASE_URL", "http://localhost:5173/prestamos")
+    base_url: str = os.environ.get("REFUGIO_BASE_URL", "http://localhost:5173/ludoteca")
     bgg_bearer_token: str | None = os.environ.get("BGG_BEARER_TOKEN")
     smtp_host: str | None = os.environ.get("SMTP_HOST")
     smtp_port: int = int(os.environ.get("SMTP_PORT", "587"))

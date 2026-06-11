@@ -19,6 +19,6 @@ class GetGameUseCase:
 
     def execute(self, slug: str) -> GameWithStatus | None:
         game = self._game_repo.get_by_slug(slug)
-        if game is None:
+        if game is None or game.item_type != "boardgame":
             return None
         return build_game_with_status(game, self._loan_repo, self._member_repo)

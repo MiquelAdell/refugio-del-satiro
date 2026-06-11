@@ -201,6 +201,27 @@ describe("CatalogPage player-range slider", () => {
   });
 });
 
+describe("CatalogPage catalog type toggle and banner", () => {
+  it("renders the catalog type toggle with both links", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("link", { name: "Juegos de mesa" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Libros de rol" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the powered-by-bgg banner", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("link", { name: /BoardGameGeek/i }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("CatalogPage view toggle (DQ-2)", () => {
   it("defaults to grid view", () => {
     const { container } = renderPage();

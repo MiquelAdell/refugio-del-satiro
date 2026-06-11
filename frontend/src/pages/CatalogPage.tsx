@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useGames } from "../hooks/useGames";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { ActiveFilterChips } from "../components/ActiveFilterChips";
+import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
 import { FilterPanel } from "../components/FilterPanel";
 import { GameCard } from "../components/GameCard";
+import { PoweredByBgg } from "../components/PoweredByBgg";
 import { SearchBar } from "../components/SearchBar";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
@@ -137,6 +139,8 @@ export function CatalogPage() {
     <div className="catalog-page">
       <PageTitle>Catálogo de juegos</PageTitle>
 
+      <CatalogTypeToggle />
+
       <div className="catalog-layout">
         {sidebarMode && (
           <aside className="catalog-sidebar" aria-label="Filtros">
@@ -176,6 +180,8 @@ export function CatalogPage() {
           )}
         </div>
       </div>
+
+      <PoweredByBgg />
 
       {!sidebarMode && drawerOpen && (
         <div

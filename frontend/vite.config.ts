@@ -4,15 +4,15 @@ import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/prestamos/",
+  base: "/ludoteca/",
   plugins: [react()],
   server: {
     port: 5173,
     proxy: {
-      "/prestamos/api": {
+      "/ludoteca/api": {
         target: "http://localhost:8000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/prestamos/, ""),
+        rewrite: (path) => path.replace(/^\/ludoteca/, ""),
       },
       "/_nav.json": {
         target: "http://localhost:8080",

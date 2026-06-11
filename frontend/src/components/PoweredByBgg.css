@@ -1,0 +1,25 @@
+/*
+ * "Powered by BGG" attribution banner — centered, bottom of catalog pages.
+ */
+
+.powered-by-bgg {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2xl) 0 var(--space-md);
+}
+
+.powered-by-bgg a {
+  display: inline-block;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.powered-by-bgg a:hover {
+  opacity: 1;
+}
+
+.powered-by-bgg a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

@@ -82,7 +82,7 @@ export const DEFAULT_CATALOG_QUERY: CatalogQuery = {
   sort: "name-asc",
 };
 
-function stripPunctuation(name: string): string {
+export function stripPunctuation(name: string): string {
   return name.replace(/[¡¿!?«»()'".,;:]/g, "").trim();
 }
 

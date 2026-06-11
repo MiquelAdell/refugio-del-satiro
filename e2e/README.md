@@ -11,10 +11,12 @@ browser
    │
    ▼
 Caddy :8090  (Caddyfile.e2e)
-   ├── /prestamos/*   ── reverse_proxy ──▶  uvicorn :8000 (serves frontend/dist)
+   ├── /ludoteca/*  ── reverse_proxy ──▶  uvicorn :8000 (serves frontend/dist)
+   ├── /prestamos   ── 301 ──▶  /ludoteca/
+   ├── /prestamos/* ── 301 ──▶  /ludoteca/<path>?<query>  (query preserved)
    ├── legacy redirects (/inicio → /, /socios/ludoteca → /ludoteca/, accented
    │   slugs → ASCII, etc.) — see Caddyfile.e2e
-   ├── trailing-slash canonicaliser (excludes /, /prestamos/*, *.* files)
+   ├── trailing-slash canonicaliser (excludes /, /ludoteca/*, *.* files)
    └── content-mirror static files  (frontend/public/content-mirror)
 ```
 
@@ -36,8 +38,14 @@ yarn build          # FastAPI serves frontend/dist
 yarn test:e2e
 ```
 
-Playwright's `globalSetup` seeds the `guest` / `member` / `admin`
-storage-state fixtures by calling the backend login endpoint once per run.
+Playwright's `globalSetup` (`e2e/scripts/seed-auth-states.ts`) does three
+things before any test runs:
+
+1. Calls `python -m scripts.seed_test_rpg` to upsert one rpgitem row in the
+   DB (needed by the RPG catalog journey tests ludo-4..ludo-6).
+2. Seeds the `member` and `admin` storage-state fixtures by calling the
+   backend login endpoint.
+3. Writes an empty `guest` fixture.
 
 ## webServer entries
 
@@ -48,7 +56,7 @@ storage-state fixtures by calling the backend login endpoint once per run.
    `frontend/dist`.
 2. **caddy** — `caddy run --config Caddyfile.e2e --adapter caddyfile` (cwd:
    repo root). Listens on `:8090`, applies redirects, reverse-proxies
-   `/prestamos/*` to uvicorn, and serves the static content mirror for
+   `/ludoteca/*` to uvicorn, and serves the static content mirror for
    non-SPA routes.
 
 Both use `reuseExistingServer: true`, so a developer can start them by hand

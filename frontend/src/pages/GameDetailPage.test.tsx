@@ -88,12 +88,12 @@ function setHook(
 }
 
 function setMember(value: CurrentMember | null) {
-  useAuthMock.mockReturnValue({ member: value });
+  useAuthMock.mockReturnValue({ member: value, loading: false });
 }
 
-function renderPage(isGuest = false) {
+function renderPage() {
   return render(
-    <CatalogModeProvider isGuest={isGuest}>
+    <CatalogModeProvider>
       <MemoryRouter initialEntries={["/juegos/catan"]}>
         <Routes>
           <Route path="/juegos/:slug" element={<GameDetailPage />} />
@@ -133,7 +133,7 @@ describe("GameDetailPage borrow CTA", () => {
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
   });
 
-  it("hides the borrow CTA and offers login when the viewer is anonymous on /prestamos", () => {
+  it("hides the borrow CTA and offers login when the viewer is anonymous", () => {
     setHook();
     setMember(null);
 
@@ -166,21 +166,21 @@ describe("GameDetailPage borrow CTA", () => {
   });
 });
 
-describe("GameDetailPage guest mode (/ludoteca)", () => {
+describe("GameDetailPage anonymous mode (/ludoteca unauthenticated)", () => {
   beforeEach(() => {
     apiFetchMock.mockReset();
   });
 
-  it("shows a login link instead of the borrow CTA, even with a member session", () => {
+  it("shows a login link for anonymous user viewing an available game", () => {
     setHook();
-    setMember(member);
+    setMember(null);
 
-    renderPage(true);
+    renderPage();
 
     expect(screen.queryByRole("button", { name: BORROW_CTA })).toBeNull();
     expect(screen.getByRole("link", { name: LOGIN_LINK })).toHaveAttribute(
       "href",
-      "/prestamos/login",
+      "/login",
     );
   });
 
@@ -188,7 +188,7 @@ describe("GameDetailPage guest mode (/ludoteca)", () => {
     setHook({ history: [historyEntry] });
     setMember(null);
 
-    renderPage(true);
+    renderPage();
 
     expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();

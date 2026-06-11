@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -20,3 +20,5 @@ class Game:
     location: str
     created_at: datetime
     updated_at: datetime
+    item_type: str = field(default="boardgame")
+    description: str = field(default="")
