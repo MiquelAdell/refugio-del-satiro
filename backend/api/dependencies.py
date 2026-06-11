@@ -19,7 +19,9 @@ from backend.domain.entities.member import Member
 from backend.domain.use_cases.authenticate import AuthenticateUseCase
 from backend.domain.use_cases.get_game import GetGameUseCase
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
+from backend.domain.use_cases.get_rpg_item import GetRpgItemUseCase
 from backend.domain.use_cases.list_games import ListGamesUseCase
+from backend.domain.use_cases.list_rpg_items import ListRpgItemsUseCase
 from backend.domain.use_cases.request_password_reset import RequestPasswordResetUseCase
 from backend.domain.use_cases.set_password import SetPasswordUseCase
 from backend.migrations.runner import run_migrations
@@ -87,6 +89,14 @@ def get_game_history_use_case(
     member_repo: MemberRepo,
 ) -> GetGameHistoryUseCase:
     return GetGameHistoryUseCase(game_repo, loan_repo, member_repo)
+
+
+def get_list_rpg_items_use_case(game_repo: GameRepo) -> ListRpgItemsUseCase:
+    return ListRpgItemsUseCase(game_repo)
+
+
+def get_get_rpg_item_use_case(game_repo: GameRepo) -> GetRpgItemUseCase:
+    return GetRpgItemUseCase(game_repo)
 
 
 def get_authenticate_use_case(member_repo: MemberRepo) -> AuthenticateUseCase:

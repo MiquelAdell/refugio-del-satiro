@@ -27,8 +27,15 @@ class FakeGameRepository:
     def list_all(self) -> list[Game]:
         return list(self._games.values())
 
+    def list_by_type(self, item_type: str) -> list[Game]:
+        return [g for g in self._games.values() if g.item_type == item_type]
+
     def upsert_by_bgg_id(
-        self, bgg_id: int, name: str, thumbnail_url: str, image_url: str = "",
+        self,
+        bgg_id: int,
+        name: str,
+        thumbnail_url: str,
+        image_url: str = "",
         year_published: int = 0,
     ) -> Game:
         raise NotImplementedError
@@ -43,12 +50,20 @@ class FakeLoanRepository:
 
     def get_active_by_game_id(self, game_id: int) -> Loan | None:
         return next(
-            (lo for lo in self._loans if lo.game_id == game_id and lo.returned_at is None),
+            (
+                lo
+                for lo in self._loans
+                if lo.game_id == game_id and lo.returned_at is None
+            ),
             None,
         )
 
     def list_active_by_member_id(self, member_id: int) -> list[Loan]:
-        return [lo for lo in self._loans if lo.member_id == member_id and lo.returned_at is None]
+        return [
+            lo
+            for lo in self._loans
+            if lo.member_id == member_id and lo.returned_at is None
+        ]
 
     def list_by_game_id(self, game_id: int) -> list[Loan]:
         return [lo for lo in self._loans if lo.game_id == game_id]
@@ -119,7 +134,7 @@ def _make_member(id: int, display_name: str = "Alice") -> Member:
         display_name=display_name,
         password_hash=None,
         is_admin=False,
-            is_active=True,
+        is_active=True,
         created_at=NOW,
         updated_at=NOW,
     )

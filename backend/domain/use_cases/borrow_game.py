@@ -23,6 +23,9 @@ class BorrowGameUseCase:
         if game is None:
             raise BorrowGameError("Joc no trobat.")
 
+        if game.item_type != "boardgame":
+            raise BorrowGameError("Aquest ítem no es pot prestar.")
+
         active_loan = self._loan_repo.get_active_by_game_id(game_id)
         if active_loan is not None:
             raise BorrowGameError("Aquest joc ja està prestat.")
