@@ -28,6 +28,28 @@ class BggGameDetails:
     bgg_rating: float
 
 
+@dataclass(frozen=True)
+class BggRpgItem:
+    bgg_id: int
+    name: str
+    thumbnail_url: str
+    image_url: str
+    year_published: int
+    bgg_rating: float
+    description: str
+
+
+@dataclass(frozen=True)
+class _RpgDetails:
+    """Internal typed container for RPG item details fetched from the thing API."""
+
+    image_url: str
+    thumbnail_url: str
+    year_published: int
+    bgg_rating: float
+    description: str
+
+
 _BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -92,7 +114,9 @@ class BggClient:
                 f"{self.WEB_URL}/{self._username}"
                 f"?subtype=boardgame&own=1&ff=1&pageID={page}"
             )
-            response = httpx.get(url, headers=_BROWSER_HEADERS, timeout=30.0, follow_redirects=True)
+            response = httpx.get(
+                url, headers=_BROWSER_HEADERS, timeout=30.0, follow_redirects=True
+            )
             response.raise_for_status()
 
             page_games = self._parse_html_collection(response.text)
@@ -121,10 +145,10 @@ class BggClient:
             r'<img[^>]+src="(https://cf\.geekdo-images\.com/[^"]+)"[^>]*/?>',
         )
         # Year pattern — typically in parentheses like (2017)
-        year_pattern = re.compile(r'\((\d{4})\)')
+        year_pattern = re.compile(r"\((\d{4})\)")
 
         # Split by table rows to associate data
-        rows = re.split(r'<tr\s', html)
+        rows = re.split(r"<tr\s", html)
 
         for row in rows:
             game_match = game_pattern.search(row)
@@ -140,16 +164,20 @@ class BggClient:
             year_match = year_pattern.search(row)
             year = int(year_match.group(1)) if year_match else 0
 
-            games.append(BggGame(
-                bgg_id=bgg_id,
-                name=name,
-                thumbnail_url=thumbnail,
-                year_published=year,
-            ))
+            games.append(
+                BggGame(
+                    bgg_id=bgg_id,
+                    name=name,
+                    thumbnail_url=thumbnail,
+                    year_published=year,
+                )
+            )
 
         return games
 
-    def fetch_details(self, bgg_ids: list[int], batch_size: int = 20) -> dict[int, BggGameDetails]:
+    def fetch_details(
+        self, bgg_ids: list[int], batch_size: int = 20
+    ) -> dict[int, BggGameDetails]:
         """Fetch full details (image, players, time, rating) from the BGG thing API.
 
         Returns a mapping of bgg_id → BggGameDetails.
@@ -174,9 +202,13 @@ class BggClient:
             for item in root.findall("item"):
                 bgg_id = int(item.get("id", "0"))
                 image_el = item.find("image")
-                image_url = image_el.text if image_el is not None and image_el.text else ""
+                image_url = (
+                    image_el.text if image_el is not None and image_el.text else ""
+                )
                 thumb_el = item.find("thumbnail")
-                thumbnail_url = thumb_el.text if thumb_el is not None and thumb_el.text else ""
+                thumbnail_url = (
+                    thumb_el.text if thumb_el is not None and thumb_el.text else ""
+                )
 
                 def _int_val(el_name: str, _item: object = item) -> int:  # noqa: B023
                     el = _item.find(el_name)  # type: ignore[union-attr]
@@ -215,23 +247,159 @@ class BggClient:
 
     def _parse_xml_collection(self, xml_text: str) -> list[BggGame]:
         root = ET.fromstring(xml_text)
-        games: list[BggGame] = []
 
-        for item in root.findall("item"):
-            bgg_id = int(item.get("objectid", "0"))
-            name_el = item.find("name")
-            thumb_el = item.find("thumbnail")
-            year_el = item.find("yearpublished")
+        return [
+            BggGame(
+                bgg_id=int(item.get("objectid", "0")),
+                name=(
+                    item.find("name").text  # type: ignore[union-attr]
+                    if item.find("name") is not None and item.find("name").text  # type: ignore[union-attr]
+                    else "Unknown"
+                ),
+                thumbnail_url=(
+                    item.find("thumbnail").text  # type: ignore[union-attr]
+                    if item.find("thumbnail") is not None and item.find("thumbnail").text  # type: ignore[union-attr]
+                    else ""
+                ),
+                year_published=(
+                    int(item.find("yearpublished").text)  # type: ignore[arg-type, union-attr]
+                    if item.find("yearpublished") is not None
+                    and item.find("yearpublished").text  # type: ignore[union-attr]
+                    else 0
+                ),
+            )
+            for item in root.findall("item")
+        ]
 
-            name = name_el.text if name_el is not None and name_el.text else "Unknown"
-            thumbnail = thumb_el.text if thumb_el is not None and thumb_el.text else ""
-            year = int(year_el.text) if year_el is not None and year_el.text else 0
+    def fetch_owned_rpg_items(self) -> list[BggRpgItem]:
+        """Fetch RPG items (libros de rol) owned by the collection user from BGG."""
+        collection_items = self._fetch_rpg_collection()
+        if not collection_items:
+            return []
 
-            games.append(BggGame(
-                bgg_id=bgg_id,
-                name=name,
-                thumbnail_url=thumbnail,
-                year_published=year,
-            ))
+        bgg_ids = [item.bgg_id for item in collection_items]
+        details = self._fetch_rpg_details(bgg_ids)
 
-        return games
+        return [
+            BggRpgItem(
+                bgg_id=item.bgg_id,
+                name=item.name,
+                thumbnail_url=(
+                    details[item.bgg_id].thumbnail_url
+                    if item.bgg_id in details
+                    else item.thumbnail_url
+                ),
+                image_url=(
+                    details[item.bgg_id].image_url if item.bgg_id in details else ""
+                ),
+                year_published=(
+                    details[item.bgg_id].year_published
+                    if item.bgg_id in details
+                    else item.year_published
+                ),
+                bgg_rating=(
+                    details[item.bgg_id].bgg_rating if item.bgg_id in details else 0.0
+                ),
+                description=(
+                    details[item.bgg_id].description if item.bgg_id in details else ""
+                ),
+            )
+            for item in collection_items
+        ]
+
+    def _fetch_rpg_collection(self) -> list[BggGame]:
+        """Fetch the RPG collection via the XML API. Raises on failure after retries."""
+        url = (
+            f"{self.XML_API_URL}"
+            f"?username={self._username}&subtype=rpgitem&own=1&stats=1"
+        )
+        headers = self._get_auth_headers()
+        backoff = self.INITIAL_BACKOFF
+
+        for _attempt in range(self.MAX_RETRIES):
+            try:
+                response = httpx.get(url, headers=headers, timeout=30.0)
+            except httpx.HTTPError as exc:
+                raise RuntimeError(
+                    f"HTTP error fetching RPG collection: {exc}"
+                ) from exc
+
+            if response.status_code == 200:
+                return self._parse_xml_collection(response.text)
+
+            if response.status_code == 202:
+                time.sleep(backoff)
+                backoff *= 2
+                continue
+
+            response.raise_for_status()
+
+        raise RuntimeError(
+            f"BGG RPG collection API did not respond after {self.MAX_RETRIES} retries"
+        )
+
+    def _fetch_rpg_details(
+        self, bgg_ids: list[int], batch_size: int = 20
+    ) -> dict[int, _RpgDetails]:
+        """Fetch RPG item details from the BGG thing API in batches."""
+        headers = self._get_auth_headers()
+        details: dict[int, _RpgDetails] = {}
+
+        for i in range(0, len(bgg_ids), batch_size):
+            batch = bgg_ids[i : i + batch_size]
+            ids_param = ",".join(str(bid) for bid in batch)
+            url = f"{self.THING_API_URL}?id={ids_param}&stats=1"
+
+            try:
+                response = httpx.get(url, headers=headers, timeout=30.0)
+            except httpx.HTTPError as exc:
+                raise RuntimeError(
+                    f"HTTP error fetching RPG item details: {exc}"
+                ) from exc
+
+            response.raise_for_status()
+
+            root = ET.fromstring(response.text)
+            for item in root.findall("item"):
+                bgg_id = int(item.get("id", "0"))
+
+                image_el = item.find("image")
+                image_url = (
+                    image_el.text if image_el is not None and image_el.text else ""
+                )
+                thumb_el = item.find("thumbnail")
+                thumbnail_url = (
+                    thumb_el.text if thumb_el is not None and thumb_el.text else ""
+                )
+                year_el = item.find("yearpublished")
+                year_published = (
+                    int(year_el.get("value", "0") or "0") if year_el is not None else 0
+                )
+                desc_el = item.find("description")
+                description = (
+                    unescape(desc_el.text)
+                    if desc_el is not None and desc_el.text
+                    else ""
+                )
+
+                rating = 0.0
+                stats = item.find("statistics")
+                if stats is not None:
+                    ratings = stats.find("ratings")
+                    if ratings is not None:
+                        avg = ratings.find("average")
+                        if avg is not None:
+                            rating = float(avg.get("value", "0") or "0")
+
+                details[bgg_id] = _RpgDetails(
+                    image_url=image_url,
+                    thumbnail_url=thumbnail_url,
+                    year_published=year_published,
+                    bgg_rating=round(rating, 2),
+                    description=description,
+                )
+
+            if i + batch_size < len(bgg_ids):
+                time.sleep(1.0)
+
+        return details

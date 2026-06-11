@@ -18,12 +18,15 @@ from pathlib import Path
 from urllib.parse import unquote
 
 PORT = 8080
-MIRROR_DIR = Path(__file__).resolve().parent.parent / "frontend" / "public" / "content-mirror"
+MIRROR_DIR = (
+    Path(__file__).resolve().parent.parent / "frontend" / "public" / "content-mirror"
+)
 
 # Mirror of the `redir` lines in Caddyfile. Keys are matched against the
 # *decoded* URL path, so percent-encoded variants (e.g. `campa%C3%B1as`) are
 # handled by the same entry as the literal `campañas`.
 REDIRECTS: dict[str, str] = {
+    "/prestamos": "/ludoteca/",
     "/inicio": "/",
     "/inicio/": "/",
     "/socios/ludoteca": "/ludoteca",
