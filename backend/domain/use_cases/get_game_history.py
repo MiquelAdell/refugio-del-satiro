@@ -33,7 +33,7 @@ class GetGameHistoryUseCase:
         distinguish "no such game" (404) from "game has no history" ([]).
         """
         game = self._game_repo.get_by_slug(slug)
-        if game is None or game.item_type != "boardgame":
+        if game is None:
             return None
         loans = self._loan_repo.list_by_game_id(game.id)
         return [

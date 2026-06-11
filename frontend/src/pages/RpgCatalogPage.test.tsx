@@ -22,6 +22,9 @@ const ITEM_A: RpgItem = {
   year_published: 1987,
   bgg_rating: 7.9,
   description: "Wizards in medieval Europe.",
+  status: "available",
+  loan_id: null,
+  borrower_display_name: null,
 };
 
 const ITEM_B: RpgItem = {
@@ -34,6 +37,9 @@ const ITEM_B: RpgItem = {
   year_published: 1991,
   bgg_rating: 8.6,
   description: "Gothic horror RPG.",
+  status: "available",
+  loan_id: null,
+  borrower_display_name: null,
 };
 
 const ITEM_C: RpgItem = {
@@ -46,6 +52,9 @@ const ITEM_C: RpgItem = {
   year_published: 2009,
   bgg_rating: 7.2,
   description: "Fantasy RPG.",
+  status: "available",
+  loan_id: null,
+  borrower_display_name: null,
 };
 
 const ALL_ITEMS = [ITEM_A, ITEM_B, ITEM_C] as const;
@@ -71,7 +80,10 @@ function getItemNames(): string[] {
   return screen
     .getAllByRole("link", { name: /.+/ })
     .map((el) => el.getAttribute("aria-label") ?? el.textContent ?? "")
-    .filter((name) => ALL_ITEMS.some((item) => item.name === name));
+    .flatMap((label) => {
+      const match = ALL_ITEMS.find((item) => label.startsWith(item.name));
+      return match ? [match.name] : [];
+    });
 }
 
 beforeEach(() => {

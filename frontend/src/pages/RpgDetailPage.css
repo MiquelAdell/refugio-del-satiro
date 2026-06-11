@@ -1,6 +1,6 @@
 /*
- * RPG detail — two-column hero (cover + info) with description below.
- * No loan controls; mirrors GameDetailPage layout tokens.
+ * RPG detail — two-column hero (cover + info), lending controls, and
+ * history section below. Mirrors GameDetailPage layout tokens.
  */
 
 .rpg-detail-page {
@@ -103,6 +103,22 @@
   font-weight: var(--font-weight-bold);
 }
 
+.rpg-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.rpg-detail-login-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.rpg-detail-login-link:hover {
+  color: var(--color-brand);
+}
+
 .rpg-detail-bgg a {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
@@ -126,6 +142,31 @@
 
 .rpg-detail-description p + p {
   margin-top: var(--space-md);
+}
+
+/* ─── History ─────────────────────────────────────────────────────── */
+
+.rpg-detail-history {
+  margin-top: var(--space-2xl);
+}
+
+.rpg-detail-history h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-md);
+  color: var(--color-text-heading);
+}
+
+.rpg-detail-history-list {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.rpg-detail-no-history {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
 }
 
 /* ─── Responsive ──────────────────────────────────────────────────── */

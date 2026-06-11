@@ -5,10 +5,12 @@ import sqlite3
 from fastapi.testclient import TestClient
 
 from backend.api.app import create_app
-from backend.api.dependencies import get_db_conn
+from backend.api.auth import create_jwt
+from backend.api.dependencies import _settings, get_db_conn
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
+from backend.domain.entities.member import Member
 from backend.migrations.runner import run_migrations
 
 RPG_BGG_ID = 500
@@ -31,6 +33,32 @@ def _setup_client() -> tuple[TestClient, sqlite3.Connection]:
     app.dependency_overrides[get_db_conn] = override_db_conn
     client = TestClient(app)
     return client, conn
+
+
+def _auth_cookie(member: Member) -> dict[str, str]:
+    token = create_jwt(member.id, _settings.jwt_secret)
+    return {"Cookie": f"session_token={token}"}
+
+
+def _make_member(
+    member_repo: SqliteMemberRepository,
+    *,
+    number: int,
+    first_name: str,
+    last_name: str,
+    email: str,
+    is_admin: bool = False,
+) -> Member:
+    return member_repo.upsert_by_email(
+        member_number=number,
+        first_name=first_name,
+        last_name=last_name,
+        nickname=None,
+        phone=None,
+        email=email,
+        display_name=f"{first_name} {last_name}",
+        is_admin=is_admin,
+    )
 
 
 class TestListRpgItems:
@@ -73,6 +101,9 @@ class TestListRpgItems:
         assert item["year_published"] == 1974
         assert item["bgg_rating"] == 8.5
         assert item["description"] == "The original tabletop RPG."
+        assert item["status"] == "available"
+        assert item["borrower_display_name"] is None
+        assert item["loan_id"] is None
         conn.close()
 
     def test_rpg_item_absent_from_juegos(self) -> None:
@@ -109,28 +140,75 @@ class TestListRpgItems:
         assert response.json() == []
         conn.close()
 
-    def test_response_has_no_loan_fields(self) -> None:
+    def test_anonymous_request_hides_borrower_identity(self) -> None:
         client, conn = _setup_client()
         game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
 
-        game_repo.upsert_by_bgg_id(
+        rpg = game_repo.upsert_by_bgg_id(
             bgg_id=RPG_BGG_ID,
-            name="Call of Cthulhu",
-            thumbnail_url="https://example.com/coc.jpg",
+            name="Shadowrun",
+            thumbnail_url="https://example.com/sr.jpg",
             item_type="rpgitem",
         )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
         response = client.get("/api/rol")
 
         assert response.status_code == 200
-        item = response.json()[0]
-        assert "status" not in item
-        assert "borrower_display_name" not in item
-        assert "loan_id" not in item
-        assert "location" not in item
-        assert "min_players" not in item
-        assert "max_players" not in item
-        assert "playing_time" not in item
+        data = response.json()
+        assert len(data) == 1
+        item = data[0]
+        assert item["status"] == "lent"
+        assert item["borrower_display_name"] is None
+        assert item["loan_id"] is None
+        conn.close()
+
+    def test_authenticated_request_exposes_borrower_identity(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Shadowrun",
+            thumbnail_url="https://example.com/sr.jpg",
+            item_type="rpgitem",
+        )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        bob = _make_member(
+            member_repo,
+            number=2,
+            first_name="Bob",
+            last_name="Jones",
+            email="bob@example.com",
+        )
+        loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
+
+        response = client.get("/api/rol", headers=_auth_cookie(bob))
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        item = data[0]
+        assert item["status"] == "lent"
+        assert item["borrower_display_name"] == "Alice Smith"
+        assert item["loan_id"] == loan.id
         conn.close()
 
 
@@ -160,7 +238,7 @@ class TestGetRpgItem:
         assert response.json() == {"detail": NOT_FOUND_DETAIL}
         conn.close()
 
-    def test_rpg_slug_returns_item(self) -> None:
+    def test_rpg_slug_returns_item_with_status(self) -> None:
         client, conn = _setup_client()
         game_repo = SqliteGameRepository(conn)
 
@@ -183,6 +261,166 @@ class TestGetRpgItem:
         assert data["name"] == "Shadowrun"
         assert data["slug"] == rpg.slug
         assert data["description"] == "Cyberpunk meets fantasy."
+        assert data["status"] == "available"
+        assert data["borrower_display_name"] is None
+        assert data["loan_id"] is None
+        conn.close()
+
+    def test_lent_item_anonymous_hides_borrower(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Shadowrun",
+            thumbnail_url="https://example.com/sr.jpg",
+            item_type="rpgitem",
+        )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        loan_repo.create(game_id=rpg.id, member_id=alice.id)
+
+        response = client.get(f"/api/rol/{rpg.slug}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "lent"
+        assert data["borrower_display_name"] is None
+        assert data["loan_id"] is None
+        conn.close()
+
+    def test_lent_item_authenticated_exposes_borrower(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Shadowrun",
+            thumbnail_url="https://example.com/sr.jpg",
+            item_type="rpgitem",
+        )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        bob = _make_member(
+            member_repo,
+            number=2,
+            first_name="Bob",
+            last_name="Jones",
+            email="bob@example.com",
+        )
+        loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
+
+        response = client.get(f"/api/rol/{rpg.slug}", headers=_auth_cookie(bob))
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "lent"
+        assert data["borrower_display_name"] == "Alice Smith"
+        assert data["loan_id"] == loan.id
+        conn.close()
+
+
+class TestRpgItemHistory:
+    def test_unknown_slug_returns_404(self) -> None:
+        client, conn = _setup_client()
+
+        response = client.get("/api/rol/no-existe/history")
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": NOT_FOUND_DETAIL}
+        conn.close()
+
+    def test_never_lent_item_returns_empty_list(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Call of Cthulhu",
+            thumbnail_url="https://example.com/coc.jpg",
+            item_type="rpgitem",
+        )
+
+        response = client.get(f"/api/rol/{rpg.slug}/history")
+
+        assert response.status_code == 200
+        assert response.json() == []
+        conn.close()
+
+    def test_history_returns_entry_after_borrow_and_return(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Call of Cthulhu",
+            thumbnail_url="https://example.com/coc.jpg",
+            item_type="rpgitem",
+        )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
+        loan_repo.mark_returned(loan.id)
+
+        response = client.get(f"/api/rol/{rpg.slug}/history", headers=_auth_cookie(alice))
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["member_display_name"] == "Alice Smith"
+        assert data[0]["returned_at"] is not None
+        conn.close()
+
+    def test_anonymous_history_hides_member_names(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        loan_repo = SqliteLoanRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=RPG_BGG_ID,
+            name="Call of Cthulhu",
+            thumbnail_url="https://example.com/coc.jpg",
+            item_type="rpgitem",
+        )
+        alice = _make_member(
+            member_repo,
+            number=1,
+            first_name="Alice",
+            last_name="Smith",
+            email="alice@example.com",
+        )
+        loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
+        loan_repo.mark_returned(loan.id)
+
+        response = client.get(f"/api/rol/{rpg.slug}/history")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["member_display_name"] is None
+        assert data[0]["returned_at"] is not None
         conn.close()
 
 
@@ -204,11 +442,10 @@ class TestLendingGuards:
         assert response.json() == {"detail": "Juego no encontrado."}
         conn.close()
 
-    def test_borrowing_rpg_item_is_rejected(self) -> None:
+    def test_borrowing_rpg_item_via_api_succeeds(self) -> None:
         client, conn = _setup_client()
         game_repo = SqliteGameRepository(conn)
         member_repo = SqliteMemberRepository(conn)
-        loan_repo = SqliteLoanRepository(conn)
 
         rpg = game_repo.upsert_by_bgg_id(
             bgg_id=RPG_BGG_ID,
@@ -216,26 +453,23 @@ class TestLendingGuards:
             thumbnail_url="https://example.com/vtm.jpg",
             item_type="rpgitem",
         )
-        member = member_repo.upsert_by_email(
-            member_number=1,
+        alice = _make_member(
+            member_repo,
+            number=1,
             first_name="Alice",
             last_name="Smith",
-            nickname=None,
-            phone=None,
             email="alice@example.com",
-            display_name="Alice Smith",
-            is_admin=False,
         )
 
-        from backend.domain.use_cases.borrow_game import (
-            BorrowGameError,
-            BorrowGameUseCase,
+        response = client.post(
+            "/api/loans",
+            json={"game_id": rpg.id},
+            headers=_auth_cookie(alice),
         )
 
-        use_case = BorrowGameUseCase(game_repo, loan_repo)
-        import pytest
-
-        with pytest.raises(BorrowGameError, match="no es pot prestar"):
-            use_case.execute(rpg.id, member.id)
-
+        assert response.status_code == 201
+        data = response.json()
+        assert data["game_id"] == rpg.id
+        assert data["member_id"] == alice.id
+        assert data["returned_at"] is None
         conn.close()

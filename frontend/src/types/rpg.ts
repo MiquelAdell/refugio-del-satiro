@@ -1,5 +1,8 @@
 import { stripPunctuation } from "./catalog";
 
+export const rpgLendingStatuses = ["available", "lent"] as const;
+export type RpgLendingStatus = (typeof rpgLendingStatuses)[number];
+
 export interface RpgItem {
   readonly id: number;
   readonly bgg_id: number;
@@ -10,6 +13,9 @@ export interface RpgItem {
   readonly year_published: number;
   readonly bgg_rating: number;
   readonly description: string;
+  readonly status: RpgLendingStatus;
+  readonly loan_id: number | null;
+  readonly borrower_display_name: string | null;
 }
 
 export const rpgSortValues = ["name-asc", "name-desc", "rating"] as const;
