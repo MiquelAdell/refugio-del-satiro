@@ -1,0 +1,44 @@
+/*
+ * RPG book catalog — mirrors CatalogPage layout but without the sidebar
+ * filter panel or view toggle. One-column toolbar: search + sort select.
+ */
+
+.rpg-catalog-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-2xl);
+}
+
+.rpg-catalog-loading,
+.rpg-catalog-error,
+.rpg-catalog-empty {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+  color: var(--color-text-muted);
+}
+
+.rpg-catalog-error {
+  color: var(--color-danger);
+}
+
+/* ─── Toolbar: search + sort ──────────────────────────────────────── */
+
+.rpg-catalog-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.rpg-catalog-toolbar .search-bar {
+  flex: 1;
+}
+
+/* ─── Results grid ────────────────────────────────────────────────── */
+
+.rpg-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-lg);
+  align-items: start;
+}

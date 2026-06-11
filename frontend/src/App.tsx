@@ -11,6 +11,8 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { SetPasswordPage } from "./pages/SetPasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
+import { RpgCatalogPage } from "./pages/RpgCatalogPage";
+import { RpgDetailPage } from "./pages/RpgDetailPage";
 
 export default function App() {
   return (
@@ -33,6 +35,22 @@ export default function App() {
                 element={
                   <PageLayout>
                     <GameDetailPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/juegos-de-rol"
+                element={
+                  <PageLayout>
+                    <RpgCatalogPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/rol/:slug"
+                element={
+                  <PageLayout>
+                    <RpgDetailPage />
                   </PageLayout>
                 }
               />
