@@ -30,6 +30,12 @@ class FakeMemberRepository:
             key=lambda m: (m.member_number or 0, m.id),
         )
 
+    def get_by_member_number(self, member_number: int) -> Member | None:
+        return next(
+            (m for m in self._members.values() if m.member_number == member_number),
+            None,
+        )
+
     def upsert_by_email(
         self,
         member_number: int | None,
@@ -40,6 +46,8 @@ class FakeMemberRepository:
         email: str,
         display_name: str,
         is_admin: bool,
+        last_payment: str | None = None,
+        gender: str | None = None,
     ) -> Member:
         now = datetime.now(UTC)
         existing = self.get_by_email(email)
@@ -58,6 +66,8 @@ class FakeMemberRepository:
                 is_active=True,
                 created_at=existing.created_at,
                 updated_at=now,
+                last_payment=last_payment,
+                gender=gender,
             )
         else:
             member = Member(
@@ -74,10 +84,37 @@ class FakeMemberRepository:
                 is_active=True,
                 created_at=now,
                 updated_at=now,
+                last_payment=last_payment,
+                gender=gender,
             )
             self._next_id += 1
         self._members[member.id] = member
         return member
+
+    def update_membership_fields(
+        self,
+        member_id: int,
+        last_payment: str | None = None,
+        gender: str | None = None,
+    ) -> None:
+        m = self._members[member_id]
+        self._members[member_id] = Member(
+            id=m.id,
+            member_number=m.member_number,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            nickname=m.nickname,
+            phone=m.phone,
+            email=m.email,
+            display_name=m.display_name,
+            password_hash=m.password_hash,
+            is_admin=m.is_admin,
+            is_active=m.is_active,
+            created_at=m.created_at,
+            updated_at=datetime.now(UTC),
+            last_payment=last_payment,
+            gender=gender,
+        )
 
     def update_display_name(self, member_id: int, display_name: str) -> None:
         m = self._members[member_id]
@@ -92,8 +129,11 @@ class FakeMemberRepository:
             display_name=display_name,
             password_hash=m.password_hash,
             is_admin=m.is_admin,
+            is_active=m.is_active,
             created_at=m.created_at,
             updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
         )
 
     def set_password_hash(self, member_id: int, password_hash: str) -> None:
@@ -109,8 +149,11 @@ class FakeMemberRepository:
             display_name=m.display_name,
             password_hash=password_hash,
             is_admin=m.is_admin,
+            is_active=m.is_active,
             created_at=m.created_at,
             updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
         )
 
 
@@ -162,6 +205,8 @@ def _make_raw(
     telefono: str = "",
     socio: str = "",
     admin: str = "",
+    ultima_cuota: str = "",
+    genero: str = "",
 ) -> dict[str, str]:
     return {
         "Nº Socio": socio,
@@ -171,6 +216,8 @@ def _make_raw(
         "Telefóno": telefono,
         "Email": email,
         "admin": admin,
+        "Última cuota": ultima_cuota,
+        "Género": genero,
     }
 
 
@@ -182,10 +229,22 @@ def test_display_name_uses_nickname_when_unique() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Carles", apellidos="Codina", apodo="Caradras", email="a@test.com"),
-        _make_raw(nombre="Lucas", apellidos="De la Cruz", apodo="Borkyl", email="b@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(
+                nombre="Carles",
+                apellidos="Codina",
+                apodo="Caradras",
+                email="a@test.com",
+            ),
+            _make_raw(
+                nombre="Lucas",
+                apellidos="De la Cruz",
+                apodo="Borkyl",
+                email="b@test.com",
+            ),
+        ]
+    )
 
     assert len(results) == 2
     names = {r.member.display_name for r in results}
@@ -198,10 +257,14 @@ def test_display_name_falls_back_when_nickname_not_unique() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"),
-        _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+            ),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+        ]
+    )
 
     names = {r.member.display_name for r in results}
     assert "Alice Smith" in names
@@ -214,10 +277,12 @@ def test_members_without_email_are_skipped() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Jorge", apellidos="Torres", email=""),
-        _make_raw(nombre="Valid", apellidos="User", email="valid@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(nombre="Jorge", apellidos="Torres", email=""),
+            _make_raw(nombre="Valid", apellidos="User", email="valid@test.com"),
+        ]
+    )
 
     assert len(results) == 1
     assert results[0].member.email == "valid@test.com"
@@ -233,7 +298,9 @@ def test_upsert_updates_existing_members() -> None:
     uc.execute([_make_raw(nombre="Old", apellidos="Name", email="x@test.com")])
 
     # Second import with updated name
-    results = uc.execute([_make_raw(nombre="New", apellidos="Name", email="x@test.com")])
+    results = uc.execute(
+        [_make_raw(nombre="New", apellidos="Name", email="x@test.com")]
+    )
 
     # No new members, so no tokens
     assert len(results) == 0
@@ -257,10 +324,12 @@ def test_password_tokens_generated_for_new_members_only() -> None:
     assert len(results1) == 1  # new member gets token
 
     # Import both old and new member
-    results2 = uc.execute([
-        _make_raw(nombre="A", apellidos="B", email="a@test.com"),
-        _make_raw(nombre="C", apellidos="D", email="c@test.com"),
-    ])
+    results2 = uc.execute(
+        [
+            _make_raw(nombre="A", apellidos="B", email="a@test.com"),
+            _make_raw(nombre="C", apellidos="D", email="c@test.com"),
+        ]
+    )
 
     # Only the new member gets a token
     assert len(results2) == 1
@@ -274,16 +343,22 @@ def test_display_name_recomputation_on_collision() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # First import: nickname "Ace" is unique
-    uc.execute([_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com")])
+    uc.execute(
+        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com")]
+    )
     m = member_repo.get_by_email("a@test.com")
     assert m is not None
     assert m.display_name == "Ace"
 
     # Second import: adds another "Ace" -- collision!
-    uc.execute([
-        _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"),
-        _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
-    ])
+    uc.execute(
+        [
+            _make_raw(
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+            ),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+        ]
+    )
 
     # After recomputation, both should fall back to full names
     alice = member_repo.get_by_email("a@test.com")
@@ -292,3 +367,38 @@ def test_display_name_recomputation_on_collision() -> None:
     assert bob is not None
     assert alice.display_name == "Alice Smith"
     assert bob.display_name == "Bob Jones"
+
+
+def test_import_maps_ultima_cuota_and_genero() -> None:
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    uc.execute(
+        [
+            _make_raw(
+                nombre="Ana",
+                apellidos="García",
+                email="ana@test.com",
+                ultima_cuota="5/02/2022",
+                genero="Femenino",
+            ),
+            _make_raw(
+                nombre="Pedro",
+                apellidos="López",
+                email="pedro@test.com",
+                ultima_cuota="",
+                genero="",
+            ),
+        ]
+    )
+
+    ana = member_repo.get_by_email("ana@test.com")
+    assert ana is not None
+    assert ana.last_payment == "5/02/2022"
+    assert ana.gender == "Femenino"
+
+    pedro = member_repo.get_by_email("pedro@test.com")
+    assert pedro is not None
+    assert pedro.last_payment is None
+    assert pedro.gender is None

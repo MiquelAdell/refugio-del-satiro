@@ -1,3 +1,6 @@
+export const memberGenders = ["Masculino", "Femenino", ""] as const;
+export type MemberGender = (typeof memberGenders)[number];
+
 export interface AdminMember {
   readonly id: number;
   readonly member_number: number | null;
@@ -10,6 +13,8 @@ export interface AdminMember {
   readonly is_admin: boolean;
   readonly is_active: boolean;
   readonly active_loan_count: number;
+  readonly last_payment?: string | null;
+  readonly gender?: MemberGender | null;
 }
 
 export interface CreateMemberRequest {
@@ -19,6 +24,13 @@ export interface CreateMemberRequest {
   readonly nickname?: string | null;
   readonly phone?: string | null;
   readonly member_number?: number | null;
+  readonly last_payment?: string | null;
+  readonly gender?: MemberGender | null;
+}
+
+export interface EditMemberRequest {
+  readonly last_payment?: string | null;
+  readonly gender?: MemberGender | null;
 }
 
 export interface CreateMemberResponse {

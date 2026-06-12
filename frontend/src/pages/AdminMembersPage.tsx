@@ -5,10 +5,14 @@ import type {
   AdminMember,
   CreateMemberRequest,
   CreateMemberResponse,
+  EditMemberRequest,
+  MemberGender,
   SendLinkResponse,
   OkResponse,
 } from "../types/admin";
+import { memberGenders } from "../types/admin";
 import { Button } from "../ui/Button";
+import { Dialog } from "../ui/Dialog";
 import "./AdminMembersPage.css";
 
 export function AdminMembersPage() {
@@ -22,6 +26,7 @@ export function AdminMembersPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<keyof AdminMember>("display_name");
   const [sortAsc, setSortAsc] = useState(true);
+  const [editTarget, setEditTarget] = useState<AdminMember | null>(null);
 
   const handleSort = (key: keyof AdminMember) => {
     if (sortKey === key) {
@@ -109,6 +114,19 @@ export function AdminMembersPage() {
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text);
+  };
+
+  const handleEditSave = async (id: number, req: EditMemberRequest) => {
+    try {
+      await apiFetch<OkResponse>(`/admin/members/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(req),
+      });
+      setEditTarget(null);
+      await fetchMembers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error actualizando el socio.");
+    }
   };
 
   if (authLoading) {
@@ -242,6 +260,14 @@ export function AdminMembersPage() {
                       >
                         Enviar enlace de acceso
                       </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setEditTarget(m)}
+                        disabled={actionLoading === m.id}
+                      >
+                        Editar
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -249,6 +275,14 @@ export function AdminMembersPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {editTarget && (
+        <EditMemberDialog
+          member={editTarget}
+          onSave={(req) => void handleEditSave(editTarget.id, req)}
+          onClose={() => setEditTarget(null)}
+        />
       )}
     </div>
   );
@@ -268,6 +302,8 @@ function CreateMemberForm({ onCreated, onCancel }: CreateMemberFormProps) {
   const [nickname, setNickname] = useState("");
   const [phone, setPhone] = useState("");
   const [memberNumber, setMemberNumber] = useState("");
+  const [lastPayment, setLastPayment] = useState("");
+  const [gender, setGender] = useState<MemberGender>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -289,6 +325,8 @@ function CreateMemberForm({ onCreated, onCancel }: CreateMemberFormProps) {
         nickname: nickname.trim() || null,
         phone: phone.trim() || null,
         member_number: memberNumber.trim() ? Number(memberNumber.trim()) : null,
+        last_payment: lastPayment.trim() || null,
+        gender: gender || null,
       };
 
       const res = await apiFetch<CreateMemberResponse>("/admin/members", {
@@ -364,6 +402,31 @@ function CreateMemberForm({ onCreated, onCancel }: CreateMemberFormProps) {
             onChange={(e) => setMemberNumber(e.target.value)}
           />
         </div>
+        <div className="admin-form-field">
+          <label htmlFor="cf-last-payment">Última cuota</label>
+          <input
+            id="cf-last-payment"
+            type="text"
+            value={lastPayment}
+            onChange={(e) => setLastPayment(e.target.value)}
+            placeholder="ej. 5/02/2022"
+          />
+        </div>
+        <div className="admin-form-field">
+          <label htmlFor="cf-gender">Género</label>
+          <select
+            id="cf-gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value as MemberGender)}
+            className="admin-form-select"
+          >
+            {memberGenders.map((g) => (
+              <option key={g} value={g}>
+                {g || "— Sin especificar —"}
+              </option>
+            ))}
+          </select>
+        </div>
         {formError && <p className="admin-form-error">{formError}</p>}
         <div className="admin-form-actions">
           <Button variant="primary" type="submit" disabled={submitting}>
@@ -380,5 +443,75 @@ function CreateMemberForm({ onCreated, onCancel }: CreateMemberFormProps) {
         </div>
       </div>
     </form>
+  );
+}
+
+/* ---- Edit member dialog ---- */
+
+interface EditMemberDialogProps {
+  readonly member: AdminMember;
+  readonly onSave: (req: EditMemberRequest) => void;
+  readonly onClose: () => void;
+}
+
+function EditMemberDialog({ member, onSave, onClose }: EditMemberDialogProps) {
+  const [lastPayment, setLastPayment] = useState(member.last_payment ?? "");
+  const [gender, setGender] = useState<MemberGender>(
+    (member.gender as MemberGender | undefined | null) ?? ""
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      last_payment: lastPayment.trim() || null,
+      gender: gender || null,
+    });
+  };
+
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title={`Editar socio: ${member.display_name}`}
+      description="Actualiza la última cuota pagada y el género del socio o socia."
+    >
+      <form onSubmit={(e) => void handleSubmit(e)} className="admin-edit-form">
+        <div className="admin-form-field">
+          <label htmlFor="em-last-payment">Última cuota</label>
+          <input
+            id="em-last-payment"
+            type="text"
+            value={lastPayment}
+            onChange={(e) => setLastPayment(e.target.value)}
+            placeholder="ej. 5/02/2022"
+          />
+        </div>
+        <div className="admin-form-field">
+          <label htmlFor="em-gender">Género</label>
+          <select
+            id="em-gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value as MemberGender)}
+            className="admin-form-select"
+          >
+            {memberGenders.map((g) => (
+              <option key={g} value={g}>
+                {g || "— Sin especificar —"}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="admin-form-actions">
+          <Button variant="primary" type="submit">
+            Guardar
+          </Button>
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancelar
+          </Button>
+        </div>
+      </form>
+    </Dialog>
   );
 }

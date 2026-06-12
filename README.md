@@ -9,6 +9,12 @@ The catalog is publicly browsable read-only (no account needed; borrowing
 requires logging in). Legacy `/prestamos` URLs redirect permanently to
 `/ludoteca`.
 
+A public membership-validation page lives at `/ludoteca/validacion`: anyone
+can enter a member number and see whether that person is a current member
+(name, ES/NO ES socio·a verdict, last paid fee). The legacy
+`/Validacion-Membresia` URL (printed on QR codes) 301-redirects there. The
+page also accepts `?id=<n>` for direct lookups.
+
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
 

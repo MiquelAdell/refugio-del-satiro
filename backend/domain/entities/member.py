@@ -19,3 +19,5 @@ class Member:
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    last_payment: str | None = None
+    gender: str | None = None

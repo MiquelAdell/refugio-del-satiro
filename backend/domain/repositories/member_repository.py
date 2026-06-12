@@ -10,6 +10,8 @@ class MemberRepository(Protocol):
 
     def get_by_email(self, email: str) -> Member | None: ...
 
+    def get_by_member_number(self, member_number: int) -> Member | None: ...
+
     def list_all(self) -> list[Member]: ...
 
     def upsert_by_email(
@@ -22,8 +24,17 @@ class MemberRepository(Protocol):
         email: str,
         display_name: str,
         is_admin: bool,
+        last_payment: str | None = None,
+        gender: str | None = None,
     ) -> Member: ...
 
     def update_display_name(self, member_id: int, display_name: str) -> None: ...
+
+    def update_membership_fields(
+        self,
+        member_id: int,
+        last_payment: str | None = None,
+        gender: str | None = None,
+    ) -> None: ...
 
     def set_password_hash(self, member_id: int, password_hash: str) -> None: ...

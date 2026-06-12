@@ -143,4 +143,46 @@ test.describe("ludoteca @ guest", () => {
     // Suppress unused variable warning.
     void cardName;
   });
+
+  test("ludo-7: guest validates a membership number on /ludoteca/validacion", async ({
+    page,
+  }) => {
+    await page.goto("/ludoteca/validacion");
+
+    await expect(
+      page.getByRole("heading", { name: /Validar Membresía/i }),
+    ).toBeVisible();
+
+    // Seeded by scripts/seed_test_users.py: E2E Member #9001, Femenino,
+    // última cuota 5/02/2026.
+    const input = page.getByLabel("Número de socio");
+    await input.fill("9001");
+    await page.getByRole("button", { name: "Buscar" }).click();
+
+    await expect(page.getByText("E2E MEMBER #9001")).toBeVisible();
+    await expect(page.getByText("ES SOCIA", { exact: true })).toBeVisible();
+    await expect(page.getByText("ÚLTIMA CUOTA PAGADA:")).toBeVisible();
+    await expect(page.getByText("5/02/2026")).toBeVisible();
+  });
+
+  test("ludo-8: unknown membership number shows the not-found message", async ({
+    page,
+  }) => {
+    await page.goto("/ludoteca/validacion");
+
+    await page.getByLabel("Número de socio").fill("99999");
+    await page.getByRole("button", { name: "Buscar" }).click();
+
+    await expect(
+      page.getByText("No se ha encontrado al socio o socia con número"),
+    ).toBeVisible();
+    await expect(page.getByText("99999", { exact: true })).toBeVisible();
+  });
+
+  test("ludo-9: ?id= query param auto-validates on load", async ({ page }) => {
+    await page.goto("/ludoteca/validacion?id=9001");
+
+    await expect(page.getByText("E2E MEMBER #9001")).toBeVisible();
+    await expect(page.getByText("ES SOCIA", { exact: true })).toBeVisible();
+  });
 });
