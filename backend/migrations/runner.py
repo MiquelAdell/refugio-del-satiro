@@ -20,10 +20,7 @@ def _backfill_game_slugs(conn: sqlite3.Connection) -> None:
     if not rows:
         return
     taken = {
-        r[0]
-        for r in conn.execute(
-            "SELECT slug FROM games WHERE slug != ''"
-        ).fetchall()
+        r[0] for r in conn.execute("SELECT slug FROM games WHERE slug != ''").fetchall()
     }
     for row in rows:
         unique = ensure_unique(slugify(row["name"]), taken)
@@ -38,14 +35,12 @@ POST_MIGRATION_HOOKS: dict[str, Callable[[sqlite3.Connection], None]] = {
 
 
 def _ensure_schema_table(conn: sqlite3.Connection) -> None:
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS schema_migrations (
             version TEXT PRIMARY KEY,
             applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         )
-        """
-    )
+        """)
 
 
 def _get_applied_versions(conn: sqlite3.Connection) -> set[str]:
@@ -78,9 +73,7 @@ def run_migrations(conn: sqlite3.Connection) -> list[str]:
         hook = POST_MIGRATION_HOOKS.get(version)
         if hook is not None:
             hook(conn)
-        conn.execute(
-            "INSERT INTO schema_migrations (version) VALUES (?)", (version,)
-        )
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (version,))
         conn.commit()
         applied_now.append(version)
 

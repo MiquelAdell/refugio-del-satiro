@@ -18,7 +18,9 @@ def _row_to_member(row: sqlite3.Row) -> Member:
         display_name=row["display_name"],
         password_hash=row["password_hash"],
         is_admin=bool(row["is_admin"]),
-        is_active=bool(row["is_active"]) if "is_active" in row.keys() else True,  # noqa: SIM118
+        is_active=(
+            bool(row["is_active"]) if "is_active" in row.keys() else True
+        ),  # noqa: SIM118
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
     )
@@ -72,7 +74,19 @@ class SqliteMemberRepository:
                 is_admin = excluded.is_admin,
                 updated_at = ?
             """,
-            (member_number, first_name, last_name, nickname, phone, email, display_name, int(is_admin), now, now, now),
+            (
+                member_number,
+                first_name,
+                last_name,
+                nickname,
+                phone,
+                email,
+                display_name,
+                int(is_admin),
+                now,
+                now,
+                now,
+            ),
         )
         self._conn.commit()
         member = self.get_by_email(email)

@@ -20,7 +20,10 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 def _require_admin(member: CurrentMember) -> Member:
     if not member.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso restringido a administradores.",
+        )
     return member
 
 
@@ -74,23 +77,27 @@ def list_members(
     result = []
     for m in members:
         active_loans = loan_repo.list_active_by_member_id(m.id)
-        result.append(MemberListItem(
-            id=m.id,
-            member_number=m.member_number,
-            first_name=m.first_name,
-            last_name=m.last_name,
-            nickname=m.nickname,
-            display_name=m.display_name,
-            email=m.email,
-            phone=m.phone,
-            is_admin=m.is_admin,
-            is_active=m.is_active,
-            active_loan_count=len(active_loans),
-        ))
+        result.append(
+            MemberListItem(
+                id=m.id,
+                member_number=m.member_number,
+                first_name=m.first_name,
+                last_name=m.last_name,
+                nickname=m.nickname,
+                display_name=m.display_name,
+                email=m.email,
+                phone=m.phone,
+                is_admin=m.is_admin,
+                is_active=m.is_active,
+                active_loan_count=len(active_loans),
+            )
+        )
     return result
 
 
-@router.post("/members", response_model=CreateMemberResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/members", response_model=CreateMemberResponse, status_code=status.HTTP_201_CREATED
+)
 def create_member(
     body: CreateMemberRequest,
     _admin: AdminMember,
@@ -99,7 +106,10 @@ def create_member(
 ) -> CreateMemberResponse:
     existing = member_repo.get_by_email(body.email)
     if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe un socio con este email.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un socio con este email.",
+        )
 
     display_name = f"{body.first_name} {body.last_name}"
     member = member_repo.upsert_by_email(
@@ -142,7 +152,9 @@ def disable_member(
 ) -> OkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado."
+        )
     member_repo.set_active(member_id, False)
     return OkResponse()
 
@@ -155,7 +167,9 @@ def enable_member(
 ) -> OkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado."
+        )
     member_repo.set_active(member_id, True)
     return OkResponse()
 
@@ -169,12 +183,16 @@ def send_access_link(
 ) -> SendLinkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado."
+        )
 
     token = token_repo.create(member.id)
     token_url = f"{_settings.base_url}/set-password?token={token.token}"
 
     email_client = EmailClient(_settings)
-    email_sent = email_client.send_access_link(member.email, member.display_name, token_url)
+    email_sent = email_client.send_access_link(
+        member.email, member.display_name, token_url
+    )
 
     return SendLinkResponse(email_sent=email_sent, token_url=token_url)

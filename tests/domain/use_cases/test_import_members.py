@@ -182,10 +182,22 @@ def test_display_name_uses_nickname_when_unique() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Carles", apellidos="Codina", apodo="Caradras", email="a@test.com"),
-        _make_raw(nombre="Lucas", apellidos="De la Cruz", apodo="Borkyl", email="b@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(
+                nombre="Carles",
+                apellidos="Codina",
+                apodo="Caradras",
+                email="a@test.com",
+            ),
+            _make_raw(
+                nombre="Lucas",
+                apellidos="De la Cruz",
+                apodo="Borkyl",
+                email="b@test.com",
+            ),
+        ]
+    )
 
     assert len(results) == 2
     names = {r.member.display_name for r in results}
@@ -198,10 +210,14 @@ def test_display_name_falls_back_when_nickname_not_unique() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"),
-        _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+            ),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+        ]
+    )
 
     names = {r.member.display_name for r in results}
     assert "Alice Smith" in names
@@ -214,10 +230,12 @@ def test_members_without_email_are_skipped() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    results = uc.execute([
-        _make_raw(nombre="Jorge", apellidos="Torres", email=""),
-        _make_raw(nombre="Valid", apellidos="User", email="valid@test.com"),
-    ])
+    results = uc.execute(
+        [
+            _make_raw(nombre="Jorge", apellidos="Torres", email=""),
+            _make_raw(nombre="Valid", apellidos="User", email="valid@test.com"),
+        ]
+    )
 
     assert len(results) == 1
     assert results[0].member.email == "valid@test.com"
@@ -233,7 +251,9 @@ def test_upsert_updates_existing_members() -> None:
     uc.execute([_make_raw(nombre="Old", apellidos="Name", email="x@test.com")])
 
     # Second import with updated name
-    results = uc.execute([_make_raw(nombre="New", apellidos="Name", email="x@test.com")])
+    results = uc.execute(
+        [_make_raw(nombre="New", apellidos="Name", email="x@test.com")]
+    )
 
     # No new members, so no tokens
     assert len(results) == 0
@@ -257,10 +277,12 @@ def test_password_tokens_generated_for_new_members_only() -> None:
     assert len(results1) == 1  # new member gets token
 
     # Import both old and new member
-    results2 = uc.execute([
-        _make_raw(nombre="A", apellidos="B", email="a@test.com"),
-        _make_raw(nombre="C", apellidos="D", email="c@test.com"),
-    ])
+    results2 = uc.execute(
+        [
+            _make_raw(nombre="A", apellidos="B", email="a@test.com"),
+            _make_raw(nombre="C", apellidos="D", email="c@test.com"),
+        ]
+    )
 
     # Only the new member gets a token
     assert len(results2) == 1
@@ -274,16 +296,22 @@ def test_display_name_recomputation_on_collision() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # First import: nickname "Ace" is unique
-    uc.execute([_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com")])
+    uc.execute(
+        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com")]
+    )
     m = member_repo.get_by_email("a@test.com")
     assert m is not None
     assert m.display_name == "Ace"
 
     # Second import: adds another "Ace" -- collision!
-    uc.execute([
-        _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"),
-        _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
-    ])
+    uc.execute(
+        [
+            _make_raw(
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+            ),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+        ]
+    )
 
     # After recomputation, both should fall back to full names
     alice = member_repo.get_by_email("a@test.com")

@@ -12,7 +12,9 @@ def _row_to_loan(row: sqlite3.Row) -> Loan:
         game_id=row["game_id"],
         member_id=row["member_id"],
         borrowed_at=datetime.fromisoformat(row["borrowed_at"]),
-        returned_at=datetime.fromisoformat(row["returned_at"]) if row["returned_at"] else None,
+        returned_at=(
+            datetime.fromisoformat(row["returned_at"]) if row["returned_at"] else None
+        ),
     )
 
 

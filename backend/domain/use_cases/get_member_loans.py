@@ -32,12 +32,14 @@ class GetMemberLoansUseCase:
             game = self._game_repo.get_by_id(loan.game_id)
             if game is None:
                 continue
-            result.append(ActiveLoanWithGame(
-                loan_id=loan.id,
-                game_id=game.id,
-                game_name=game.name,
-                game_thumbnail_url=game.thumbnail_url,
-                game_image_url=game.image_url,
-                borrowed_at=loan.borrowed_at.isoformat(),
-            ))
+            result.append(
+                ActiveLoanWithGame(
+                    loan_id=loan.id,
+                    game_id=game.id,
+                    game_name=game.name,
+                    game_thumbnail_url=game.thumbnail_url,
+                    game_image_url=game.image_url,
+                    borrowed_at=loan.borrowed_at.isoformat(),
+                )
+            )
         return result
