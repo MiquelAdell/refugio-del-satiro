@@ -13,6 +13,7 @@ import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
+import { ValidacionPage } from "./pages/ValidacionPage";
 
 export default function App() {
   return (
@@ -75,6 +76,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <AdminContentPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/validacion"
+                element={
+                  <PageLayout>
+                    <ValidacionPage />
                   </PageLayout>
                 }
               />

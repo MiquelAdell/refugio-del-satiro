@@ -235,7 +235,7 @@ class TestLendingGuards:
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         import pytest
 
-        with pytest.raises(BorrowGameError, match="no es pot prestar"):
+        with pytest.raises(BorrowGameError, match="no se puede prestar"):
             use_case.execute(rpg.id, member.id)
 
         conn.close()

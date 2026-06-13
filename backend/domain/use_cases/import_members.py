@@ -75,6 +75,9 @@ class ImportMembersUseCase:
                 first_name, last_name, nickname, nickname_counts
             )
 
+            last_payment = m.get("Última cuota", "").strip() or None
+            gender = m.get("Género", "").strip() or None
+
             member = self._member_repo.upsert_by_email(
                 member_number=member_number,
                 first_name=first_name,
@@ -84,6 +87,8 @@ class ImportMembersUseCase:
                 email=email,
                 display_name=display_name,
                 is_admin=is_admin,
+                last_payment=last_payment,
+                gender=gender,
             )
             upserted_members.append(member)
 

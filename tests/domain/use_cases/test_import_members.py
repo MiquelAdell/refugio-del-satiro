@@ -30,6 +30,12 @@ class FakeMemberRepository:
             key=lambda m: (m.member_number or 0, m.id),
         )
 
+    def get_by_member_number(self, member_number: int) -> Member | None:
+        return next(
+            (m for m in self._members.values() if m.member_number == member_number),
+            None,
+        )
+
     def upsert_by_email(
         self,
         member_number: int | None,
@@ -40,6 +46,8 @@ class FakeMemberRepository:
         email: str,
         display_name: str,
         is_admin: bool,
+        last_payment: str | None = None,
+        gender: str | None = None,
     ) -> Member:
         now = datetime.now(UTC)
         existing = self.get_by_email(email)
@@ -58,6 +66,8 @@ class FakeMemberRepository:
                 is_active=True,
                 created_at=existing.created_at,
                 updated_at=now,
+                last_payment=last_payment,
+                gender=gender,
             )
         else:
             member = Member(
@@ -74,10 +84,37 @@ class FakeMemberRepository:
                 is_active=True,
                 created_at=now,
                 updated_at=now,
+                last_payment=last_payment,
+                gender=gender,
             )
             self._next_id += 1
         self._members[member.id] = member
         return member
+
+    def update_membership_fields(
+        self,
+        member_id: int,
+        last_payment: str | None = None,
+        gender: str | None = None,
+    ) -> None:
+        m = self._members[member_id]
+        self._members[member_id] = Member(
+            id=m.id,
+            member_number=m.member_number,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            nickname=m.nickname,
+            phone=m.phone,
+            email=m.email,
+            display_name=m.display_name,
+            password_hash=m.password_hash,
+            is_admin=m.is_admin,
+            is_active=m.is_active,
+            created_at=m.created_at,
+            updated_at=datetime.now(UTC),
+            last_payment=last_payment,
+            gender=gender,
+        )
 
     def update_display_name(self, member_id: int, display_name: str) -> None:
         m = self._members[member_id]
@@ -92,8 +129,11 @@ class FakeMemberRepository:
             display_name=display_name,
             password_hash=m.password_hash,
             is_admin=m.is_admin,
+            is_active=m.is_active,
             created_at=m.created_at,
             updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
         )
 
     def set_password_hash(self, member_id: int, password_hash: str) -> None:
@@ -109,8 +149,11 @@ class FakeMemberRepository:
             display_name=m.display_name,
             password_hash=password_hash,
             is_admin=m.is_admin,
+            is_active=m.is_active,
             created_at=m.created_at,
             updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
         )
 
 
@@ -162,6 +205,8 @@ def _make_raw(
     telefono: str = "",
     socio: str = "",
     admin: str = "",
+    ultima_cuota: str = "",
+    genero: str = "",
 ) -> dict[str, str]:
     return {
         "Nº Socio": socio,
@@ -171,6 +216,8 @@ def _make_raw(
         "Telefóno": telefono,
         "Email": email,
         "admin": admin,
+        "Última cuota": ultima_cuota,
+        "Género": genero,
     }
 
 
@@ -320,3 +367,38 @@ def test_display_name_recomputation_on_collision() -> None:
     assert bob is not None
     assert alice.display_name == "Alice Smith"
     assert bob.display_name == "Bob Jones"
+
+
+def test_import_maps_ultima_cuota_and_genero() -> None:
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    uc.execute(
+        [
+            _make_raw(
+                nombre="Ana",
+                apellidos="García",
+                email="ana@test.com",
+                ultima_cuota="5/02/2022",
+                genero="Femenino",
+            ),
+            _make_raw(
+                nombre="Pedro",
+                apellidos="López",
+                email="pedro@test.com",
+                ultima_cuota="",
+                genero="",
+            ),
+        ]
+    )
+
+    ana = member_repo.get_by_email("ana@test.com")
+    assert ana is not None
+    assert ana.last_payment == "5/02/2022"
+    assert ana.gender == "Femenino"
+
+    pedro = member_repo.get_by_email("pedro@test.com")
+    assert pedro is not None
+    assert pedro.last_payment is None
+    assert pedro.gender is None

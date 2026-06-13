@@ -42,6 +42,8 @@ class MemberListItem(BaseModel):
     is_admin: bool
     is_active: bool
     active_loan_count: int
+    last_payment: str | None = None
+    gender: str | None = None
 
 
 class CreateMemberRequest(BaseModel):
@@ -51,6 +53,13 @@ class CreateMemberRequest(BaseModel):
     nickname: str | None = None
     phone: str | None = None
     member_number: int | None = None
+    last_payment: str | None = None
+    gender: str | None = None
+
+
+class UpdateMemberRequest(BaseModel):
+    last_payment: str | None = None
+    gender: str | None = None
 
 
 class CreateMemberResponse(BaseModel):
@@ -74,25 +83,24 @@ def list_members(
     loan_repo: LoanRepo,
 ) -> list[MemberListItem]:
     members = member_repo.list_all()
-    result = []
-    for m in members:
-        active_loans = loan_repo.list_active_by_member_id(m.id)
-        result.append(
-            MemberListItem(
-                id=m.id,
-                member_number=m.member_number,
-                first_name=m.first_name,
-                last_name=m.last_name,
-                nickname=m.nickname,
-                display_name=m.display_name,
-                email=m.email,
-                phone=m.phone,
-                is_admin=m.is_admin,
-                is_active=m.is_active,
-                active_loan_count=len(active_loans),
-            )
+    return [
+        MemberListItem(
+            id=m.id,
+            member_number=m.member_number,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            nickname=m.nickname,
+            display_name=m.display_name,
+            email=m.email,
+            phone=m.phone,
+            is_admin=m.is_admin,
+            is_active=m.is_active,
+            active_loan_count=len(loan_repo.list_active_by_member_id(m.id)),
+            last_payment=m.last_payment,
+            gender=m.gender,
         )
-    return result
+        for m in members
+    ]
 
 
 @router.post(
@@ -121,6 +129,8 @@ def create_member(
         email=body.email,
         display_name=display_name,
         is_admin=False,
+        last_payment=body.last_payment,
+        gender=body.gender,
     )
 
     token = token_repo.create(member.id)
@@ -139,9 +149,31 @@ def create_member(
             is_admin=member.is_admin,
             is_active=member.is_active,
             active_loan_count=0,
+            last_payment=member.last_payment,
+            gender=member.gender,
         ),
         token_url=token_url,
     )
+
+
+@router.patch("/members/{member_id}", response_model=OkResponse)
+def update_member(
+    member_id: int,
+    body: UpdateMemberRequest,
+    _admin: AdminMember,
+    member_repo: MemberRepo,
+) -> OkResponse:
+    member = member_repo.get_by_id(member_id)
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado."
+        )
+    member_repo.update_membership_fields(
+        member_id,
+        last_payment=body.last_payment,
+        gender=body.gender,
+    )
+    return OkResponse()
 
 
 @router.patch("/members/{member_id}/disable", response_model=OkResponse)

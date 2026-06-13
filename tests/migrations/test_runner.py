@@ -24,6 +24,12 @@ class TestMigrationRunner:
         assert "006_add_item_type" in applied
         conn.close()
 
+    def test_applies_membership_validation_fields_migration(self) -> None:
+        conn = get_memory_connection()
+        applied = run_migrations(conn)
+        assert "007_add_membership_validation_fields" in applied
+        conn.close()
+
     def test_creates_all_tables(self) -> None:
         conn = get_memory_connection()
         run_migrations(conn)
@@ -43,7 +49,7 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 6
+        assert len(first_run) == 7
         assert len(second_run) == 0
         conn.close()
 
@@ -125,6 +131,8 @@ class TestMigrationRunner:
             "is_active",
             "created_at",
             "updated_at",
+            "last_payment",
+            "gender",
         }
         conn.close()
 
