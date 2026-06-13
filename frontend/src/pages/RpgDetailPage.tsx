@@ -1,24 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
-import type { RpgItem } from "../types/rpg";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
+import { useAuth } from "../context/AuthContext";
+import { useRpgHistory } from "../hooks/useRpgHistory";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
 import "./RpgDetailPage.css";
 
 export function RpgDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [item, setItem] = useState<RpgItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    setError(null);
-    apiFetch<RpgItem>(`/rol/${slug}`)
-      .then(setItem)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [slug]);
+  const { item, history, loading, error, refetch } = useRpgHistory(slug);
+  const { member } = useAuth();
+  const [confirmAction, setConfirmAction] = useState<
+    { readonly action: "borrow"; readonly itemId: number } | { readonly action: "return" } | null
+  >(null);
+  const [acting, setActing] = useState(false);
 
   if (loading) {
     return (
@@ -38,6 +36,53 @@ export function RpgDetailPage() {
       </div>
     );
   }
+
+  const canBorrow = member !== null && item.status === "available";
+  const canReturn =
+    member !== null &&
+    item.status === "lent" &&
+    item.loan_id !== null &&
+    (member.is_admin || item.borrower_display_name === member.display_name);
+
+  const onBorrow = (itemId: number) => setConfirmAction({ action: "borrow", itemId });
+
+  const handleBorrow = async (itemId: number) => {
+    setActing(true);
+    try {
+      await apiFetch<unknown>("/loans", {
+        method: "POST",
+        body: JSON.stringify({ game_id: itemId }),
+      });
+      refetch();
+    } catch {
+      /* error handled silently — refetch on close keeps UI in sync */
+    } finally {
+      setActing(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleReturn = async () => {
+    setActing(true);
+    try {
+      await apiFetch<unknown>(`/loans/${item.loan_id}/return`, {
+        method: "PATCH",
+      });
+      refetch();
+    } catch {
+      /* error handled silently — refetch on close keeps UI in sync */
+    } finally {
+      setActing(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const statusLabel =
+    item.status === "available"
+      ? "Disponible"
+      : item.borrower_display_name
+        ? `Prestado a ${item.borrower_display_name}`
+        : "Prestado";
 
   const descriptionParagraphs = item.description
     .split(/\n\n+/)
@@ -72,6 +117,38 @@ export function RpgDetailPage() {
               </span>
             </div>
           )}
+
+          <Badge variant={item.status === "available" ? "available" : "lent"} className="rpg-detail-status">
+            {statusLabel}
+          </Badge>
+
+          <div className="rpg-detail-actions">
+            {canBorrow && (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => onBorrow(item.id)}
+                disabled={acting}
+              >
+                Solicitar préstamo
+              </Button>
+            )}
+            {canReturn && (
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmAction({ action: "return" })}
+                disabled={acting}
+              >
+                Devolver
+              </Button>
+            )}
+            {member === null && item.status === "available" && (
+              <Link to="/login" className="rpg-detail-login-link">
+                Iniciar sesión
+              </Link>
+            )}
+          </div>
+
           <div className="rpg-detail-bgg">
             <a
               href={`https://rpggeek.com/rpgitem/${item.bgg_id}`}
@@ -90,6 +167,37 @@ export function RpgDetailPage() {
             <p key={i}>{paragraph}</p>
           ))}
         </div>
+      )}
+
+      <div className="rpg-detail-history">
+        <h2>Historial de préstamos y comentarios</h2>
+        {history.length === 0 ? (
+          <p className="rpg-detail-no-history">Este libro nunca ha sido prestado.</p>
+        ) : (
+          <div className="rpg-detail-history-list">
+            {history.map((entry, i) => (
+              <LoanHistoryEntry key={i} entry={entry} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {confirmAction?.action === "borrow" && (
+        <ConfirmDialog
+          message={`¿Quieres solicitar el préstamo de "${item.name}"?`}
+          onConfirm={() => void handleBorrow(confirmAction.itemId)}
+          onCancel={() => setConfirmAction(null)}
+          confirmLabel="Solicitar préstamo"
+        />
+      )}
+
+      {confirmAction?.action === "return" && (
+        <ConfirmDialog
+          message={`¿Quieres devolver "${item.name}"?`}
+          onConfirm={() => void handleReturn()}
+          onCancel={() => setConfirmAction(null)}
+          confirmLabel="Devolver"
+        />
       )}
     </div>
   );

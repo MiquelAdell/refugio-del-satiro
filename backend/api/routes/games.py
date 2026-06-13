@@ -12,6 +12,7 @@ from backend.api.dependencies import (
     get_game_use_case,
     get_list_games_use_case,
 )
+from backend.api.schemas import LoanHistoryEntryResponse
 from backend.domain.use_cases.get_game import GetGameUseCase
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
 from backend.domain.use_cases.list_games import GameWithStatus, ListGamesUseCase
@@ -37,12 +38,6 @@ class GameResponse(BaseModel):
     status: str
     borrower_display_name: str | None
     loan_id: int | None
-
-
-class LoanHistoryEntryResponse(BaseModel):
-    member_display_name: str | None
-    borrowed_at: datetime
-    returned_at: datetime | None
 
 
 def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
@@ -96,10 +91,16 @@ def get_game(
 @router.get("/{slug}/history", response_model=list[LoanHistoryEntryResponse])
 def get_game_history(
     slug: str,
-    use_case: Annotated[GetGameHistoryUseCase, Depends(get_game_history_use_case)],
+    game_use_case: Annotated[GetGameUseCase, Depends(get_game_use_case)],
+    history_use_case: Annotated[GetGameHistoryUseCase, Depends(get_game_history_use_case)],
     member: OptionalMember,
 ) -> list[LoanHistoryEntryResponse]:
-    entries = use_case.execute(slug)
+    # Guard: history is only exposed for boardgames via this endpoint.
+    if game_use_case.execute(slug) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Juego no encontrado."
+        )
+    entries = history_use_case.execute(slug)
     if entries is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Juego no encontrado."

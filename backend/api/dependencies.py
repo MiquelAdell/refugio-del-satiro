@@ -91,12 +91,28 @@ def get_game_history_use_case(
     return GetGameHistoryUseCase(game_repo, loan_repo, member_repo)
 
 
-def get_list_rpg_items_use_case(game_repo: GameRepo) -> ListRpgItemsUseCase:
-    return ListRpgItemsUseCase(game_repo)
+def get_list_rpg_items_use_case(
+    game_repo: GameRepo,
+    loan_repo: LoanRepo,
+    member_repo: MemberRepo,
+) -> ListRpgItemsUseCase:
+    return ListRpgItemsUseCase(game_repo, loan_repo, member_repo)
 
 
-def get_get_rpg_item_use_case(game_repo: GameRepo) -> GetRpgItemUseCase:
-    return GetRpgItemUseCase(game_repo)
+def get_get_rpg_item_use_case(
+    game_repo: GameRepo,
+    loan_repo: LoanRepo,
+    member_repo: MemberRepo,
+) -> GetRpgItemUseCase:
+    return GetRpgItemUseCase(game_repo, loan_repo, member_repo)
+
+
+def get_rpg_item_history_use_case(
+    game_repo: GameRepo,
+    loan_repo: LoanRepo,
+    member_repo: MemberRepo,
+) -> GetGameHistoryUseCase:
+    return GetGameHistoryUseCase(game_repo, loan_repo, member_repo)
 
 
 def get_authenticate_use_case(member_repo: MemberRepo) -> AuthenticateUseCase:

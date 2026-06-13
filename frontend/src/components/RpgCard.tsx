@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge } from "../ui/Badge";
 import type { RpgItem } from "../types/rpg";
 import "./RpgCard.css";
 
@@ -7,12 +8,14 @@ interface RpgCardProps {
 }
 
 export function RpgCard({ item }: RpgCardProps) {
+  const statusLabel = item.status === "available" ? "Disponible" : "Prestado";
+
   return (
     <article className="rpg-card">
       <Link
         to={`/rol/${item.slug}`}
         className="rpg-card-link"
-        aria-label={item.name}
+        aria-label={`${item.name} — ${statusLabel}`}
       >
         <div className="rpg-card-cover">
           {item.image_url || item.thumbnail_url ? (
@@ -27,6 +30,12 @@ export function RpgCard({ item }: RpgCardProps) {
               <span aria-hidden="true">{item.name.charAt(0)}</span>
             </div>
           )}
+          <Badge
+            variant={item.status === "available" ? "available" : "lent"}
+            className="rpg-card-status"
+          >
+            {statusLabel}
+          </Badge>
           {item.bgg_rating > 0 && (
             <span className="rpg-card-rating-scrim">
               <span className="rpg-card-rating">

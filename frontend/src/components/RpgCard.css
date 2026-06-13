@@ -50,6 +50,14 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* ─── Overlay badges ──────────────────────────────────────────────── */
+
+.rpg-card-status {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+}
+
 /* ─── Rating scrim (same visual as GameCard) ──────────────────────── */
 
 .rpg-card-rating-scrim {

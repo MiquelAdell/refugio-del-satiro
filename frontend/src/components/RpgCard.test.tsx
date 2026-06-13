@@ -15,6 +15,9 @@ const BASE_ITEM: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original RPG.",
+  status: "available",
+  loan_id: null,
+  borrower_display_name: null,
 };
 
 function renderCard(overrides: Partial<RpgItem> = {}) {
@@ -58,12 +61,19 @@ describe("RpgCard content", () => {
   });
 });
 
-describe("RpgCard no status badge", () => {
-  it("never renders an availability badge", () => {
-    renderCard();
+describe("RpgCard availability badge", () => {
+  it("renders 'Disponible' badge when status is available", () => {
+    renderCard({ status: "available" });
 
-    expect(screen.queryByText("Disponible")).toBeNull();
+    expect(screen.getByText("Disponible")).toBeInTheDocument();
     expect(screen.queryByText("Prestado")).toBeNull();
+  });
+
+  it("renders 'Prestado' badge when status is lent", () => {
+    renderCard({ status: "lent" });
+
+    expect(screen.getByText("Prestado")).toBeInTheDocument();
+    expect(screen.queryByText("Disponible")).toBeNull();
   });
 });
 
@@ -75,11 +85,11 @@ describe("RpgCard navigation", () => {
     expect(link).toHaveAttribute("href", "/rol/dungeons-dragons");
   });
 
-  it("uses the item name as the accessible label", () => {
-    renderCard();
+  it("includes the item name and status in the accessible label", () => {
+    renderCard({ status: "available" });
 
     expect(
-      screen.getByRole("link", { name: "Dungeons & Dragons" }),
+      screen.getByRole("link", { name: "Dungeons & Dragons — Disponible" }),
     ).toBeInTheDocument();
   });
 });

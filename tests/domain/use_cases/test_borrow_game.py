@@ -52,7 +52,7 @@ class TestBorrowGameUseCase:
         with pytest.raises(BorrowGameError, match="no encontrado"):
             use_case.execute(999, 1)
 
-    def test_cannot_borrow_rpg_item(
+    def test_borrow_rpg_item_succeeds(
         self,
         game_repo: SqliteGameRepository,
         loan_repo: SqliteLoanRepository,
@@ -68,5 +68,7 @@ class TestBorrowGameUseCase:
             1, "Test", "User", None, None, "t@t.com", "Test User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
-        with pytest.raises(BorrowGameError, match="no se puede prestar"):
-            use_case.execute(rpg.id, member.id)
+        loan = use_case.execute(rpg.id, member.id)
+        assert loan.game_id == rpg.id
+        assert loan.member_id == member.id
+        assert loan.returned_at is None
