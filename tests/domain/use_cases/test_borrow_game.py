@@ -10,10 +10,15 @@ from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseC
 
 class TestBorrowGameUseCase:
     def test_borrow_available_game(
-        self, game_repo: SqliteGameRepository, loan_repo: SqliteLoanRepository, member_repo: SqliteMemberRepository,
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
-        member = member_repo.upsert_by_email(1, "Test", "User", None, None, "t@t.com", "Test User", False)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "t@t.com", "Test User", False
+        )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = use_case.execute(game.id, member.id)
         assert loan.game_id == game.id
@@ -21,19 +26,49 @@ class TestBorrowGameUseCase:
         assert loan.returned_at is None
 
     def test_cannot_borrow_already_lent_game(
-        self, game_repo: SqliteGameRepository, loan_repo: SqliteLoanRepository, member_repo: SqliteMemberRepository,
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
-        m1 = member_repo.upsert_by_email(1, "A", "User", None, None, "a@t.com", "A User", False)
-        m2 = member_repo.upsert_by_email(2, "B", "User", None, None, "b@t.com", "B User", False)
+        m1 = member_repo.upsert_by_email(
+            1, "A", "User", None, None, "a@t.com", "A User", False
+        )
+        m2 = member_repo.upsert_by_email(
+            2, "B", "User", None, None, "b@t.com", "B User", False
+        )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         use_case.execute(game.id, m1.id)
-        with pytest.raises(BorrowGameError, match="ja està prestat"):
+        with pytest.raises(BorrowGameError, match="ya está prestado"):
             use_case.execute(game.id, m2.id)
 
     def test_cannot_borrow_nonexistent_game(
-        self, game_repo: SqliteGameRepository, loan_repo: SqliteLoanRepository,
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
     ) -> None:
         use_case = BorrowGameUseCase(game_repo, loan_repo)
-        with pytest.raises(BorrowGameError, match="no trobat"):
+        with pytest.raises(BorrowGameError, match="no encontrado"):
             use_case.execute(999, 1)
+
+    def test_borrow_rpg_item_succeeds(
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
+    ) -> None:
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=500,
+            name="Pathfinder",
+            thumbnail_url="https://pf.jpg",
+            item_type="rpgitem",
+        )
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "t@t.com", "Test User", False
+        )
+        use_case = BorrowGameUseCase(game_repo, loan_repo)
+        loan = use_case.execute(rpg.id, member.id)
+        assert loan.game_id == rpg.id
+        assert loan.member_id == member.id
+        assert loan.returned_at is None

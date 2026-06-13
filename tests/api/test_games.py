@@ -269,6 +269,58 @@ class TestGetGame:
         conn.close()
 
 
+class TestRpgItemGuards:
+    def test_rpg_item_absent_from_list(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        game_repo.upsert_by_bgg_id(
+            bgg_id=500,
+            name="Pathfinder",
+            thumbnail_url="https://example.com/pf.jpg",
+            item_type="rpgitem",
+        )
+
+        response = client.get("/api/juegos")
+
+        assert response.status_code == 200
+        assert response.json() == []
+        conn.close()
+
+    def test_rpg_slug_returns_404_on_get_game(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=500,
+            name="Pathfinder",
+            thumbnail_url="https://example.com/pf.jpg",
+            item_type="rpgitem",
+        )
+
+        response = client.get(f"/api/juegos/{rpg.slug}")
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Juego no encontrado."}
+        conn.close()
+
+    def test_rpg_slug_returns_404_on_game_history(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        rpg = game_repo.upsert_by_bgg_id(
+            bgg_id=500,
+            name="Pathfinder",
+            thumbnail_url="https://example.com/pf.jpg",
+            item_type="rpgitem",
+        )
+
+        response = client.get(f"/api/juegos/{rpg.slug}/history")
+
+        assert response.status_code == 404
+        conn.close()
+
+
 class TestGetGameHistory:
     def _seed_history(self, conn: sqlite3.Connection) -> tuple[str, Member]:
         game_repo = SqliteGameRepository(conn)

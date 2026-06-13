@@ -5,6 +5,9 @@
  * then writes three storageState fixtures (guest, member, admin) under
  * e2e/fixtures/. Spec files load them via `test.use({ storageState: ... })`.
  *
+ * Also runs scripts/seed_test_rpg.py to ensure at least one rpgitem row
+ * exists in the DB for the RPG catalog journey tests (ludo-4..ludo-6).
+ *
  * Auth mechanics (see backend/api/auth.py + frontend/src/context/AuthContext):
  *   - Backend sets an HttpOnly cookie `session_token` (JWT) on /api/login.
  *   - Frontend writes a sentinel flag to localStorage["prestamos_session"] = "1"
@@ -18,6 +21,7 @@
  *   cd frontend && yarn playwright test --config ../e2e/playwright.config.ts
  */
 
+import { execSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { request, type APIRequestContext } from "@playwright/test";
@@ -106,8 +110,20 @@ async function writeGuestState(outputPath: string): Promise<void> {
   await writeFile(outputPath, JSON.stringify(emptyState, null, 2), "utf-8");
 }
 
+async function seedRpgItem(): Promise<void> {
+  // Seed one rpgitem row so RPG catalog e2e tests always find at least one card.
+  // Runs from the repo root (two levels up from e2e/scripts/).
+  const repoRoot = resolve(__dirname, "..", "..");
+  execSync("python -m scripts.seed_test_rpg", {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
+}
+
 async function main(): Promise<void> {
   await mkdir(FIXTURES_DIR, { recursive: true });
+
+  await seedRpgItem();
 
   const guestPath = resolve(FIXTURES_DIR, "guest.json");
   await writeGuestState(guestPath);

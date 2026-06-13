@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Overridable so the stack can run when another service holds :8000
+// (Caddyfile.e2e reads the same variable for its reverse_proxy target).
+const API_PORT = process.env.E2E_API_PORT ?? "8000";
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -39,9 +43,9 @@ export default defineConfig({
 
   webServer: [
     {
-      command: "python -m uvicorn backend.api.app:create_app --factory --port 8000",
+      command: `python -m uvicorn backend.api.app:create_app --factory --port ${API_PORT}`,
       cwd: "..",
-      url: "http://localhost:8000/api/health",
+      url: `http://localhost:${API_PORT}/api/health`,
       reuseExistingServer: true,
     },
     {

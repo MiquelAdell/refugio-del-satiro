@@ -1,355 +1,161 @@
+/*
+ * Catalog layout (style-guide §4, §5.5–§5.7):
+ * fixed left filter panel ≥1024px, bottom-sheet drawer below; chip row
+ * above the grid; grid/list view toggle. Flat surfaces, 1px hairlines.
+ */
+
 .catalog-page {
-  padding: var(--space-xl);
-  padding-bottom: calc(var(--space-xl) + 60px);
-  max-width: 1440px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-2xl);
 }
 
-.catalog-header {
-  margin-bottom: var(--space-lg);
+.catalog-loading,
+.catalog-error,
+.catalog-empty {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+  color: var(--color-text-muted);
 }
 
-.catalog-header h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  margin-bottom: var(--space-lg);
+.catalog-error {
+  color: var(--color-danger);
 }
 
-/* Row 1: Search (always visible) */
-.catalog-controls {
+/* ─── Layout: sidebar + main ──────────────────────────────────────── */
+
+.catalog-layout {
   display: flex;
-  gap: var(--space-md);
-  align-items: stretch;
+  gap: var(--space-xl);
+  align-items: flex-start;
 }
 
-.catalog-controls .search-bar {
+.catalog-sidebar {
+  flex: 0 0 240px;
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-md));
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+}
+
+.catalog-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ─── Toolbar: search + filters trigger + view toggle ─────────────── */
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.catalog-toolbar .search-bar {
   flex: 1;
 }
 
-/* Filters toggle button */
-.catalog-filters-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-top: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
+.catalog-view-toggle {
+  display: inline-flex;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-card);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  justify-content: center;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.catalog-filters-toggle:hover {
-  background-color: var(--color-bg);
-}
-
-.catalog-filters-toggle:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -1px;
-}
-
-.catalog-filters-toggle-icon {
-  font-size: var(--font-size-sm);
-  line-height: 1;
-}
-
-.catalog-filters-badge {
+.catalog-view-toggle button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.catalog-view-toggle button svg {
+  width: 1.25rem;
   height: 1.25rem;
-  padding: 0 var(--space-xs);
-  border-radius: 999px;
-  background-color: var(--color-primary);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1;
 }
 
-/* Collapsible filters panel */
-.catalog-filters-panel {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+.catalog-view-toggle button.active {
+  background-color: var(--color-brand);
+  color: var(--color-brand-contrast);
 }
 
-.catalog-filters-panel.open {
-  max-height: 600px;
+.catalog-view-toggle button:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
 }
 
-.catalog-filters-panel-inner {
-  padding-top: var(--space-md);
-}
+/* ─── Results ─────────────────────────────────────────────────────── */
 
-/* Sort dropdown wrapper */
-.catalog-sort-wrapper {
-  position: relative;
-}
-
-.catalog-sort-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-card);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.catalog-sort-btn:hover {
-  background-color: var(--color-bg);
-}
-
-.catalog-sort-btn:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -1px;
-}
-
-.catalog-sort-icon {
-  font-size: var(--font-size-md);
-  line-height: 1;
-}
-
-.catalog-sort-panel {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 20;
-  min-width: 280px;
-  background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-xs) 0;
-}
-
-.catalog-sort-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  border: none;
-  background: none;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  text-align: left;
-}
-
-.catalog-sort-option:hover {
-  background-color: var(--color-bg);
-}
-
-.catalog-sort-option.selected {
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-.catalog-sort-radio {
-  font-size: var(--font-size-sm);
-  color: var(--color-primary);
-}
-
-/* Row 2: Availability + Location filters */
-.catalog-filters {
-  display: flex;
-  gap: var(--space-md);
-  margin-top: var(--space-md);
-}
-
-/* Row 3: Players + Time + Rating */
-.catalog-filters-row3 {
-  display: flex;
-  gap: var(--space-lg);
-  margin-top: var(--space-md);
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.catalog-filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.catalog-filter-label {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-/* Dual range slider for player count */
-.catalog-dual-slider {
-  position: relative;
-  width: 180px;
-  height: 28px;
-}
-
-.catalog-dual-slider-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.catalog-dual-slider-input:focus {
-  outline: none;
-}
-
-/* Webkit thumb */
-.catalog-dual-slider-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  border: 2px solid var(--color-bg-card);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  pointer-events: auto;
-  position: relative;
-  z-index: 3;
-}
-
-.catalog-dual-slider-input::-webkit-slider-thumb:hover {
-  background-color: var(--color-primary-hover);
-}
-
-/* Firefox thumb */
-.catalog-dual-slider-input::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  border: 2px solid var(--color-bg-card);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.catalog-dual-slider-input::-moz-range-thumb:hover {
-  background-color: var(--color-primary-hover);
-}
-
-/* Hide the native track for both thumbs */
-.catalog-dual-slider-input::-webkit-slider-runnable-track {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: transparent;
-}
-
-.catalog-dual-slider-input::-moz-range-track {
-  height: 4px;
-  background: transparent;
-  border: none;
-}
-
-/* Custom track underneath */
-.catalog-dual-slider-track {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 4px;
-  transform: translateY(-50%);
-  background-color: var(--color-border);
-  border-radius: 2px;
-  z-index: 1;
-}
-
-.catalog-dual-slider-range {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  background-color: var(--color-primary);
-  border-radius: 2px;
-}
-
-/* Rating slider */
-.catalog-rating-slider {
-  width: 140px;
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
-
-/* Grid */
 .catalog-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-lg);
+  align-items: start;
 }
 
-.catalog-empty {
-  text-align: center;
-  padding: var(--space-2xl);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-lg);
+.catalog-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
-.catalog-error {
-  text-align: center;
-  padding: var(--space-xl);
-  color: var(--color-danger);
+/* ─── Filter drawer (below 1024px) ────────────────────────────────── */
+
+.catalog-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--header-z) + 1);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
 }
 
-.catalog-loading {
-  text-align: center;
-  padding: var(--space-2xl);
-  color: var(--color-text-secondary);
+.catalog-drawer {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg);
 }
 
-@media (max-width: 640px) {
-  .catalog-page {
-    padding: var(--space-md);
-    padding-bottom: calc(var(--space-md) + 60px);
-  }
+.catalog-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
 
-  .catalog-controls {
-    flex-direction: column;
-  }
+.catalog-drawer-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+}
 
-  .catalog-filters {
-    flex-direction: column;
-  }
+.catalog-drawer-close {
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-xs);
+}
 
-  .catalog-filters-row3 {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .catalog-dual-slider {
-    width: 100%;
-  }
-
-  .catalog-rating-slider {
-    width: 100%;
-  }
-
-  .catalog-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: var(--space-md);
-  }
+.catalog-drawer-close:hover {
+  color: var(--color-text-heading);
 }

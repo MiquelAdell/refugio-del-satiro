@@ -18,8 +18,8 @@ const GUEST_STATE = resolve(FIXTURES_DIR, "guest.json");
 const MEMBER_STATE = resolve(FIXTURES_DIR, "member.json");
 const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 
-const HOME = "/prestamos/";
-const LOGIN_PATH = "/prestamos/login";
+const HOME = "/ludoteca/";
+const LOGIN_PATH = "/ludoteca/login";
 const LUDOTECA_LABEL = "Ludoteca";
 
 const isMobileProject = (projectName: string) => projectName === "chromium-mobile";
@@ -52,13 +52,13 @@ test.describe("site-shell @ guest", () => {
     await page.goto(HOME);
     const logo = page.getByRole("link", { name: /Refugio del Sátiro/i }).first();
     await expect(logo).toBeVisible();
-    await expect(logo.locator("img")).toHaveAttribute(
-      "alt",
-      "El Refugio del Sátiro",
-    );
+    // The shield img is decorative (alt=""); the accessible name comes from
+    // the link's aria-label plus the visible logo text.
+    await expect(logo.locator("img")).toHaveAttribute("alt", "");
+    await expect(logo.getByText("El Refugio del Sátiro")).toBeVisible();
   });
 
-  test("nav-menu-guest-1: Iniciar sesión link points to /prestamos/login", async ({
+  test("nav-menu-guest-1: Iniciar sesión link points to /ludoteca/login", async ({
     page,
   }, testInfo) => {
     await page.goto(HOME);
@@ -157,10 +157,10 @@ test.describe("site-shell @ admin", () => {
 
     await expect(
       page.getByRole("link", { name: "Miembros" }).first(),
-    ).toHaveAttribute("href", "/prestamos/admin/members");
+    ).toHaveAttribute("href", "/ludoteca/admin/members");
     await expect(
       page.getByRole("link", { name: "Contenido" }).first(),
-    ).toHaveAttribute("href", "/prestamos/admin/content");
+    ).toHaveAttribute("href", "/ludoteca/admin/content");
   });
 });
 
@@ -181,7 +181,7 @@ test.describe("site-shell @ static page (guest)", () => {
     await expect(page.locator("#site-shell-root")).toBeVisible();
   });
 
-  test("static-shell-2: Ludoteca link href points to /prestamos/", async ({
+  test("static-shell-2: Ludoteca link href points to /ludoteca/", async ({
     page,
   }, testInfo) => {
     await page.goto(STATIC_PAGE);
@@ -190,10 +190,10 @@ test.describe("site-shell @ static page (guest)", () => {
     }
     const link = page.getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) }).first();
     await expect(link).toBeVisible();
-    // React Router with basename="/prestamos" generates href="/prestamos" (no trailing
-    // slash) for <Link to="/">. The Caddyfile 301-redirects /prestamos → /prestamos/
+    // React Router with basename="/ludoteca" generates href="/ludoteca" (no trailing
+    // slash) for <Link to="/">. The Caddyfile 301-redirects /ludoteca → /ludoteca/
     // at the network layer, so both work functionally.
-    await expect(link).toHaveAttribute("href", "/prestamos");
+    await expect(link).toHaveAttribute("href", "/ludoteca");
   });
 
   test("static-shell-3: Iniciar sesión link visible for guest", async ({

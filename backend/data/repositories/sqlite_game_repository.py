@@ -24,6 +24,8 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         location=row["location"] if "location" in keys else "armari",
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
+        item_type=row["item_type"] if "item_type" in keys else "boardgame",
+        description=row["description"] if "description" in keys else "",
     )
 
 
@@ -53,6 +55,12 @@ class SqliteGameRepository:
         rows = self._conn.execute("SELECT * FROM games ORDER BY name").fetchall()
         return [_row_to_game(row) for row in rows]
 
+    def list_by_type(self, item_type: str) -> list[Game]:
+        rows = self._conn.execute(
+            "SELECT * FROM games WHERE item_type = ? ORDER BY name", (item_type,)
+        ).fetchall()
+        return [_row_to_game(row) for row in rows]
+
     def _slug_for_upsert(self, bgg_id: int, name: str) -> str:
         existing = self.get_by_bgg_id(bgg_id)
         if existing is not None and slugify(existing.name) == slugify(name):
@@ -76,13 +84,19 @@ class SqliteGameRepository:
         playing_time: int = 0,
         bgg_rating: float = 0.0,
         location: str = "armari",
+        item_type: str = "boardgame",
+        description: str = "",
     ) -> Game:
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         slug = self._slug_for_upsert(bgg_id, name)
         self._conn.execute(
             """
-            INSERT INTO games (bgg_id, name, slug, thumbnail_url, image_url, year_published, min_players, max_players, playing_time, bgg_rating, location, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO games (
+                bgg_id, name, slug, thumbnail_url, image_url, year_published,
+                min_players, max_players, playing_time, bgg_rating, location,
+                item_type, description, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(bgg_id) DO UPDATE SET
                 name = excluded.name,
                 slug = excluded.slug,
@@ -94,9 +108,28 @@ class SqliteGameRepository:
                 playing_time = excluded.playing_time,
                 bgg_rating = excluded.bgg_rating,
                 location = excluded.location,
+                item_type = excluded.item_type,
+                description = excluded.description,
                 updated_at = ?
             """,
-            (bgg_id, name, slug, thumbnail_url, image_url, year_published, min_players, max_players, playing_time, bgg_rating, location, now, now, now),
+            (
+                bgg_id,
+                name,
+                slug,
+                thumbnail_url,
+                image_url,
+                year_published,
+                min_players,
+                max_players,
+                playing_time,
+                bgg_rating,
+                location,
+                item_type,
+                description,
+                now,
+                now,
+                now,
+            ),
         )
         self._conn.commit()
         game = self.get_by_bgg_id(bgg_id)

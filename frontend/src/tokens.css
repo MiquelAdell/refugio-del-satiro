@@ -2,8 +2,8 @@
  * Design tokens for the Refugio del Sátiro lending UI.
  *
  * See openspec/specs/lending-design-system/spec.md for the contract.
- * Brand source: refugiodelsatiro.es (heading #1F1F1F, body #333333,
- * primary red #BE0000 verified 2026-04-21).
+ * Brand source: refugiodelsatiro.es + Figma "Color-palette"/"Tipografies"
+ * frames (UOC TFM, A. Ortega Rams). Reconciled 2026-06-10 (Phase B0).
  */
 
 /* Self-hosted variable fonts — see frontend/public/fonts/LICENSE.md */
@@ -31,19 +31,32 @@
 
   --color-text-heading: #1f1f1f;
   --color-text-body: #333333;
-  --color-text-muted: #6b6b6b;
+  --color-text-muted: #6d6d6d;
 
   --color-surface: #ffffff;
-  --color-surface-alt: #f5f5f5;
-  --color-border: #e2e2e2;
+  --color-surface-alt: #efefef; /* Figma uses one grey for surface + border */
+  --color-border: #efefef;
+  --color-scrim: rgba(0, 0, 0, 0.2); /* behind cover badges / overlays */
 
-  --color-success: #2e7d32;
-  --color-warning: #ed6c02;
-  --color-danger: #c62828;
+  --color-success: #34a853;
+  --color-warning: #fbbc05;
+  /* Error messages/icons only — destructive ACTIONS still use --color-brand */
+  --color-danger: #ea4335;
 
   /* Catalog state badges, kept for catalog cards until Phase B replaces them */
   --color-available: #dcfce7;
   --color-lent: #fef3c7;
+
+  /* ─── Category pill pastels ─────────────────────────────────────── */
+  /* Pair each with dark family text for AA contrast. */
+  --pill-mint: #98fb98; /* Nature / Familiar / Estrategia */
+  --pill-pink: #ffb6c1; /* Party / Horror */
+  --pill-sky: #87ceeb; /* Mystery / Investigación */
+  --pill-turquoise: #bbffff; /* Aventura */
+  --pill-lavender: #ebc9ff; /* Sci-Fi / Fantasía urbana */
+  --pill-peach: #ffdab9; /* Histórica / Infantil */
+  --pill-yellow: #ffff99; /* Misc / neutral */
+  --pill-pearl: #c0c0c0; /* Uncategorised */
 
   /* ─── Typography ────────────────────────────────────────────────── */
   --font-family-heading:
@@ -51,12 +64,13 @@
   --font-family-body:
     "Open Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
+  --font-size-sm: 0.75rem; /* 12px — meta/small */
+  --font-size-md: 1rem; /* 16px — body */
   --font-size-lg: 1.125rem;
-  --font-size-xl: 1.5rem;
+  --font-size-xl: 1.5rem; /* 24px — H2/H3 */
   --font-size-2xl: 2rem;
   --font-size-3xl: 2.5rem;
+  --font-size-display: 5rem; /* 80px — page title (Oswald uppercase, red underline) */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -90,7 +104,7 @@
   /* Sampled from frontend/public/content-mirror/index.html inline styles */
   --color-header-bg: rgb(0, 0, 0);           /* nav#yuynLe inline style: background-color:rgb(0,0,0) */
   --color-header-fg: rgba(255, 255, 255, 1); /* .fOU46b .YSH9J / .Mz8gvb: color rgba(255,255,255,1) */
-  --color-header-fg-hover: rgba(255, 255, 255, 0.8); /* hover approx — no explicit hover rule in scraped CSS */
+  --color-header-fg-hover: rgba(255, 255, 255, 0.7); /* Figma "WhiteText_Hover" */
   --color-header-fg-active: rgba(190, 0, 0, 1);  /* .fOU46b .aCIEDd .YSH9J: color rgba(190,0,0,1) — brand red on active */
   --color-header-divider: rgba(255, 255, 255, 0.12); /* .fOU46b .iWs3gf.chg4Jd:focus bg rgba(255,255,255,0.12) */
   --header-height: 56px;                     /* measured from scraped source header at 1440×900 */

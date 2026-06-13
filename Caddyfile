@@ -1,8 +1,16 @@
 {$DOMAIN:localhost} {
-	# App (lending flow) — keeps its /prestamos prefix.
-	handle_path /prestamos/* {
+	# App (lending/catalog SPA) — strips the /ludoteca prefix before forwarding
+	# to the backend, which serves the SPA bundle and its API under /.
+	handle_path /ludoteca/* {
 		reverse_proxy app:8000
 	}
+
+	# 301 redirects: /prestamos/* → /ludoteca/* preserving path and query string.
+	# Using path_regexp because Caddy's {uri} placeholder in redir does not pick
+	# up mutations made by the `uri` directive in the same handle block.
+	redir /prestamos /ludoteca/ permanent
+	@prestamos_subpath path_regexp prestamos_sub ^/prestamos/(.*)$
+	redir @prestamos_subpath /ludoteca/{re.prestamos_sub.1}?{query} permanent
 
 	# 301 redirects for legacy Google Sites slugs.
 	redir /inicio / permanent
@@ -19,21 +27,21 @@
 	# Canonicalize directory-style URLs to a trailing slash. Search engines
 	# treat /calendario and /calendario/ as separate URLs unless we 301 one
 	# to the other; this picks the trailing-slash form (which is also what
-	# the SPA's <base href="/prestamos/"> requires).
+	# the SPA's <base href="/ludoteca/"> requires).
 	#
 	# Excluded:
 	#   - "/" itself (already canonical)
-	#   - "/prestamos/*" — the SPA owns its own routes (React Router would
-	#     break if /prestamos/games/1 redirected to /prestamos/games/1/)
+	#   - "/ludoteca/*" — the SPA owns its own routes (React Router would break
+	#     if /ludoteca/juegos/1 redirected to /ludoteca/juegos/1/)
 	#   - paths already ending in "/"
 	#   - paths with a "." in them (assumed to be files: /_assets/foo.css,
 	#     /favicon.ico, /manifest.json)
 	#
-	# Note: "/prestamos" (no slash) IS redirected here, since it does not
-	# match "/prestamos/*". Result: /prestamos → /prestamos/.
+	# Note: "/ludoteca" (no slash) IS redirected here, since it does not
+	# match "/ludoteca/*". Result: /ludoteca → /ludoteca/.
 	@needs_trailing_slash {
 		not path /
-		not path /prestamos/*
+		not path /ludoteca/*
 		not path */
 		not path *.*
 	}

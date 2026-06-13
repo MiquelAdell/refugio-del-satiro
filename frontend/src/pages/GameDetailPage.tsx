@@ -3,8 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
+import { ClockIcon, PlayersIcon } from "../components/MetaIcons";
 import { useAuth } from "../context/AuthContext";
 import { useGameHistory } from "../hooks/useGameHistory";
+import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./GameDetailPage.css";
 
@@ -12,7 +14,9 @@ export function GameDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { game, history, loading, error, refetch } = useGameHistory(slug);
   const { member } = useAuth();
-  const [confirmAction, setConfirmAction] = useState<"borrow" | "return" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    { readonly action: "borrow"; readonly gameId: number } | { readonly action: "return" } | null
+  >(null);
   const [acting, setActing] = useState(false);
 
   if (loading) {
@@ -41,12 +45,18 @@ export function GameDetailPage() {
     game.loan_id !== null &&
     (member.is_admin || game.borrower_display_name === member.display_name);
 
-  const handleBorrow = async () => {
+  // Hook point for the borrow flow. The sibling change
+  // `lending-borrow-with-return-date` replaces the ConfirmDialog this opens
+  // with the return-date dialog; until then it keeps the live direct-borrow
+  // behaviour (confirm → POST /loans).
+  const onBorrow = (gameId: number) => setConfirmAction({ action: "borrow", gameId });
+
+  const handleBorrow = async (gameId: number) => {
     setActing(true);
     try {
       await apiFetch<unknown>("/loans", {
         method: "POST",
-        body: JSON.stringify({ game_id: game.id }),
+        body: JSON.stringify({ game_id: gameId }),
       });
       refetch();
     } catch {
@@ -85,38 +95,67 @@ export function GameDetailPage() {
         &larr; Volver al catálogo
       </Link>
 
-      <div className="game-detail-header">
-        <img
-          className="game-detail-thumbnail"
-          src={game.image_url || game.thumbnail_url}
-          alt={game.name}
-        />
+      <div className="game-detail-hero">
+        <div className="game-detail-cover">
+          <img
+            className="game-detail-cover-img"
+            src={game.image_url || game.thumbnail_url}
+            alt={game.name}
+          />
+        </div>
+
         <div className="game-detail-info">
-          <h1>{game.name}</h1>
-          <div className="game-detail-year">{game.year_published}</div>
-          <span className={`game-detail-status ${game.status}`}>{statusLabel}</span>
-          {(canBorrow || canReturn) && (
-            <div className="game-detail-actions">
-              {canBorrow && (
-                <Button
-                  variant="primary"
-                  onClick={() => setConfirmAction("borrow")}
-                  disabled={acting}
-                >
-                  Tomar prestado
-                </Button>
-              )}
-              {canReturn && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setConfirmAction("return")}
-                  disabled={acting}
-                >
-                  Devolver
-                </Button>
-              )}
-            </div>
+          <h1 className="game-detail-name">{game.name}</h1>
+          {game.year_published > 0 && (
+            <div className="game-detail-year">{game.year_published}</div>
           )}
+
+          <div className="game-detail-meta">
+            {game.min_players > 0 && game.max_players > 0 && (
+              <span className="game-detail-meta-item">
+                <PlayersIcon className="game-detail-meta-icon" />
+                {`${game.min_players}-${game.max_players} jugadores`}
+              </span>
+            )}
+            {game.playing_time > 0 && (
+              <span className="game-detail-meta-item">
+                <ClockIcon className="game-detail-meta-icon" />
+                {`${game.playing_time} min`}
+              </span>
+            )}
+          </div>
+
+          <Badge variant={game.status} className="game-detail-status">
+            {statusLabel}
+          </Badge>
+
+          <div className="game-detail-actions">
+            {canBorrow && (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => onBorrow(game.id)}
+                disabled={acting}
+              >
+                Solicitar préstamo
+              </Button>
+            )}
+            {canReturn && (
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmAction({ action: "return" })}
+                disabled={acting}
+              >
+                Devolver
+              </Button>
+            )}
+            {member === null && game.status === "available" && (
+              <Link to="/login" className="game-detail-login-link">
+                Iniciar sesión
+              </Link>
+            )}
+          </div>
+
           <div className="game-detail-bgg">
             <a
               href={`https://boardgamegeek.com/boardgame/${game.bgg_id}`}
@@ -130,7 +169,7 @@ export function GameDetailPage() {
       </div>
 
       <div className="game-detail-history">
-        <h2>Historial de préstamos</h2>
+        <h2>Historial de préstamos y comentarios</h2>
         {history.length === 0 ? (
           <p className="game-detail-no-history">Este juego nunca ha sido prestado.</p>
         ) : (
@@ -142,16 +181,16 @@ export function GameDetailPage() {
         )}
       </div>
 
-      {confirmAction === "borrow" && (
+      {confirmAction?.action === "borrow" && (
         <ConfirmDialog
-          message={`¿Quieres tomar prestado "${game.name}"?`}
-          onConfirm={() => void handleBorrow()}
+          message={`¿Quieres solicitar el préstamo de "${game.name}"?`}
+          onConfirm={() => void handleBorrow(confirmAction.gameId)}
           onCancel={() => setConfirmAction(null)}
-          confirmLabel="Tomar prestado"
+          confirmLabel="Solicitar préstamo"
         />
       )}
 
-      {confirmAction === "return" && (
+      {confirmAction?.action === "return" && (
         <ConfirmDialog
           message={`¿Quieres devolver "${game.name}"?`}
           onConfirm={() => void handleReturn()}

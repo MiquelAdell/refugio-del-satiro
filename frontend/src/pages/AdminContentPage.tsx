@@ -24,7 +24,7 @@ type ScraperEvent = {
 };
 
 const EVENT_STREAM_URL = `${
-  import.meta.env.VITE_API_URL ?? "/prestamos/api"
+  import.meta.env.VITE_API_URL ?? "/ludoteca/api"
 }/admin/content/events`;
 
 export function AdminContentPage() {
@@ -128,7 +128,7 @@ export function AdminContentPage() {
   if (!member?.is_admin) {
     return (
       <div className="admin-content-page">
-        <p>Accés restringit a administradors.</p>
+        <p>Acceso restringido a administradores.</p>
       </div>
     );
   }

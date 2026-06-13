@@ -148,7 +148,7 @@ def enrich_games() -> None:
             username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
         )
 
-        games = game_repo.list_all()
+        games = game_repo.list_by_type("boardgame")
         bgg_ids = [g.bgg_id for g in games if g.bgg_id]
         typer.echo(f"Fetching details for {len(bgg_ids)} games...")
 
@@ -172,6 +172,40 @@ def enrich_games() -> None:
                 updated += 1
 
         typer.echo(f"Done. {updated} games enriched with full details.")
+    finally:
+        conn.close()
+
+
+@app.command()
+def import_rol() -> None:
+    """Import RPG items (libros de rol) from BGG API."""
+    from backend.data.bgg_client import BggClient
+    from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.domain.use_cases.import_rpg_items import ImportRpgItemsUseCase
+
+    settings = _get_settings()
+
+    if not settings.bgg_bearer_token:
+        typer.echo(
+            "Tip: set BGG_BEARER_TOKEN env var for authenticated API access. "
+            "Without it, the API may be blocked.",
+            err=True,
+        )
+
+    conn = get_connection(settings.db_path)
+    try:
+        run_migrations(conn)
+        game_repo = SqliteGameRepository(conn)
+        bgg_client = BggClient(
+            username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
+        )
+        use_case = ImportRpgItemsUseCase(game_repo, bgg_client)
+
+        typer.echo("Fetching RPG items from BGG (this may take a moment)...")
+        result = use_case.execute()
+        typer.echo(
+            f"Done. {result.created} new, {result.updated} updated, {result.total} total."
+        )
     finally:
         conn.close()
 

@@ -18,7 +18,6 @@ const GUEST_STATE = resolve(__dirname, "..", "fixtures", "guest.json");
 const ENCODED_WITH_SLASH = "/juegos-de-rol/campa%C3%B1as/";
 const CANONICAL_WITH_SLASH = "/juegos-de-rol/campanas/";
 const ENCODED_NO_SLASH = "/juegos-de-rol/campa%C3%B1as";
-const CANONICAL_NO_SLASH = "/juegos-de-rol/campanas";
 const UNKNOWN_PATH = "/this-path-does-not-exist-7f3a";
 
 test.describe("url-redirects", () => {
@@ -61,6 +60,25 @@ test.describe("url-redirects", () => {
     expect(new URL(page.url()).pathname).toBe("/ludoteca/");
   });
 
+  test("red-prestamos-root: /prestamos redirects to /ludoteca/", async ({
+    page,
+    baseURL,
+  }) => {
+    await page.goto(`${baseURL}/prestamos`, { waitUntil: "commit" });
+    expect(new URL(page.url()).pathname).toBe("/ludoteca/");
+  });
+
+  test("red-prestamos-path: /prestamos/<path> redirects to /ludoteca/<path> preserving query string", async ({
+    page,
+    baseURL,
+  }) => {
+    const originalPath = "/prestamos/juegos/catan?foo=bar";
+    await page.goto(`${baseURL}${originalPath}`, { waitUntil: "commit" });
+    const url = new URL(page.url());
+    expect(url.pathname).toBe("/ludoteca/juegos/catan");
+    expect(url.search).toBe("?foo=bar");
+  });
+
   test("red-validacion: /Validacion-Membresia redirects to /validacion/", async ({
     page,
     baseURL,
@@ -75,15 +93,6 @@ test.describe("url-redirects", () => {
   }) => {
     await page.goto(`${baseURL}/calendario`, { waitUntil: "commit" });
     expect(new URL(page.url()).pathname).toBe("/calendario/");
-  });
-
-  test("red-spa-no-trailing: /prestamos/games/1 is not redirected (SPA exclusion)", async ({
-    page,
-    baseURL,
-  }) => {
-    const target = "/prestamos/games/1";
-    await page.goto(`${baseURL}${target}`, { waitUntil: "commit" });
-    expect(new URL(page.url()).pathname).toBe(target);
   });
 
   test("url-1: unknown path returns 404", async ({ page, baseURL }) => {

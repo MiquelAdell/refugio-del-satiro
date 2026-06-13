@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useMatch } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useCatalogMode } from "../../context/CatalogModeContext";
 import { useNavItemsContext } from "../../hooks/useNavItemsContext";
 import styles from "./SiteHeader.module.css";
 
@@ -43,8 +44,8 @@ interface NestedSubmenuItem {
 
 type SubmenuItem = LinkSubmenuItem | NestedSubmenuItem;
 
-// `to` values are router-relative (inside `<BrowserRouter basename="/prestamos">`),
-// so they omit the `/prestamos` prefix — the router prepends it.
+// `to` values are router-relative (inside `<BrowserRouter basename="/ludoteca">`),
+// so they omit the `/ludoteca` prefix — the router prepends it.
 const LUDOTECA_SUBMENU: readonly SubmenuItem[] = [
   { type: "link", label: "Mis préstamos", to: "/my-loans", roles: ["member", "admin"] },
   {
@@ -151,26 +152,25 @@ function LudotecaSubmenu({
 export function SiteHeader() {
   const { items, status } = useNavItemsContext();
   const { member, logout } = useAuth();
+  const { isGuest } = useCatalogMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
   const [ludotecaExpanded, setLudotecaExpanded] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
-  // In production the router runs under basename "/prestamos", so
-  // `useMatch("/prestamos/*")` never matches against the basename-stripped
-  // location. In tests we mount under a plain MemoryRouter where the path
-  // does start with "/prestamos". Cover both by also checking the raw
-  // browser pathname when it's available.
-  const isLudotecaActive =
-    useMatch("/prestamos/*") !== null ||
-    (typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/prestamos"));
+  // The router runs under basename "/ludoteca", so useMatch matches against
+  // the basename-stripped location. "/" matches the catalog root; "/*" covers
+  // all nested routes.
+  const isLudotecaActive = useMatch("/*") !== null;
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
-  const role: SubmenuRole =
-    member?.is_admin === true
+  // isGuest is derived from auth state via CatalogModeContext; determines
+  // which submenu items are visible.
+  const role: SubmenuRole = isGuest
+    ? "guest"
+    : member?.is_admin === true
       ? "admin"
       : member !== null
         ? "member"

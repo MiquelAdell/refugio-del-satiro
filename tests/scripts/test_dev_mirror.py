@@ -75,6 +75,11 @@ class TestRedirectTarget:
         result = redirect_target("/Validacion-Membresia/")
         assert result == "/validacion"
 
+    # Additional: prestamos → ludoteca redirect
+    def test_redirect_target_prestamos(self) -> None:
+        result = redirect_target("/prestamos")
+        assert result == "/ludoteca/"
+
     # Non-redirected path should return None
     def test_redirect_target_non_redirected_path(self) -> None:
         result = redirect_target("/calendario")
@@ -107,9 +112,10 @@ def _caddyfile_redirects() -> dict[str, str]:
         if match is None:
             continue
         source, target = match.group(1), match.group(2)
-        # Skip named-matcher redirects (e.g. `redir @needs_trailing_slash …`)
-        # which are not literal path-to-path mappings.
-        if source.startswith("@"):
+        # Skip matcher-token redirects — named matchers (`redir
+        # @needs_trailing_slash …`) and wildcards (`redir * …` inside a
+        # `handle` block) — which are not literal path-to-path mappings.
+        if source.startswith("@") or source == "*":
             continue
         pairs[unquote(source)] = target
     return pairs
@@ -169,6 +175,8 @@ class TestMirrorHandlerIntegration:
             # Validacion-Membresia (case-sensitive)
             ("/Validacion-Membresia", "/validacion"),
             ("/Validacion-Membresia/", "/validacion"),
+            # prestamos → ludoteca
+            ("/prestamos", "/ludoteca/"),
         ],
     )
     def test_mirror_handler_redirects(

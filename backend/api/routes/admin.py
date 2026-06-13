@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 def _require_admin(member: CurrentMember) -> Member:
     if not member.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accés restringit a administradors.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores.")
     return member
 
 
@@ -99,7 +99,7 @@ def create_member(
 ) -> CreateMemberResponse:
     existing = member_repo.get_by_email(body.email)
     if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ja existeix un soci amb aquest email.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe un socio con este email.")
 
     display_name = f"{body.first_name} {body.last_name}"
     member = member_repo.upsert_by_email(
@@ -142,7 +142,7 @@ def disable_member(
 ) -> OkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Soci no trobat.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
     member_repo.set_active(member_id, False)
     return OkResponse()
 
@@ -155,7 +155,7 @@ def enable_member(
 ) -> OkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Soci no trobat.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
     member_repo.set_active(member_id, True)
     return OkResponse()
 
@@ -169,7 +169,7 @@ def send_access_link(
 ) -> SendLinkResponse:
     member = member_repo.get_by_id(member_id)
     if member is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Soci no trobat.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado.")
 
     token = token_repo.create(member.id)
     token_url = f"{_settings.base_url}/set-password?token={token.token}"

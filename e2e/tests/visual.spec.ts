@@ -17,7 +17,7 @@ const GUEST_STATE = resolve(FIXTURES_DIR, "guest.json");
 const MEMBER_STATE = resolve(FIXTURES_DIR, "member.json");
 const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 
-const HOME = "/prestamos/";
+const HOME = "/ludoteca/";
 
 const isMobileProject = (name: string) => name === "chromium-mobile";
 const isDesktopProject = (name: string) => name === "chromium-desktop";

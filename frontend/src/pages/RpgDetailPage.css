@@ -1,0 +1,186 @@
+/*
+ * RPG detail — two-column hero (cover + info), lending controls, and
+ * history section below. Mirrors GameDetailPage layout tokens.
+ */
+
+.rpg-detail-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
+}
+
+.rpg-detail-loading,
+.rpg-detail-error {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+  color: var(--color-text-muted);
+}
+
+.rpg-detail-error {
+  color: var(--color-danger);
+}
+
+.rpg-detail-back {
+  display: inline-block;
+  margin-bottom: var(--space-lg);
+  color: var(--color-text-body);
+  text-decoration: none;
+}
+
+.rpg-detail-back:hover {
+  color: var(--color-brand);
+}
+
+/* ─── Hero ────────────────────────────────────────────────────────── */
+
+.rpg-detail-hero {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: flex-start;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+}
+
+.rpg-detail-cover {
+  flex: 0 0 260px;
+}
+
+.rpg-detail-cover-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background-color: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+}
+
+.rpg-detail-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.rpg-detail-name {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+  margin: 0;
+}
+
+.rpg-detail-year {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.rpg-detail-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-md);
+}
+
+.rpg-detail-rating-label {
+  color: var(--color-text-muted);
+}
+
+.rpg-detail-rating-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--color-brand);
+  color: var(--color-brand-contrast);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.rpg-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.rpg-detail-login-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.rpg-detail-login-link:hover {
+  color: var(--color-brand);
+}
+
+.rpg-detail-bgg a {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.rpg-detail-bgg a:hover {
+  color: var(--color-brand);
+}
+
+/* ─── Description ─────────────────────────────────────────────────── */
+
+.rpg-detail-description {
+  margin-top: var(--space-2xl);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-body);
+}
+
+.rpg-detail-description p + p {
+  margin-top: var(--space-md);
+}
+
+/* ─── History ─────────────────────────────────────────────────────── */
+
+.rpg-detail-history {
+  margin-top: var(--space-2xl);
+}
+
+.rpg-detail-history h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-md);
+  color: var(--color-text-heading);
+}
+
+.rpg-detail-history-list {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.rpg-detail-no-history {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .rpg-detail-hero {
+    flex-direction: column;
+    padding: var(--space-md);
+  }
+
+  .rpg-detail-cover {
+    flex-basis: auto;
+    width: 100%;
+    max-width: 260px;
+    align-self: center;
+  }
+}
