@@ -7,6 +7,7 @@ and playing_time by visiting each game's BGG page.
 
 Requires: pip install playwright && playwright install chromium
 """
+
 from __future__ import annotations
 
 import json
@@ -56,7 +57,11 @@ def main() -> None:
         games = json.load(f)
 
     # Only scrape games that don't have data yet
-    to_scrape = [g for g in games if g.get("min_players", 0) == 0 and g.get("playing_time", 0) == 0]
+    to_scrape = [
+        g
+        for g in games
+        if g.get("min_players", 0) == 0 and g.get("playing_time", 0) == 0
+    ]
     print(f"Need to scrape {len(to_scrape)} of {len(games)} games")
 
     if not to_scrape:
@@ -66,9 +71,11 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.set_extra_http_headers({
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-        })
+        page.set_extra_http_headers(
+            {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+            }
+        )
 
         scraped = 0
         for i, game in enumerate(to_scrape):

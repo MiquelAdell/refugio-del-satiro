@@ -44,8 +44,10 @@ def _should_skip(href: str) -> bool:
     # Exclude SPA-owned paths: /prestamos and /ludoteca (exact or with sub-path),
     # but NOT /prestamos-* or /ludoteca-* (different pages with that prefix).
     return (
-        href == "/prestamos" or href.startswith("/prestamos/")
-        or href == "/ludoteca" or href.startswith("/ludoteca/")
+        href == "/prestamos"
+        or href.startswith("/prestamos/")
+        or href == "/ludoteca"
+        or href.startswith("/ludoteca/")
     )
 
 
@@ -58,11 +60,7 @@ def _anchor_pair(anchor: Tag) -> tuple[str, str] | None:
 
 def _li_anchors(li: Tag) -> tuple[tuple[str, str], ...]:
     """All `(label, href)` anchors inside *li*, in source order."""
-    pairs = (
-        _anchor_pair(a)
-        for a in li.find_all("a")
-        if isinstance(a, Tag)
-    )
+    pairs = (_anchor_pair(a) for a in li.find_all("a") if isinstance(a, Tag))
     return tuple(pair for pair in pairs if pair is not None)
 
 

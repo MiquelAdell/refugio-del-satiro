@@ -40,7 +40,9 @@ class TestRequestPasswordReset:
         member_repo: SqliteMemberRepository,
         token_repo: SqlitePasswordTokenRepository,
     ) -> None:
-        member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
         use_case, fake_email = self._make_use_case(member_repo, token_repo)
 
         use_case.execute("test@test.com")
@@ -57,7 +59,9 @@ class TestRequestPasswordReset:
         token_repo: SqlitePasswordTokenRepository,
         db_conn: sqlite3.Connection,
     ) -> None:
-        member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
         use_case, _ = self._make_use_case(member_repo, token_repo)
 
         use_case.execute("test@test.com")
@@ -85,7 +89,9 @@ class TestRequestPasswordReset:
         token_repo: SqlitePasswordTokenRepository,
         db_conn: sqlite3.Connection,
     ) -> None:
-        member = member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
         member_repo.set_active(member.id, False)
         use_case, fake_email = self._make_use_case(member_repo, token_repo)
 

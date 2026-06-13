@@ -42,9 +42,7 @@ class ImportMembersUseCase:
 
     def execute(self, raw_members: list[dict[str, str]]) -> list[ImportResult]:
         # Filter out members without email
-        members_with_email = [
-            m for m in raw_members if m.get("Email", "").strip()
-        ]
+        members_with_email = [m for m in raw_members if m.get("Email", "").strip()]
 
         # Count nicknames across ALL members in the batch (including those without email,
         # but only non-empty ones matter for uniqueness)
