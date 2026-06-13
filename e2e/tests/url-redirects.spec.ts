@@ -79,12 +79,28 @@ test.describe("url-redirects", () => {
     expect(url.search).toBe("?foo=bar");
   });
 
-  test("red-validacion: /Validacion-Membresia redirects to /validacion/", async ({
+  test("red-validacion: /Validacion-Membresia redirects to /ludoteca/validacion", async ({
     page,
     baseURL,
   }) => {
     await page.goto(`${baseURL}/Validacion-Membresia`, { waitUntil: "commit" });
-    expect(new URL(page.url()).pathname).toBe("/validacion/");
+    expect(new URL(page.url()).pathname).toBe("/ludoteca/validacion");
+  });
+
+  test("red-validacion: legacy lowercase /Validacion-membresia redirects to /ludoteca/validacion", async ({
+    page,
+    baseURL,
+  }) => {
+    await page.goto(`${baseURL}/Validacion-membresia`, { waitUntil: "commit" });
+    expect(new URL(page.url()).pathname).toBe("/ludoteca/validacion");
+  });
+
+  test("red-validacion: /validacion redirects to /ludoteca/validacion", async ({
+    page,
+    baseURL,
+  }) => {
+    await page.goto(`${baseURL}/validacion`, { waitUntil: "commit" });
+    expect(new URL(page.url()).pathname).toBe("/ludoteca/validacion");
   });
 
   test("red-trailing-slash: /calendario canonicalises to /calendario/", async ({

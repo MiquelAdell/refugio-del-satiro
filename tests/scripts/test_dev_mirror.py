@@ -69,11 +69,19 @@ class TestRedirectTarget:
     # Additional: Validacion-Membresia redirects (case-sensitive)
     def test_redirect_target_validacion_membresia_without_slash(self) -> None:
         result = redirect_target("/Validacion-Membresia")
-        assert result == "/validacion"
+        assert result == "/ludoteca/validacion"
 
     def test_redirect_target_validacion_membresia_with_slash(self) -> None:
         result = redirect_target("/Validacion-Membresia/")
-        assert result == "/validacion"
+        assert result == "/ludoteca/validacion"
+
+    def test_redirect_target_validacion_membresia_legacy_casing(self) -> None:
+        result = redirect_target("/Validacion-membresia")
+        assert result == "/ludoteca/validacion"
+
+    def test_redirect_target_validacion_shorthand(self) -> None:
+        result = redirect_target("/validacion")
+        assert result == "/ludoteca/validacion"
 
     # Additional: prestamos → ludoteca redirect
     def test_redirect_target_prestamos(self) -> None:
@@ -173,8 +181,10 @@ class TestMirrorHandlerIntegration:
             ("/socios/ludoteca", "/ludoteca"),
             ("/socios/ludoteca/", "/ludoteca"),
             # Validacion-Membresia (case-sensitive)
-            ("/Validacion-Membresia", "/validacion"),
-            ("/Validacion-Membresia/", "/validacion"),
+            ("/Validacion-Membresia", "/ludoteca/validacion"),
+            ("/Validacion-Membresia/", "/ludoteca/validacion"),
+            ("/Validacion-membresia", "/ludoteca/validacion"),
+            ("/validacion", "/ludoteca/validacion"),
             # prestamos → ludoteca
             ("/prestamos", "/ludoteca/"),
         ],
