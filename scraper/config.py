@@ -20,7 +20,7 @@ REQUIRED_PATHS: tuple[str, ...] = (
     "/calendario",
     "/juegos-de-rol",
     "/juegos-de-rol/campanas",
-    "/juegos-de-rol/oneshots",
+    "/juegos-de-rol/oneshot-y-aventuras",
     "/juegos-de-mesa",
     "/juegos-de-mesa/dias-de-juegos",
     "/eventos",
