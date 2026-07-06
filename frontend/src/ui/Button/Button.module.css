@@ -4,9 +4,10 @@
   justify-content: center;
   gap: var(--space-xs);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  /* Figma buttons: 4px radius, Open Sans regular */
+  border-radius: var(--radius-sm);
   font-family: var(--font-family-body);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-regular);
   line-height: 1.2;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease,
@@ -48,10 +49,12 @@
   background-color: var(--color-brand-hover);
 }
 
+/* Figma "Outline" button: white, 1px brand border, brand text, soft shadow */
 .variant-secondary {
   background-color: var(--color-surface);
-  color: var(--color-text-heading);
-  border-color: var(--color-border);
+  color: var(--color-brand);
+  border-color: var(--color-brand);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 .variant-secondary:hover:not(:disabled) {
   background-color: var(--color-surface-alt);

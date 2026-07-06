@@ -136,7 +136,9 @@
 body {
   font-family: var(--font-family-body);
   color: var(--color-text-body);
-  background-color: var(--color-surface-alt);
+  /* Figma TFM frames render all pages on white; grey is reserved for
+     hairlines and alt surfaces. */
+  background-color: var(--color-surface);
 }
 
 h1, h2, h3 {

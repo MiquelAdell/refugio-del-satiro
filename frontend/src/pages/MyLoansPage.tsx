@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Button } from "../ui/Button";
+import { PageTitle } from "../ui/PageTitle";
 import { apiFetch } from "../api/client";
 import type { ActiveLoan } from "../types/loan";
 import "./MyLoansPage.css";
@@ -37,7 +38,7 @@ export function MyLoansPage() {
   if (loading) {
     return (
       <div className="my-loans-page">
-        <h1>Mis préstamos</h1>
+        <PageTitle>Mis préstamos</PageTitle>
         <p className="my-loans-loading">Cargando...</p>
       </div>
     );
@@ -46,7 +47,7 @@ export function MyLoansPage() {
   if (error) {
     return (
       <div className="my-loans-page">
-        <h1>Mis préstamos</h1>
+        <PageTitle>Mis préstamos</PageTitle>
         <p className="my-loans-error">{error}</p>
       </div>
     );
@@ -54,7 +55,7 @@ export function MyLoansPage() {
 
   return (
     <div className="my-loans-page">
-      <h1>Mis préstamos</h1>
+      <PageTitle>Mis préstamos</PageTitle>
 
       {loans.length === 0 ? (
         <p className="my-loans-empty">No tienes ningún juego en préstamo.</p>

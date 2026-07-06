@@ -6,7 +6,7 @@
 .game-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm); /* Figma cards: 4px */
   overflow: hidden;
   transition: box-shadow 0.15s;
 }
@@ -70,6 +70,7 @@
   border-top-right-radius: var(--radius-sm);
 }
 
+/* Figma "Rate" chip: red rounded pill, Oswald regular */
 .game-card-rating {
   display: inline-flex;
   align-items: center;
@@ -78,9 +79,10 @@
   height: 2.5rem;
   background-color: var(--color-brand);
   color: var(--color-brand-contrast);
+  border-radius: var(--radius-full);
   font-family: var(--font-family-heading);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-regular);
 }
 
 /* ─── Body ────────────────────────────────────────────────────────── */
@@ -94,7 +96,7 @@
 }
 
 .game-card-name {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg); /* Figma titles are prominent Open Sans Bold */
   font-weight: var(--font-weight-bold);
   color: var(--color-text-heading);
   line-height: var(--line-height-tight);
