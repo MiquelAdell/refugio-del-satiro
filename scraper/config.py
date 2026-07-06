@@ -12,27 +12,6 @@ from pathlib import Path
 # Origin we scrape. No trailing slash.
 SOURCE_ORIGIN = "https://www.refugiodelsatiro.es"
 
-# Canonical list of paths we must always emit, in the canonical form used by
-# our Caddy routing table. The enumerator treats this as both a seed and a
-# post-crawl assertion — any missing page is fetched explicitly.
-REQUIRED_PATHS: tuple[str, ...] = (
-    "/",
-    "/calendario",
-    "/juegos-de-rol",
-    "/juegos-de-rol/campanas",
-    "/juegos-de-rol/oneshots",
-    "/juegos-de-mesa",
-    "/juegos-de-mesa/dias-de-juegos",
-    "/eventos",
-    "/eventos/diurnes-satir",
-    "/eventos/festa-major",
-    "/eventos/24h-mesa",
-    "/faq",
-    "/faq/normas-de-conducta",
-    "/socios",
-    "/socios/entidades-amigas",
-)
-
 # Paths we refuse to scrape. They either duplicate content (/inicio) or are
 # slated for replacement by our own React routes and redirected in Caddy.
 SKIP_PATHS: frozenset[str] = frozenset(
