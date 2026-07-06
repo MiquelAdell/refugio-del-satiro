@@ -4,11 +4,7 @@
   margin: 0 auto;
 }
 
-.my-loans-page h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  margin-bottom: var(--space-lg);
-}
+/* Page title rendered via the shared PageTitle component (Figma Title H1). */
 
 .my-loans-list {
   display: flex;

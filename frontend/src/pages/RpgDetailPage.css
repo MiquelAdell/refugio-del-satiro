@@ -33,14 +33,11 @@
 
 /* ─── Hero ────────────────────────────────────────────────────────── */
 
+/* Figma hero sits directly on the white page — no card box around it */
 .rpg-detail-hero {
   display: flex;
   gap: var(--space-xl);
   align-items: flex-start;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-xl);
 }
 
 .rpg-detail-cover {
@@ -90,17 +87,20 @@
   color: var(--color-text-muted);
 }
 
+/* Figma "Rate" chip: red rounded pill, Oswald regular */
 .rpg-detail-rating-value {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
+  min-width: 2.5rem;
   height: 2.5rem;
+  padding: 0 var(--space-sm);
   background-color: var(--color-brand);
   color: var(--color-brand-contrast);
+  border-radius: var(--radius-full);
   font-family: var(--font-family-heading);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-regular);
 }
 
 .rpg-detail-actions {
@@ -131,11 +131,9 @@
 /* ─── Description ─────────────────────────────────────────────────── */
 
 .rpg-detail-description {
-  margin-top: var(--space-2xl);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-xl);
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xl);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-body);
 }
@@ -146,21 +144,24 @@
 
 /* ─── History ─────────────────────────────────────────────────────── */
 
+/* Figma separates sections with a hairline; H2 is large Oswald uppercase */
 .rpg-detail-history {
-  margin-top: var(--space-2xl);
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xl);
 }
 
 .rpg-detail-history h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
   margin-bottom: var(--space-md);
   color: var(--color-text-heading);
 }
 
 .rpg-detail-history-list {
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
 }
 
 .rpg-detail-no-history {

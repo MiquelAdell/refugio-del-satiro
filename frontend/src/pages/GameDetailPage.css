@@ -33,14 +33,11 @@
 
 /* ─── Hero ────────────────────────────────────────────────────────── */
 
+/* Figma hero sits directly on the white page — no card box around it */
 .game-detail-hero {
   display: flex;
   gap: var(--space-xl);
   align-items: flex-start;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-xl);
 }
 
 .game-detail-cover {
@@ -136,18 +133,20 @@
 
 /* ─── History ─────────────────────────────────────────────────────── */
 
+/* Figma separates hero and history with a hairline; the H2 itself is a
+   large Oswald uppercase heading (~38.7px) with no underline. */
 .game-detail-history {
-  margin-top: var(--space-2xl);
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xl);
 }
 
 .game-detail-history h2 {
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   color: var(--color-text-heading);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-sm);
   margin-bottom: var(--space-md);
 }
 
