@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGames } from "../hooks/useGames";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 import { ActiveFilterChips } from "../components/ActiveFilterChips";
 import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
 import { FilterPanel } from "../components/FilterPanel";
 import { GameCard } from "../components/GameCard";
 import { PoweredByBgg } from "../components/PoweredByBgg";
 import { SearchBar } from "../components/SearchBar";
+import { SearchFiltersBox } from "../components/SearchFiltersBox";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
 import {
@@ -18,7 +18,6 @@ import {
 } from "../types/catalog";
 import "./CatalogPage.css";
 
-const SIDEBAR_MQ = "(min-width: 1024px)";
 // DQ-2: the member's grid/list choice persists across reloads.
 const VIEW_STORAGE_KEY = "catalog-view-mode";
 
@@ -89,8 +88,6 @@ export function CatalogPage() {
   const { games, loading, error } = useGames();
   const [query, setQuery] = useState<CatalogQuery>(DEFAULT_CATALOG_QUERY);
   const [view, setView] = useState<CatalogView>(storedView);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const sidebarMode = useMediaQuery(SIDEBAR_MQ);
 
   useEffect(() => {
     localStorage.setItem(VIEW_STORAGE_KEY, view);
@@ -141,76 +138,42 @@ export function CatalogPage() {
 
       <CatalogTypeToggle />
 
-      <div className="catalog-layout">
-        {sidebarMode && (
-          <aside className="catalog-sidebar" aria-label="Filtros">
-            {filterPanel}
-          </aside>
-        )}
-
-        <div className="catalog-main">
-          <div className="catalog-toolbar">
+      <SearchFiltersBox
+        search={
+          <form
+            className="catalog-search-form"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <SearchBar
               value={query.search}
               onChange={(search) => setQuery((q) => ({ ...q, search }))}
             />
-            {!sidebarMode && (
-              <Button
-                variant="secondary"
-                onClick={() => setDrawerOpen(true)}
-                aria-expanded={drawerOpen}
-                aria-controls="catalog-filter-drawer"
-              >
-                Filtros
-              </Button>
-            )}
-            <ViewToggle view={view} onChange={setView} />
-          </div>
+            <Button type="submit">Buscar</Button>
+          </form>
+        }
+        filters={filterPanel}
+      />
 
-          <ActiveFilterChips query={query} onChange={setQuery} />
+      <ActiveFilterChips query={query} onChange={setQuery} />
 
-          {filteredGames.length === 0 ? (
-            <p className="catalog-empty">No se han encontrado juegos.</p>
-          ) : (
-            <div className={view === "grid" ? "catalog-grid" : "catalog-list"}>
-              {filteredGames.map((game) => (
-                <GameCard key={game.id} game={game} view={view} />
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="catalog-results-bar">
+        <p className="catalog-count">
+          Mostrando {filteredGames.length} de {games.length}
+        </p>
+        <ViewToggle view={view} onChange={setView} />
       </div>
 
-      <PoweredByBgg />
-
-      {!sidebarMode && drawerOpen && (
-        <div
-          className="catalog-drawer-overlay"
-          onClick={() => setDrawerOpen(false)}
-        >
-          <div
-            id="catalog-filter-drawer"
-            className="catalog-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filtros"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="catalog-drawer-header">
-              <span className="catalog-drawer-title">Filtros</span>
-              <button
-                type="button"
-                className="catalog-drawer-close"
-                aria-label="Cerrar filtros"
-                onClick={() => setDrawerOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-            {filterPanel}
-          </div>
+      {filteredGames.length === 0 ? (
+        <p className="catalog-empty">No se han encontrado juegos.</p>
+      ) : (
+        <div className={view === "grid" ? "catalog-grid" : "catalog-list"}>
+          {filteredGames.map((game) => (
+            <GameCard key={game.id} game={game} view={view} />
+          ))}
         </div>
       )}
+
+      <PoweredByBgg />
     </div>
   );
 }

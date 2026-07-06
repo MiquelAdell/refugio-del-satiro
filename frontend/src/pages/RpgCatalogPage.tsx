@@ -3,7 +3,9 @@ import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
 import { PoweredByBgg } from "../components/PoweredByBgg";
 import { RpgCard } from "../components/RpgCard";
 import { SearchBar } from "../components/SearchBar";
+import { SearchFiltersBox } from "../components/SearchFiltersBox";
 import { useRpgItems } from "../hooks/useRpgItems";
+import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
 import { Select } from "../ui/Select";
 import {
@@ -43,20 +45,36 @@ export function RpgCatalogPage() {
 
       <CatalogTypeToggle />
 
-      <div className="rpg-catalog-toolbar">
-        <SearchBar
-          value={query.search}
-          onChange={(search) => setQuery((q) => ({ ...q, search }))}
-          placeholder="Buscar libros..."
-        />
-        <Select
-          label="Ordenar por"
-          value={query.sort}
-          options={RPG_SORT_OPTIONS}
-          onChange={(e) =>
-            setQuery((q) => ({ ...q, sort: e.target.value as RpgSortValue }))
-          }
-        />
+      <SearchFiltersBox
+        search={
+          <form
+            className="catalog-search-form"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <SearchBar
+              value={query.search}
+              onChange={(search) => setQuery((q) => ({ ...q, search }))}
+              placeholder="Buscar libros..."
+            />
+            <Button type="submit">Buscar</Button>
+          </form>
+        }
+        filters={
+          <Select
+            label="Ordenar por"
+            value={query.sort}
+            options={RPG_SORT_OPTIONS}
+            onChange={(e) =>
+              setQuery((q) => ({ ...q, sort: e.target.value as RpgSortValue }))
+            }
+          />
+        }
+      />
+
+      <div className="catalog-results-bar">
+        <p className="catalog-count">
+          Mostrando {filteredItems.length} de {items.length}
+        </p>
       </div>
 
       {filteredItems.length === 0 ? (

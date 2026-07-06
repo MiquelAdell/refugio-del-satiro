@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CatalogPage } from "./CatalogPage";
-import { installMatchMediaMock, setMatchMedia } from "../../tests/matchMedia";
 import type { GameWithStatus } from "../types/game";
 
 const useGamesMock = vi.fn();
@@ -45,7 +44,7 @@ const LENT_GAME: GameWithStatus = {
   status: "lent",
 };
 
-const SIDEBAR_LABEL = "Filtros";
+const FILTROS_TAB = "Filtros";
 const AVAILABILITY_SELECT = "Disponibilidad";
 const MIN_PLAYERS_THUMB = "Jugadores mínimo";
 const MAX_PLAYERS_THUMB = "Jugadores máximo";
@@ -68,10 +67,13 @@ function renderPage() {
 }
 
 beforeEach(() => {
-  installMatchMediaMock();
   localStorage.clear();
   setGames();
 });
+
+async function openFiltrosTab(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("tab", { name: FILTROS_TAB }));
+}
 
 describe("CatalogPage filter chips", () => {
   it("adds a removable chip when a filter is applied and re-queries on removal", async () => {
@@ -80,6 +82,7 @@ describe("CatalogPage filter chips", () => {
 
     expect(screen.getByText("Azul")).toBeInTheDocument();
 
+    await openFiltrosTab(user);
     await user.selectOptions(
       screen.getByLabelText(AVAILABILITY_SELECT),
       "available",
@@ -100,6 +103,7 @@ describe("CatalogPage filter chips", () => {
     renderPage();
     const user = userEvent.setup();
 
+    await openFiltrosTab(user);
     await user.selectOptions(
       screen.getByLabelText(AVAILABILITY_SELECT),
       "available",
@@ -113,41 +117,55 @@ describe("CatalogPage filter chips", () => {
   });
 });
 
-describe("CatalogPage responsive filter surface", () => {
-  it("shows the fixed side panel and no Filtros trigger at >=1024px", () => {
+describe("CatalogPage search-and-filters box", () => {
+  it("shows the search input on the default Buscador tab and no filter controls", () => {
     renderPage();
 
-    expect(
-      screen.getByRole("complementary", { name: SIDEBAR_LABEL }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: SIDEBAR_LABEL })).toBeNull();
+    expect(screen.getByLabelText("Buscar juegos...")).toBeInTheDocument();
+    expect(screen.queryByLabelText(AVAILABILITY_SELECT)).not.toBeVisible();
   });
 
-  it("switches to the drawer trigger below 1024px and opens the drawer", async () => {
+  it("reveals the filter controls when the Filtros tab is activated", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await openFiltrosTab(user);
+
+    expect(screen.getByLabelText(AVAILABILITY_SELECT)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: FILTROS_TAB })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("shows the results count line", () => {
     renderPage();
 
+    expect(screen.getByText("Mostrando 2 de 2")).toBeInTheDocument();
+  });
+
+  it("filters the grid by typed search text from the Buscador tab", async () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    const searchInput = screen.getByLabelText("Buscar juegos...");
+    fireEvent.change(searchInput, { target: { value: "azul" } });
     act(() => {
-      setMatchMedia(() => false);
+      vi.advanceTimersByTime(350);
     });
 
-    expect(
-      screen.queryByRole("complementary", { name: SIDEBAR_LABEL }),
-    ).toBeNull();
-    const trigger = screen.getByRole("button", { name: SIDEBAR_LABEL });
+    expect(screen.getByText("Azul")).toBeInTheDocument();
+    expect(screen.queryByText("Catan")).toBeNull();
 
-    const user = userEvent.setup();
-    await user.click(trigger);
-
-    expect(screen.getByRole("dialog", { name: SIDEBAR_LABEL })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Cerrar filtros" }));
-    expect(screen.queryByRole("dialog", { name: SIDEBAR_LABEL })).toBeNull();
+    vi.useRealTimers();
   });
 });
 
 describe("CatalogPage player-range slider", () => {
-  it("moves the min handle with arrow keys and updates aria-valuenow", () => {
+  it("moves the min handle with arrow keys and updates aria-valuenow", async () => {
     renderPage();
+    const user = userEvent.setup();
+    await openFiltrosTab(user);
 
     const minThumb = screen.getByRole("slider", { name: MIN_PLAYERS_THUMB });
     expect(minThumb).toHaveAttribute("aria-valuenow", "1");
@@ -160,8 +178,10 @@ describe("CatalogPage player-range slider", () => {
     expect(minThumb).toHaveAttribute("aria-valuenow", "2");
   });
 
-  it("supports Home on the min handle and End on the max handle", () => {
+  it("supports Home on the min handle and End on the max handle", async () => {
     renderPage();
+    const user = userEvent.setup();
+    await openFiltrosTab(user);
 
     const minThumb = screen.getByRole("slider", { name: MIN_PLAYERS_THUMB });
     act(() => {
@@ -182,8 +202,10 @@ describe("CatalogPage player-range slider", () => {
     expect(maxThumb).toHaveAttribute("aria-valuenow", "12");
   });
 
-  it("filters the grid when the range excludes a game", () => {
+  it("filters the grid when the range excludes a game", async () => {
     renderPage();
+    const user = userEvent.setup();
+    await openFiltrosTab(user);
 
     const minThumb = screen.getByRole("slider", { name: MIN_PLAYERS_THUMB });
     act(() => {
