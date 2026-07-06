@@ -4,3 +4,14 @@
 [data-gs-header] {
   display: none !important;
 }
+
+/* Hide the Google Sites preview/edit toolbar (search box + "Volver al sitio
+   web" back button) baked into the scraped snapshot. It's owner-only editor
+   chrome, not part of the published page, and its icon renders as a giant
+   unstyled SVG here because the toolbar's real styling comes from Google's
+   live runtime CSS, which this static mirror doesn't load.
+   data-search-scope is a native Google Sites attribute (not one we inject),
+   so this survives re-scrapes without depending on obfuscated class names. */
+[data-search-scope] {
+  display: none !important;
+}
