@@ -136,6 +136,7 @@ describe("RpgCatalogPage name-desc sort", () => {
     renderPage();
     const user = userEvent.setup();
 
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: /ordenar por/i }),
       "name-desc",
@@ -151,6 +152,7 @@ describe("RpgCatalogPage rating sort", () => {
     renderPage();
     const user = userEvent.setup();
 
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: /ordenar por/i }),
       "rating",
@@ -203,6 +205,14 @@ describe("RpgCatalogPage search filtering", () => {
     expect(screen.getByText("Pathfinder")).toBeInTheDocument();
 
     vi.useRealTimers();
+  });
+});
+
+describe("RpgCatalogPage results count", () => {
+  it("shows the results count line", () => {
+    renderPage();
+
+    expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
   });
 });
 
