@@ -216,7 +216,10 @@ class TestRealMirror:
                 href="/juegos-de-rol",
                 children=(
                     NavItem(label="Campañas", href="/juegos-de-rol/campanas"),
-                    NavItem(label="Oneshots", href="/juegos-de-rol/oneshots"),
+                    NavItem(
+                        label="Oneshot y Aventuras",
+                        href="/juegos-de-rol/oneshot-y-aventuras",
+                    ),
                 ),
             ),
             NavItem(

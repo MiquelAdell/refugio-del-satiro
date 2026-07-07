@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { apiFetch } from "../api/client";
+import { apiFetch, apiUpload } from "../api/client";
 import type {
   AdminMember,
   CreateMemberRequest,
   CreateMemberResponse,
   EditMemberRequest,
+  ImportMembersResponse,
   MemberGender,
   SendLinkResponse,
   OkResponse,
@@ -14,6 +15,26 @@ import { memberGenders } from "../types/admin";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import "./AdminMembersPage.css";
+
+const CSV_COLUMNS =
+  "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género";
+
+const SAMPLE_MEMBERS_CSV = `${CSV_COLUMNS}
+1,García López,Carla,Carla,600 00 00 01,carla@example.com,,24/01/2026,Femenino
+2,Torres Ruiz,Jorge,Jordi,600 00 00 02,jorge@example.com,yes,24/01/2026,Masculino
+`;
+
+function downloadSampleCsv() {
+  const blob = new Blob([SAMPLE_MEMBERS_CSV], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "ejemplo-socios.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 export function AdminMembersPage() {
   const { member, loading: authLoading } = useAuth();
@@ -27,6 +48,10 @@ export function AdminMembersPage() {
   const [sortKey, setSortKey] = useState<keyof AdminMember>("display_name");
   const [sortAsc, setSortAsc] = useState(true);
   const [editTarget, setEditTarget] = useState<AdminMember | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportMembersResponse | null>(null);
+  const [showImportHelp, setShowImportHelp] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSort = (key: keyof AdminMember) => {
     if (sortKey === key) {
@@ -116,6 +141,38 @@ export function AdminMembersPage() {
     await navigator.clipboard.writeText(text);
   };
 
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setTokenBanner(null);
+    setSuccessMessage(null);
+    setImportResult(null);
+    setError(null);
+    setImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await apiUpload<ImportMembersResponse>(
+        "/admin/members/import",
+        formData
+      );
+      if (res.created.length === 0) {
+        setSuccessMessage(
+          "Importación completada. Ningún socio nuevo (socios existentes actualizados)."
+        );
+      } else {
+        setImportResult(res);
+      }
+      void fetchMembers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error importando el CSV.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleEditSave = async (id: number, req: EditMemberRequest) => {
     try {
       await apiFetch<OkResponse>(`/admin/members/${id}`, {
@@ -157,16 +214,40 @@ export function AdminMembersPage() {
     <div className="admin-members-page">
       <div className="admin-members-header">
         <h1>Gestión de socios</h1>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setShowCreateForm(!showCreateForm);
-            setTokenBanner(null);
-            setSuccessMessage(null);
-          }}
-        >
-          {showCreateForm ? "Cancelar" : "Crear socio"}
-        </Button>
+        <div className="admin-header-actions">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="admin-file-input"
+            aria-label="Seleccionar archivo CSV de socios"
+            onChange={(e) => void handleImportFile(e)}
+          />
+          <Button
+            variant="secondary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? "Importando..." : "Importar CSV"}
+          </Button>
+          <Button
+            variant="secondary"
+            aria-label="Ayuda sobre el formato del CSV"
+            onClick={() => setShowImportHelp(true)}
+          >
+            ?
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setShowCreateForm(!showCreateForm);
+              setTokenBanner(null);
+              setSuccessMessage(null);
+            }}
+          >
+            {showCreateForm ? "Cancelar" : "Crear socio"}
+          </Button>
+        </div>
       </div>
 
       {successMessage && (
@@ -186,6 +267,31 @@ export function AdminMembersPage() {
               Copiar
             </Button>
           </div>
+        </div>
+      )}
+
+      {importResult && (
+        <div className="admin-token-banner">
+          <p>
+            {`${importResult.created.length} socios nuevos, ${importResult.skipped_rows} filas omitidas de ${importResult.total_rows}`}
+          </p>
+          <ul className="admin-import-list">
+            {importResult.created.map((imported) => (
+              <li key={imported.email} className="admin-import-item">
+                <span className="admin-import-name">{imported.display_name}</span>
+                <div className="admin-token-url">
+                  <code>{imported.token_url}</code>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleCopy(imported.token_url)}
+                  >
+                    Copiar
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -276,6 +382,40 @@ export function AdminMembersPage() {
           </table>
         </div>
       )}
+
+      <Dialog
+        open={showImportHelp}
+        onOpenChange={setShowImportHelp}
+        title="¿Cómo preparar el CSV?"
+        description="El archivo debe tener el mismo formato que la exportación CSV de la hoja de cálculo de socios."
+      >
+        <div className="admin-import-help">
+          <p>Columnas esperadas (la primera fila debe ser la cabecera):</p>
+          <code className="admin-import-help-columns">{CSV_COLUMNS}</code>
+          <ul>
+            <li>
+              Las filas sin <strong>Email</strong> se omiten.
+            </li>
+            <li>
+              Si el email ya existe, se actualizan los datos del socio (no se
+              duplica).
+            </li>
+            <li>
+              Los socios nuevos reciben un enlace para establecer su
+              contraseña, que se muestra tras la importación.
+            </li>
+            <li>
+              La columna <code>admin</code> con valor <code>yes</code> marca al
+              socio como administrador.
+            </li>
+          </ul>
+          <div className="admin-import-help-actions">
+            <Button variant="secondary" onClick={downloadSampleCsv}>
+              Descargar CSV de ejemplo
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       {editTarget && (
         <EditMemberDialog

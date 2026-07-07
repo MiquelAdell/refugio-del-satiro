@@ -315,6 +315,141 @@ class TestAdminPatchMember:
         conn.close()
 
 
+class TestAdminImportMembers:
+    CSV_HEADER = (
+        "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género"
+    )
+
+    def _csv_bytes(self, rows: list[str]) -> bytes:
+        return "\n".join([self.CSV_HEADER, *rows]).encode("utf-8")
+
+    def _post_import(
+        self, client: TestClient, admin: Member, csv_bytes: bytes
+    ):  # type: ignore[no-untyped-def]
+        return client.post(
+            "/api/admin/members/import",
+            files={"file": ("members.csv", csv_bytes, "text/csv")},
+            headers=_auth_cookie(admin),
+        )
+
+    def _make_admin(self, member_repo: SqliteMemberRepository) -> Member:
+        return _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin@test.com",
+            is_admin=True,
+        )
+
+    def test_import_creates_members_and_returns_tokens(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            [
+                "10,García,Ana,Anita,600111222,ana@test.com,,5/02/2022,Femenino",
+                "11,López,Carlos,,600333444,carlos@test.com,,1/01/2023,Masculino",
+            ]
+        )
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["total_rows"] == 2
+        assert body["skipped_rows"] == 0
+        assert len(body["created"]) == 2
+
+        by_email = {c["email"]: c for c in body["created"]}
+        assert by_email["ana@test.com"]["display_name"] == "Anita"
+        assert by_email["carlos@test.com"]["display_name"] == "Carlos López"
+        for created in body["created"]:
+            assert "/set-password?token=" in created["token_url"]
+
+        ana = member_repo.get_by_email("ana@test.com")
+        assert ana is not None
+        assert ana.member_number == 10
+        conn.close()
+
+    def test_reimport_same_file_returns_empty_created(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            ["10,García,Ana,,600111222,ana@test.com,,5/02/2022,Femenino"]
+        )
+        first = self._post_import(client, admin, csv_bytes)
+        assert first.status_code == 200
+        assert len(first.json()["created"]) == 1
+
+        second = self._post_import(client, admin, csv_bytes)
+
+        assert second.status_code == 200
+        assert second.json() == {"created": [], "total_rows": 1, "skipped_rows": 0}
+        # Upsert: no duplicate member created (admin + Ana only)
+        assert len(member_repo.list_all()) == 2
+        conn.close()
+
+    def test_blank_email_rows_counted_as_skipped(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            [
+                "10,García,Ana,,600111222,ana@test.com,,,",
+                "11,Sin,Email,,600333444,,,,",
+            ]
+        )
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["total_rows"] == 2
+        assert body["skipped_rows"] == 1
+        assert len(body["created"]) == 1
+        assert body["created"][0]["email"] == "ana@test.com"
+        conn.close()
+
+    def test_missing_email_header_returns_400(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = b"Nombre,Apellidos\nAna,Garc\xc3\xada\n"
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "El archivo CSV debe tener una columna 'Email'."
+        }
+        conn.close()
+
+    def test_import_requires_admin(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        regular = _make_member(
+            member_repo,
+            number=1,
+            first_name="Regular",
+            last_name="User",
+            email="regular@test.com",
+            is_admin=False,
+        )
+
+        csv_bytes = self._csv_bytes(["10,García,Ana,,600111222,ana@test.com,,,"])
+        response = client.post(
+            "/api/admin/members/import",
+            files={"file": ("members.csv", csv_bytes, "text/csv")},
+            headers=_auth_cookie(regular),
+        )
+
+        assert response.status_code == 403
+        conn.close()
+
+
 @pytest.mark.parametrize(
     ("gender", "expected_label"),
     [

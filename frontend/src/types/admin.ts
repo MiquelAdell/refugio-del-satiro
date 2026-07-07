@@ -43,6 +43,18 @@ export interface SendLinkResponse {
   readonly token_url: string;
 }
 
+export interface ImportedMember {
+  readonly display_name: string;
+  readonly email: string;
+  readonly token_url: string;
+}
+
+export interface ImportMembersResponse {
+  readonly created: readonly ImportedMember[];
+  readonly total_rows: number;
+  readonly skipped_rows: number;
+}
+
 export interface OkResponse {
   readonly ok: boolean;
 }
