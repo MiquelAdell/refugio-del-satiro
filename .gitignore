@@ -48,6 +48,9 @@ test-results/
 e2e/fixtures/*.json
 !e2e/fixtures/.gitkeep
 
+# Generated content (can be regenerated)
+frontend/public/content-mirror/
+
 # Sensitive data
 members.csv
 
