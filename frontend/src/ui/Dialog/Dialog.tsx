@@ -67,7 +67,13 @@ export function Dialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        {title && <DialogTitle className={styles.title}>{title}</DialogTitle>}
+        {title ? (
+          <DialogTitle className={styles.title}>{title}</DialogTitle>
+        ) : (
+          <DialogTitle className={styles.visuallyHiddenTitle}>
+            Diálogo
+          </DialogTitle>
+        )}
         {description && (
           <DialogDescription className={styles.description}>
             {description}

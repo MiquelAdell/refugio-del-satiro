@@ -58,10 +58,11 @@ nav/footer get layered in later by the React app / site-wide templates.
 
 1. **Enumerate** (`enumerator.py`). BFS from `/`, depth ≤ 4, following only
    same-host links. Skip `/inicio`, `/socios/ludoteca`,
-   `/Validacion-Membresia` (handled by Caddy 301s). Assert every path in
-   `config.REQUIRED_PATHS` was reached; force-add any that weren't. Source
-   paths (with accents) are preserved separately from canonical paths
-   (deaccented, lowercased).
+   `/Validacion-Membresia` (handled by Caddy 301s). Required paths are derived
+   at run time from the live nav on the homepage (`nav_extractor.extract_nav`)
+   rather than hardcoded; assert every one was reached, force-add any that
+   weren't. Source paths (with accents) are preserved separately from
+   canonical paths (deaccented, lowercased).
 2. **Fetch** (`fetcher.py`). `httpx.AsyncClient` with exponential-backoff
    retries on 5xx / network errors. No HTTP/2 (h2 not in deps; Sites serves
    fast enough over HTTP/1.1 for 19 pages).
@@ -84,9 +85,10 @@ nav/footer get layered in later by the React app / site-wide templates.
 
 ## Extending
 
-Add a new page → nothing to do; the BFS will find it. If the page is
-mandatory (you want the scrape to fail loudly if Sites ever stops serving
-it), add it to `REQUIRED_PATHS` in `scraper/config.py`.
+Add a new page → nothing to do; the BFS will find it. Required-page
+enforcement is automatic too: any path in the live homepage nav (top-level or
+L2 child) is required, so if Sites ever stops serving it, the scrape fails
+loudly with no config change needed.
 
 Sites renamed the content-shell class and the sanity check fails →
 update `SANITY_CONTENT_SELECTOR` in `scraper/config.py` to whatever div

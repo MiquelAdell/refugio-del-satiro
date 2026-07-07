@@ -36,6 +36,9 @@ class TestAccount:
     first_name: str
     last_name: str
     is_admin: bool
+    member_number: int | None = None
+    last_payment: str | None = None
+    gender: str | None = None
 
     @property
     def role(self) -> str:
@@ -55,6 +58,9 @@ def _accounts_from_env() -> list[TestAccount]:
             first_name="E2E",
             last_name="Member",
             is_admin=False,
+            member_number=9001,
+            last_payment="5/02/2026",
+            gender="Femenino",
         ),
         TestAccount(
             label="TEST_ADMIN",
@@ -69,7 +75,7 @@ def _accounts_from_env() -> list[TestAccount]:
 
 def _seed_account(repo: SqliteMemberRepository, account: TestAccount) -> None:
     member = repo.upsert_by_email(
-        member_number=None,
+        member_number=account.member_number,
         first_name=account.first_name,
         last_name=account.last_name,
         nickname=None,
@@ -77,6 +83,8 @@ def _seed_account(repo: SqliteMemberRepository, account: TestAccount) -> None:
         email=account.email,
         display_name=account.display_name,
         is_admin=account.is_admin,
+        last_payment=account.last_payment,
+        gender=account.gender,
     )
     # Ensure active (upsert preserves existing value; new rows default to active
     # per the migration, but be explicit for re-runs that may have deactivated).

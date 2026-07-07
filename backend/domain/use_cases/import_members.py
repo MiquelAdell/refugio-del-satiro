@@ -42,9 +42,7 @@ class ImportMembersUseCase:
 
     def execute(self, raw_members: list[dict[str, str]]) -> list[ImportResult]:
         # Filter out members without email
-        members_with_email = [
-            m for m in raw_members if m.get("Email", "").strip()
-        ]
+        members_with_email = [m for m in raw_members if m.get("Email", "").strip()]
 
         # Count nicknames across ALL members in the batch (including those without email,
         # but only non-empty ones matter for uniqueness)
@@ -77,6 +75,9 @@ class ImportMembersUseCase:
                 first_name, last_name, nickname, nickname_counts
             )
 
+            last_payment = m.get("Última cuota", "").strip() or None
+            gender = m.get("Género", "").strip() or None
+
             member = self._member_repo.upsert_by_email(
                 member_number=member_number,
                 first_name=first_name,
@@ -86,6 +87,8 @@ class ImportMembersUseCase:
                 email=email,
                 display_name=display_name,
                 is_admin=is_admin,
+                last_payment=last_payment,
+                gender=gender,
             )
             upserted_members.append(member)
 

@@ -1,0 +1,221 @@
+/* ValidacionPage — public member-number validation page.
+   Matches legacy layout: title → divider → intro → search → result → disclaimer. */
+
+.validacion-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-3xl);
+}
+
+/* ── Divider ────────────────────────────────────────────────────────────────── */
+
+.validacion-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0 0 var(--space-xl);
+}
+
+/* ── Intro text ─────────────────────────────────────────────────────────────── */
+
+.validacion-intro {
+  text-align: center;
+  font-size: var(--font-size-md);
+  color: var(--color-text-body);
+  margin-bottom: var(--space-lg);
+  line-height: var(--line-height-normal);
+}
+
+/* ── Search form ────────────────────────────────────────────────────────────── */
+
+.validacion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-xl);
+}
+
+.validacion-search-box {
+  position: relative;
+  width: 100%;
+}
+
+.validacion-search-icon {
+  position: absolute;
+  left: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.validacion-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  padding-left: calc(var(--space-sm) * 2 + 1.125rem);
+  padding-right: calc(var(--space-sm) * 2 + 1.125rem);
+  border: 1px solid var(--color-border);
+  /* Square bottom corners to visually attach to the button below */
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-body);
+  background-color: var(--color-surface);
+  color: var(--color-text-body);
+  box-sizing: border-box;
+}
+
+.validacion-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.validacion-input:focus {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -1px;
+  border-color: var(--color-brand);
+}
+
+.validacion-clear-btn {
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  padding: var(--space-xs);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.validacion-clear-btn:hover {
+  color: var(--color-text-body);
+}
+
+.validacion-clear-btn:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* The submit button attaches flush to the input — override Button's radius */
+.validacion-submit-btn {
+  width: 100%;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+  border-top: none !important;
+}
+
+/* ── Result block ───────────────────────────────────────────────────────────── */
+
+.validacion-result {
+  text-align: center;
+  padding: var(--space-xl) 0 var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-xl);
+}
+
+.validacion-result-name {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+  margin-bottom: var(--space-md);
+  line-height: var(--line-height-tight);
+}
+
+.validacion-verdict {
+  font-family: var(--font-family-heading);
+  font-size: clamp(var(--font-size-3xl), 7vw, 5rem);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-md);
+}
+
+.validacion-verdict--active {
+  color: var(--color-text-heading);
+}
+
+.validacion-verdict--inactive {
+  color: var(--color-text-heading);
+}
+
+.validacion-payment {
+  margin-top: var(--space-md);
+}
+
+.validacion-payment-label {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-heading);
+  margin-bottom: var(--space-xs);
+}
+
+.validacion-payment-date {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-heading);
+}
+
+/* ── Not-found result ────────────────────────────────────────────────────────── */
+
+.validacion-not-found-text {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  color: var(--color-text-heading);
+  margin-bottom: var(--space-sm);
+}
+
+.validacion-not-found-number {
+  font-family: var(--font-family-heading);
+  font-size: clamp(var(--font-size-3xl), 7vw, 5rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-heading);
+}
+
+/* ── Error ──────────────────────────────────────────────────────────────────── */
+
+.validacion-error {
+  text-align: center;
+  color: var(--color-danger);
+  font-size: var(--font-size-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+/* ── Disclaimer ─────────────────────────────────────────────────────────────── */
+
+.validacion-disclaimer {
+  text-align: center;
+  color: var(--color-text-body);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-relaxed);
+}
+
+.validacion-disclaimer p {
+  margin-bottom: var(--space-md);
+}
+
+.validacion-disclaimer p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .validacion-result-name {
+    font-size: var(--font-size-xl);
+  }
+}

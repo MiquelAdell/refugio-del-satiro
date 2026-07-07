@@ -1,0 +1,149 @@
+/*
+ * RECONCILED design tokens — Refugio del Sátiro lending UI.
+ *
+ * This is the proposed Phase-B0 replacement for frontend/src/tokens.css,
+ * reconciling the live Phase-A tokens with the EXACT values read from the
+ * Figma design-system pages (see handoff/figma-extract/DESIGN_TOKENS.md).
+ *
+ * Every line that differs from the current tokens.css is marked  ⚠ CHANGED
+ * or  ⚠ ADDED  with the reason. Lines without a marker are unchanged —
+ * copy this over frontend/src/tokens.css, then grep for ⚠ to review.
+ *
+ * Brand source: refugiodelsatiro.es + Figma "Color-palette"/"Tipografies"
+ * frames (UOC TFM, A. Ortega Rams). Verified 2026-06-10.
+ */
+
+/* Self-hosted variable fonts — see frontend/public/fonts/LICENSE.md */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 300 800; /* variable axis covers regular (400) and semibold (600) */
+  font-display: swap;
+  src: url("/fonts/open-sans-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 200 700; /* variable axis covers medium (500) and semibold (600) */
+  font-display: swap;
+  src: url("/fonts/oswald-variable.woff2") format("woff2");
+}
+
+:root {
+  /* ─── Color ─────────────────────────────────────────────────────── */
+  --color-brand: #be0000;
+  --color-brand-hover: #9b0000;
+  --color-brand-contrast: #ffffff;
+
+  --color-text-heading: #1f1f1f;
+  --color-text-body: #333333;
+  --color-text-muted: #6d6d6d;          /* ⚠ CHANGED #6b6b6b → #6D6D6D (Figma "Gray") */
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #efefef;         /* ⚠ CHANGED #f5f5f5 → #EFEFEF (Figma "GreyBackground") */
+  --color-border: #efefef;              /* ⚠ CHANGED #e2e2e2 → #EFEFEF (Figma uses one grey for surface+border) */
+  --color-scrim: rgba(0, 0, 0, 0.2);    /* ⚠ ADDED Figma "WhiteBackground" scrim — behind cover badges / heart */
+
+  --color-success: #34a853;             /* ⚠ CHANGED #2e7d32 → #34A853 (Figma "GreenSuccess") */
+  --color-warning: #fbbc05;             /* ⚠ CHANGED #ed6c02 → #FBBC05 (Figma "WarnYellow") */
+  --color-danger: #ea4335;              /* ⚠ CHANGED #c62828 → #EA4335 (Figma "RedError" — for error msgs/icons; destructive ACTIONS still use --color-brand) */
+
+  /* Catalog state badges, kept for catalog cards until Phase B replaces them */
+  --color-available: #dcfce7;
+  --color-lent: #fef3c7;
+
+  /* ─── Category pill pastels ─────────────────────────────────────── */
+  /* ⚠ ADDED exact Figma pastel set — pair each with dark family text for AA. */
+  --pill-mint: #98fb98;       /* Nature / Familiar / Estrategia */
+  --pill-pink: #ffb6c1;       /* Party / Horror */
+  --pill-sky: #87ceeb;        /* Mystery / Investigación */
+  --pill-turquoise: #bbffff;  /* Aventura */
+  --pill-lavender: #ebc9ff;   /* Sci-Fi / Fantasía urbana */
+  --pill-peach: #ffdab9;      /* Histórica / Infantil */
+  --pill-yellow: #ffff99;     /* Misc / neutral */
+  --pill-pearl: #c0c0c0;      /* Uncategorised */
+
+  /* ─── Typography ────────────────────────────────────────────────── */
+  --font-family-heading:
+    "Oswald", "Arial Narrow", system-ui, -apple-system, sans-serif;
+  --font-family-body:
+    "Open Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --font-size-sm: 0.75rem;    /* ⚠ CHANGED 0.875rem → 0.75rem (12px) — Figma meta/small */
+  --font-size-md: 1rem;       /* 16px — Figma body (matches) */
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;     /* 24px — Figma H2/H3 */
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --font-size-display: 5rem;  /* ⚠ ADDED 80px — Figma page title (Oswald uppercase, with red underline) */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+
+  /* ─── Spacing (mobile-first rem scale) ──────────────────────────── */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* ─── Radius ────────────────────────────────────────────────────── */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  /* ─── Shadow ────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.1);
+
+  /* ─── Header tokens ────────────────────────────────────────────── */
+  --color-header-bg: rgb(0, 0, 0);
+  --color-header-fg: rgba(255, 255, 255, 1);
+  --color-header-fg-hover: rgba(255, 255, 255, 0.7); /* ⚠ CHANGED 0.8 → 0.7 (Figma "WhiteText_Hover") */
+  --color-header-fg-active: rgba(190, 0, 0, 1);
+  --color-header-divider: rgba(255, 255, 255, 0.12);
+  --header-height: 56px;
+  --header-z: 100;
+
+  /* ─── Breakpoints (mobile-first) ────────────────────────────────── */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /*
+   * Backwards-compatibility aliases — unchanged. Safe to remove once a grep
+   * for the old names returns zero hits.
+   */
+  --color-primary: var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-success-hover: #1b5e20;
+  --color-danger-hover: #8e0000;
+  --color-text: var(--color-text-body);
+  --color-text-secondary: var(--color-text-muted);
+  --color-bg: var(--color-surface-alt);
+  --color-bg-card: var(--color-surface);
+  --font-family: var(--font-family-body);
+}
+
+body {
+  font-family: var(--font-family-body);
+  color: var(--color-text-body);
+  background-color: var(--color-surface-alt);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-family-heading);
+  color: var(--color-text-heading);
+  line-height: var(--line-height-tight);
+}

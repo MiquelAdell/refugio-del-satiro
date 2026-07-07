@@ -58,12 +58,20 @@ class FakeLoanRepository:
 
     def get_active_by_game_id(self, game_id: int) -> Loan | None:
         return next(
-            (lo for lo in self._loans if lo.game_id == game_id and lo.returned_at is None),
+            (
+                lo
+                for lo in self._loans
+                if lo.game_id == game_id and lo.returned_at is None
+            ),
             None,
         )
 
     def list_active_by_member_id(self, member_id: int) -> list[Loan]:
-        return [lo for lo in self._loans if lo.member_id == member_id and lo.returned_at is None]
+        return [
+            lo
+            for lo in self._loans
+            if lo.member_id == member_id and lo.returned_at is None
+        ]
 
     def list_by_game_id(self, game_id: int) -> list[Loan]:
         return sorted(
@@ -119,7 +127,7 @@ def _make_member(id: int, display_name: str) -> Member:
         display_name=display_name,
         password_hash=None,
         is_admin=False,
-            is_active=True,
+        is_active=True,
         created_at=NOW,
         updated_at=NOW,
     )

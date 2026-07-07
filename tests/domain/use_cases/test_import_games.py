@@ -34,10 +34,17 @@ class FakeGameRepository:
         return sorted(self._games.values(), key=lambda g: g.name)
 
     def upsert_by_bgg_id(
-        self, bgg_id: int, name: str, thumbnail_url: str, image_url: str = "",
+        self,
+        bgg_id: int,
+        name: str,
+        thumbnail_url: str,
+        image_url: str = "",
         year_published: int = 0,
-        min_players: int = 0, max_players: int = 0, playing_time: int = 0,
-        bgg_rating: float = 0.0, location: str = "armari",
+        min_players: int = 0,
+        max_players: int = 0,
+        playing_time: int = 0,
+        bgg_rating: float = 0.0,
+        location: str = "armari",
     ) -> Game:
         now = datetime.now(UTC)
         existing = self.get_by_bgg_id(bgg_id)
@@ -51,22 +58,38 @@ class FakeGameRepository:
         )
         if existing:
             game = Game(
-                id=existing.id, bgg_id=bgg_id, name=name, slug=slug,
-                thumbnail_url=thumbnail_url, image_url=image_url,
+                id=existing.id,
+                bgg_id=bgg_id,
+                name=name,
+                slug=slug,
+                thumbnail_url=thumbnail_url,
+                image_url=image_url,
                 year_published=year_published,
-                min_players=min_players, max_players=max_players,
-                playing_time=playing_time, bgg_rating=bgg_rating, location=location,
-                created_at=existing.created_at, updated_at=now,
+                min_players=min_players,
+                max_players=max_players,
+                playing_time=playing_time,
+                bgg_rating=bgg_rating,
+                location=location,
+                created_at=existing.created_at,
+                updated_at=now,
             )
             self._games[game.id] = game
             return game
         game = Game(
-            id=self._next_id, bgg_id=bgg_id, name=name, slug=slug,
-            thumbnail_url=thumbnail_url, image_url=image_url,
+            id=self._next_id,
+            bgg_id=bgg_id,
+            name=name,
+            slug=slug,
+            thumbnail_url=thumbnail_url,
+            image_url=image_url,
             year_published=year_published,
-            min_players=min_players, max_players=max_players,
-            playing_time=playing_time, bgg_rating=bgg_rating, location=location,
-            created_at=now, updated_at=now,
+            min_players=min_players,
+            max_players=max_players,
+            playing_time=playing_time,
+            bgg_rating=bgg_rating,
+            location=location,
+            created_at=now,
+            updated_at=now,
         )
         self._games[game.id] = game
         self._next_id += 1
@@ -75,10 +98,12 @@ class FakeGameRepository:
 
 class TestImportGamesUseCase:
     def test_imports_new_games(self) -> None:
-        bgg_client = FakeBggClient([
-            BggGame(13, "Catan", "https://c.jpg", 1995),
-            BggGame(230802, "Azul", "https://a.jpg", 2017),
-        ])
+        bgg_client = FakeBggClient(
+            [
+                BggGame(13, "Catan", "https://c.jpg", 1995),
+                BggGame(230802, "Azul", "https://a.jpg", 2017),
+            ]
+        )
         repo = FakeGameRepository()
         use_case = ImportGamesUseCase(repo, bgg_client)
         result = use_case.execute()
@@ -90,9 +115,11 @@ class TestImportGamesUseCase:
     def test_updates_existing_games(self) -> None:
         repo = FakeGameRepository()
         repo.upsert_by_bgg_id(13, "Catan", "https://old.jpg", 1995)
-        bgg_client = FakeBggClient([
-            BggGame(13, "Catan: 25th Anniversary", "https://new.jpg", 1995),
-        ])
+        bgg_client = FakeBggClient(
+            [
+                BggGame(13, "Catan: 25th Anniversary", "https://new.jpg", 1995),
+            ]
+        )
         use_case = ImportGamesUseCase(repo, bgg_client)
         result = use_case.execute()
         assert result.created == 0
@@ -104,10 +131,12 @@ class TestImportGamesUseCase:
     def test_mixed_create_and_update(self) -> None:
         repo = FakeGameRepository()
         repo.upsert_by_bgg_id(13, "Catan", "https://c.jpg", 1995)
-        bgg_client = FakeBggClient([
-            BggGame(13, "Catan", "https://c.jpg", 1995),
-            BggGame(230802, "Azul", "https://a.jpg", 2017),
-        ])
+        bgg_client = FakeBggClient(
+            [
+                BggGame(13, "Catan", "https://c.jpg", 1995),
+                BggGame(230802, "Azul", "https://a.jpg", 2017),
+            ]
+        )
         use_case = ImportGamesUseCase(repo, bgg_client)
         result = use_case.execute()
         assert result.created == 1

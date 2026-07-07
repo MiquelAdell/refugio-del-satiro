@@ -30,7 +30,9 @@ class TestForgotPassword:
     def test_returns_ok_for_existing_email(self) -> None:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
-        member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
 
         response = client.post("/api/forgot-password", json={"email": "test@test.com"})
 
@@ -40,7 +42,9 @@ class TestForgotPassword:
     def test_returns_ok_for_nonexistent_email(self) -> None:
         client, _ = _setup_test_client()
 
-        response = client.post("/api/forgot-password", json={"email": "nobody@test.com"})
+        response = client.post(
+            "/api/forgot-password", json={"email": "nobody@test.com"}
+        )
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}
@@ -48,7 +52,9 @@ class TestForgotPassword:
     def test_returns_ok_for_inactive_member(self) -> None:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
-        member = member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
         member_repo.set_active(member.id, False)
 
         response = client.post("/api/forgot-password", json={"email": "test@test.com"})
@@ -59,7 +65,9 @@ class TestForgotPassword:
     def test_creates_token_for_existing_email(self) -> None:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
-        member_repo.upsert_by_email(1, "Test", "User", None, None, "test@test.com", "Test User", False)
+        member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
 
         client.post("/api/forgot-password", json={"email": "test@test.com"})
 

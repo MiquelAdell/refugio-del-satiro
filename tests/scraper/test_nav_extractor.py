@@ -34,7 +34,9 @@ def _li(label: str, href: str, *children: tuple[str, str]) -> str:
     and L2 children sit as later `<a>` descendants inside the same `<li>`.
     """
     head = _ANCHOR.format(href=href, label=label)
-    rest = "".join(_ANCHOR.format(href=c_href, label=c_label) for c_label, c_href in children)
+    rest = "".join(
+        _ANCHOR.format(href=c_href, label=c_label) for c_label, c_href in children
+    )
     return f"<li><div>{head}</div>{rest}</li>"
 
 
@@ -191,7 +193,13 @@ class TestNavExtractor:
 # Real-DOM smoke: extract against the live scraped index.html
 # ---------------------------------------------------------------------------
 
-_REAL_MIRROR = Path(__file__).resolve().parents[2] / "frontend" / "public" / "content-mirror" / "index.html"
+_REAL_MIRROR = (
+    Path(__file__).resolve().parents[2]
+    / "frontend"
+    / "public"
+    / "content-mirror"
+    / "index.html"
+)
 
 
 class TestRealMirror:
@@ -226,7 +234,9 @@ class TestRealMirror:
                 href="/eventos",
                 children=(
                     NavItem(label="Diürnes del Sàtir", href="/eventos/diurnes-satir"),
-                    NavItem(label="Festa Major de Sabadell", href="/eventos/festa-major"),
+                    NavItem(
+                        label="Festa Major de Sabadell", href="/eventos/festa-major"
+                    ),
                     NavItem(label="24h Juegos de Mesa", href="/eventos/24h-mesa"),
                 ),
             ),

@@ -29,4 +29,6 @@ class RequestPasswordResetUseCase:
 
         token = self._token_repo.create(member.id)
         reset_url = f"{self._settings.base_url}/set-password?token={token.token}"
-        self._email_client.send_access_link(member.email, member.display_name, reset_url)
+        self._email_client.send_access_link(
+            member.email, member.display_name, reset_url
+        )

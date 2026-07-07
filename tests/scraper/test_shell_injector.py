@@ -10,7 +10,9 @@ _SCRIPT_SRC = "/_assets/site-shell.js"
 _MOUNT_ID = "site-shell-root"
 
 
-def _make_soup(body_content: str = "<header><nav>nav</nav></header><main>content</main>") -> BeautifulSoup:
+def _make_soup(
+    body_content: str = "<header><nav>nav</nav></header><main>content</main>",
+) -> BeautifulSoup:
     html = f"<!doctype html><html><head></head><body>{body_content}</body></html>"
     return BeautifulSoup(html, "html.parser")
 

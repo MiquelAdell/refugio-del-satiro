@@ -48,8 +48,15 @@
 	redir /inicio/ / permanent
 	redir /socios/ludoteca /ludoteca permanent
 	redir /socios/ludoteca/ /ludoteca permanent
-	redir /Validacion-Membresia /validacion permanent
-	redir /Validacion-Membresia/ /validacion permanent
+	# Printed QR codes point at /Validacion-Membresia; the legacy Flask route
+	# used lowercase -membresia, so cover both casings for pre-2.8 Caddy
+	# (path matchers are case-insensitive from 2.8 on).
+	redir /Validacion-Membresia /ludoteca/validacion permanent
+	redir /Validacion-Membresia/ /ludoteca/validacion permanent
+	redir /Validacion-membresia /ludoteca/validacion permanent
+	redir /Validacion-membresia/ /ludoteca/validacion permanent
+	redir /validacion /ludoteca/validacion permanent
+	redir /validacion/ /ludoteca/validacion permanent
 	redir /juegos-de-rol/campa%C3%B1as /juegos-de-rol/campanas permanent
 	redir /juegos-de-rol/campañas /juegos-de-rol/campanas permanent
 	redir /juegos-de-rol/campa%C3%B1as/ /juegos-de-rol/campanas/ permanent

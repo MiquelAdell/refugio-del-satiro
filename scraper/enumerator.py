@@ -9,9 +9,10 @@ from urllib.parse import unquote, urlparse
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from scraper.config import REQUIRED_PATHS, SKIP_PATHS, ScraperConfig
+from scraper.config import SKIP_PATHS, ScraperConfig
 from scraper.fetcher import Fetcher
 from scraper.linker import canonicalize_path, is_internal_href
+from scraper.nav_extractor import extract_nav
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,29 @@ def _source_path_of(href: str) -> str:
     return unquote(parsed.path or "/")
 
 
+def _required_paths_from_nav(html: str | None) -> frozenset[str]:
+    """Derive required paths from the live nav on the homepage.
+
+    Flattens top-level nav items and their L2 children, canonicalizes each
+    href, and excludes anything in SKIP_PATHS. Never raises: if *html* is
+    None or nav extraction yields nothing, returns an empty frozenset.
+    """
+    if html is None:
+        return frozenset()
+    try:
+        soup = BeautifulSoup(html, "lxml")
+        nav_items = extract_nav(soup)
+        hrefs = (
+            href
+            for item in nav_items
+            for href in (item.href, *(child.href for child in item.children))
+        )
+        canonical_paths = {canonicalize_path(href) for href in hrefs}
+        return frozenset(canonical_paths - SKIP_PATHS)
+    except Exception:
+        return frozenset()
+
+
 async def enumerate_pages(
     fetcher: Fetcher,
     config: ScraperConfig,
@@ -59,6 +83,7 @@ async def enumerate_pages(
     discovered: dict[str, str] = {}
     queue: deque[tuple[str, str, int]] = deque()
     queue.append(("/", "/", 0))
+    homepage_html: str | None = None
 
     while queue:
         canonical, source_path, depth = queue.popleft()
@@ -81,6 +106,8 @@ async def enumerate_pages(
             continue
 
         html = result.body.decode("utf-8", errors="replace")
+        if canonical == "/":
+            homepage_html = html
         for href in _extract_links(html):
             if not is_internal_href(href):
                 continue
@@ -93,7 +120,7 @@ async def enumerate_pages(
             if next_canonical not in discovered:
                 queue.append((next_canonical, next_source, depth + 1))
 
-    required = set(REQUIRED_PATHS)
+    required = {"/"} | _required_paths_from_nav(homepage_html)
     for required_path in required - discovered.keys():
         # Required pages not reached by the crawl fall back to canonical=source.
         discovered[required_path] = required_path

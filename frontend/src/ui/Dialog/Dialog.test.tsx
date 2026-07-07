@@ -34,4 +34,13 @@ describe("Dialog", () => {
     await userEvent.keyboard("{Escape}");
     expect(handleOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("still exposes an accessible name when no title is provided", () => {
+    render(
+      <Dialog open onOpenChange={() => undefined} description="¿Estás seguro?">
+        <p>Body</p>
+      </Dialog>
+    );
+    expect(screen.getByRole("dialog", { name: "Diálogo" })).toBeInTheDocument();
+  });
 });

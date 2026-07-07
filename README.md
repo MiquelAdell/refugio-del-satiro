@@ -9,6 +9,12 @@ The catalog is publicly browsable read-only (no account needed; borrowing
 requires logging in). Legacy `/prestamos` URLs redirect permanently to
 `/ludoteca`.
 
+A public membership-validation page lives at `/ludoteca/validacion`: anyone
+can enter a member number and see whether that person is a current member
+(name, ES/NO ES socio·a verdict, last paid fee). The legacy
+`/Validacion-Membresia` URL (printed on QR codes) 301-redirects there. The
+page also accepts `?id=<n>` for direct lookups.
+
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
 
@@ -302,6 +308,7 @@ A [`render.yaml`](render.yaml) blueprint is also included for deployment to [Ren
   - Phase A: design tokens + primitives + drop i18n — **complete**.
   - Site shell with data-driven nav and new "Préstamos" submenu — **in progress** ([`openspec/changes/site-shell-from-scraped-html/`](openspec/changes/site-shell-from-scraped-html/), PR #46). Submenu children from `_nav.json` deferred to a follow-up issue.
   - Phase B0–B3 (catalog rebuild: reconciled Figma tokens, cover-first cards, side-panel filters + chips, grid/list toggle, detail hero with borrow CTA, public `/ludoteca`) — **complete** ([`openspec/changes/lending-catalog-rebuild/`](openspec/changes/lending-catalog-rebuild/)).
+  - Figma style alignment (white pages, Figma button/dialog/card styles) — PR #89; catalog filters as the tabbed Buscador/Filtros box replacing the side panel + drawer — [`openspec/changes/catalog-filters-figma-restyle/`](openspec/changes/catalog-filters-figma-restyle/), PR #91.
   - Phase B4+C1 (borrow with return date), Phase D (admin members restyle) — to be opened later.
 
 ## License

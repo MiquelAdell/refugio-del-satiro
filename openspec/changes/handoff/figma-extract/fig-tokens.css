@@ -1,0 +1,59 @@
+/* Generated from Figma Variables. First mode = :root default.
+   FLOAT tokens are unitless — multiply by 1px in calc() where a length is needed. */
+
+:root {
+  --brown: rgb(208,171,122); /* @kind color */
+  --button-cencel: "Cencel";
+  --button-disabled: "Disabled";
+  --button-notified: "Notified";
+  --button-request: "Request";
+  --button-return: "Return";
+  --cancelar-pr-stamo: "Cancelar préstamo";
+  --currentuser: var(--roles-administrador);
+  --currentusername: var(--roles-norag-mez);
+  --detail-free: "Free";
+  --detail-notified: "Notified";
+  --detail-reserved-by-me: "Reserved by me";
+  --detail-reserved: "Reserved";
+  --detail-return: "Return";
+  --dialog-a-adir-c-digo-insignia: "Añadir código insignia";
+  --dialog-a-adir-insignia: "Añadir insignia";
+  --dialog-cancelar-pr-stamo: "Cancelar préstamo";
+  --dialog-confirm-sinc: "Confirm Sinc";
+  --dialog-solicitar-pr-stamo: "Solicitar préstamo";
+  --dialog-success: "Success";
+  --game-borrowed: "Borrowed";
+  --game-free-2: "Free";
+  --game-free: "Free";
+  --game-reserved-2: "Reserved";
+  --game-reserved-by-me: "Reserved by me";
+  --game-reserved: "Reserved";
+  --image-game-request: "Fantasy World";
+  --insignia-after: "After";
+  --insignia-before: "Before";
+  --managestategames: var(--state-historial);
+  --managestateusers: var(--state-historial);
+  --other-semi-transparent: rgba(31,31,31,0.1); /* @kind color */
+  --otheruser: var(--roles-socio);
+  --otherusername: var(--roles-lexvilalta);
+  --previusselectedgames: 0;
+  --roles-administrador: "Administrador";
+  --roles-lexvilalta: "Àlex Vilalta";
+  --roles-norag-mez: "Nora Gómez";
+  --roles-socio: "Socio";
+  --selectedgames: 0;
+  --sincronization-confirm: "Confirm";
+  --sincronization-sincronize: "Sincronize";
+  --state-button-state: var(--button-request);
+  --state-detail-state: var(--detail-free);
+  --state-dialog-state-2: var(--dialog-a-adir-c-digo-insignia);
+  --state-dialog-state-3: var(--dialog-confirm-sinc);
+  --state-dialog-state: var(--dialog-solicitar-pr-stamo);
+  --state-diamant-state: var(--game-free-2);
+  --state-historial: "Historial";
+  --state-insignia-state: var(--insignia-before);
+  --state-likeddiamant: "Yes";
+  --state-newhistorial: "NewHistorial";
+  --state-sincronization-state: var(--sincronization-sincronize);
+  --title-game-request: "Fantasy World";
+}

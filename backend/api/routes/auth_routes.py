@@ -86,7 +86,9 @@ def get_me(member: CurrentMember) -> MemberResponse:
 @router.post("/forgot-password", response_model=OkResponse)
 def forgot_password(
     body: ForgotPasswordRequest,
-    use_case: Annotated[RequestPasswordResetUseCase, Depends(get_request_password_reset_use_case)],
+    use_case: Annotated[
+        RequestPasswordResetUseCase, Depends(get_request_password_reset_use_case)
+    ],
 ) -> OkResponse:
     use_case.execute(body.email)
     return OkResponse()

@@ -1,13 +1,16 @@
 /*
  * Catalog layout (style-guide §4, §5.5–§5.7):
- * fixed left filter panel ≥1024px, bottom-sheet drawer below; chip row
- * above the grid; grid/list view toggle. Flat surfaces, 1px hairlines.
+ * Buscador/Filtros box above the results (see SearchFiltersBox.css), chip
+ * row below the box, results bar (count + view toggle), grid/list toggle.
  */
 
 .catalog-page {
   max-width: 1120px;
   margin: 0 auto;
   padding: 0 var(--space-md) var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 .catalog-loading,
@@ -22,43 +25,7 @@
   color: var(--color-danger);
 }
 
-/* ─── Layout: sidebar + main ──────────────────────────────────────── */
-
-.catalog-layout {
-  display: flex;
-  gap: var(--space-xl);
-  align-items: flex-start;
-}
-
-.catalog-sidebar {
-  flex: 0 0 240px;
-  position: sticky;
-  top: calc(var(--header-height) + var(--space-md));
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-lg);
-}
-
-.catalog-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-/* ─── Toolbar: search + filters trigger + view toggle ─────────────── */
-
-.catalog-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.catalog-toolbar .search-bar {
-  flex: 1;
-}
+/* ─── View toggle ──────────────────────────────────────────────────── */
 
 .catalog-view-toggle {
   display: inline-flex;
@@ -108,54 +75,4 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-}
-
-/* ─── Filter drawer (below 1024px) ────────────────────────────────── */
-
-.catalog-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--header-z) + 1);
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: flex-end;
-}
-
-.catalog-drawer {
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  background-color: var(--color-surface);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-lg);
-}
-
-.catalog-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-lg);
-}
-
-.catalog-drawer-title {
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-xl);
-  text-transform: uppercase;
-  color: var(--color-text-heading);
-}
-
-.catalog-drawer-close {
-  border: none;
-  background: transparent;
-  font-size: var(--font-size-2xl);
-  line-height: 1;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: var(--space-xs);
-}
-
-.catalog-drawer-close:hover {
-  color: var(--color-text-heading);
 }
