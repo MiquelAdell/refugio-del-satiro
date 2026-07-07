@@ -16,6 +16,26 @@ import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import "./AdminMembersPage.css";
 
+const CSV_COLUMNS =
+  "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género";
+
+const SAMPLE_MEMBERS_CSV = `${CSV_COLUMNS}
+1,García López,Carla,Carla,600 00 00 01,carla@example.com,,24/01/2026,Femenino
+2,Torres Ruiz,Jorge,Jordi,600 00 00 02,jorge@example.com,yes,24/01/2026,Masculino
+`;
+
+function downloadSampleCsv() {
+  const blob = new Blob([SAMPLE_MEMBERS_CSV], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "ejemplo-socios.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function AdminMembersPage() {
   const { member, loading: authLoading } = useAuth();
   const [members, setMembers] = useState<AdminMember[]>([]);
@@ -30,6 +50,7 @@ export function AdminMembersPage() {
   const [editTarget, setEditTarget] = useState<AdminMember | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportMembersResponse | null>(null);
+  const [showImportHelp, setShowImportHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSort = (key: keyof AdminMember) => {
@@ -210,6 +231,13 @@ export function AdminMembersPage() {
             {importing ? "Importando..." : "Importar CSV"}
           </Button>
           <Button
+            variant="secondary"
+            aria-label="Ayuda sobre el formato del CSV"
+            onClick={() => setShowImportHelp(true)}
+          >
+            ?
+          </Button>
+          <Button
             variant="primary"
             onClick={() => {
               setShowCreateForm(!showCreateForm);
@@ -354,6 +382,40 @@ export function AdminMembersPage() {
           </table>
         </div>
       )}
+
+      <Dialog
+        open={showImportHelp}
+        onOpenChange={setShowImportHelp}
+        title="¿Cómo preparar el CSV?"
+        description="El archivo debe tener el mismo formato que la exportación CSV de la hoja de cálculo de socios."
+      >
+        <div className="admin-import-help">
+          <p>Columnas esperadas (la primera fila debe ser la cabecera):</p>
+          <code className="admin-import-help-columns">{CSV_COLUMNS}</code>
+          <ul>
+            <li>
+              Las filas sin <strong>Email</strong> se omiten.
+            </li>
+            <li>
+              Si el email ya existe, se actualizan los datos del socio (no se
+              duplica).
+            </li>
+            <li>
+              Los socios nuevos reciben un enlace para establecer su
+              contraseña, que se muestra tras la importación.
+            </li>
+            <li>
+              La columna <code>admin</code> con valor <code>yes</code> marca al
+              socio como administrador.
+            </li>
+          </ul>
+          <div className="admin-import-help-actions">
+            <Button variant="secondary" onClick={downloadSampleCsv}>
+              Descargar CSV de ejemplo
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       {editTarget && (
         <EditMemberDialog

@@ -52,6 +52,36 @@
   font-weight: 500;
 }
 
+/* CSV import help dialog */
+.admin-import-help {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.admin-import-help-columns {
+  display: block;
+  padding: var(--space-sm);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.admin-import-help ul {
+  margin: 0;
+  padding-left: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.admin-import-help-actions {
+  margin-top: var(--space-sm);
+}
+
 /* Restricted access */
 .admin-restricted {
   text-align: center;
