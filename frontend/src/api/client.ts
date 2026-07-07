@@ -20,3 +20,21 @@ export async function apiFetch<T>(
 
   return response.json() as Promise<T>;
 }
+
+export async function apiUpload<T>(
+  path: string,
+  formData: FormData
+): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Error desconegut" }));
+    throw new Error(error.detail ?? error.error ?? `Error ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}

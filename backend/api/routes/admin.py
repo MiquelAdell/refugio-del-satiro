@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import csv
+import io
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from pydantic import BaseModel
 
 from backend.api.dependencies import (
@@ -14,6 +16,7 @@ from backend.api.dependencies import (
 )
 from backend.data.email_client import EmailClient
 from backend.domain.entities.member import Member
+from backend.domain.use_cases.import_members import ImportMembersUseCase
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -74,6 +77,18 @@ class SendLinkResponse(BaseModel):
 
 class OkResponse(BaseModel):
     ok: bool = True
+
+
+class ImportedMember(BaseModel):
+    display_name: str
+    email: str
+    token_url: str
+
+
+class ImportMembersResponse(BaseModel):
+    created: list[ImportedMember]
+    total_rows: int
+    skipped_rows: int
 
 
 @router.get("/members", response_model=list[MemberListItem])
@@ -153,6 +168,49 @@ def create_member(
             gender=member.gender,
         ),
         token_url=token_url,
+    )
+
+
+@router.post("/members/import", response_model=ImportMembersResponse)
+async def import_members(
+    file: UploadFile,
+    _admin: AdminMember,
+    member_repo: MemberRepo,
+    token_repo: TokenRepo,
+) -> ImportMembersResponse:
+    raw_bytes = await file.read()
+    try:
+        text = raw_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo debe ser un CSV codificado en UTF-8.",
+        ) from exc
+
+    reader = csv.DictReader(io.StringIO(text))
+    if reader.fieldnames is None or "Email" not in reader.fieldnames:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo CSV debe tener una columna 'Email'.",
+        )
+
+    raw_members = list(reader)
+    skipped_rows = sum(1 for row in raw_members if not (row.get("Email") or "").strip())
+
+    use_case = ImportMembersUseCase(member_repo, token_repo, _settings.base_url)
+    results = use_case.execute(raw_members)
+
+    return ImportMembersResponse(
+        created=[
+            ImportedMember(
+                display_name=r.member.display_name,
+                email=r.member.email,
+                token_url=r.token_url,
+            )
+            for r in results
+        ],
+        total_rows=len(raw_members),
+        skipped_rows=skipped_rows,
     )
 
 

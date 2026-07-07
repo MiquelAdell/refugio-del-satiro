@@ -21,6 +21,37 @@
   margin-bottom: 0;
 }
 
+.admin-header-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.admin-file-input {
+  display: none;
+}
+
+/* CSV import results */
+.admin-import-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+}
+
+.admin-import-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.admin-import-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
 /* Restricted access */
 .admin-restricted {
   text-align: center;
