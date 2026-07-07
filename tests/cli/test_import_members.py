@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from backend.cli.main import app
@@ -10,54 +9,54 @@ from backend.data.repositories.sqlite_member_repository import SqliteMemberRepos
 
 runner = CliRunner()
 
-_CSV_FILE = Path(__file__).resolve().parent.parent.parent / "members.csv"
-CSV_PATH = str(_CSV_FILE)
+_CSV_CONTENT = """\
+Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género
+1,Adell,Miquel,Miquel,600 00 00 01,admin@test.local,yes,24/01/2026,Masculino
+2,García López,Carla,Carla,600 00 00 02,carla@test.local,,24/01/2026,Femenino
+3,Torres Ruiz,Jorge,,600 00 00 03,,,24/01/2026,Masculino
+"""
 
 
-@pytest.mark.skipif(
-    not _CSV_FILE.exists(),
-    reason="members.csv not present (local-only fixture)",
-)
 def test_import_members_csv(monkeypatch: object, tmp_path: Path) -> None:
-    """Import the actual members.csv and verify correct count and admin flag."""
+    """Import a sample CSV and verify count, admin flag, and email-less skip."""
     import backend.cli.main as cli_module
     from backend.config import Settings
 
     db_path = str(tmp_path / "test.db")
+    csv_path = tmp_path / "members.csv"
+    csv_path.write_text(_CSV_CONTENT, encoding="utf-8")
 
-    # Patch settings to use temp DB
     monkeypatch.setattr(  # type: ignore[attr-defined]
         cli_module,
         "_get_settings",
         lambda: Settings(db_path=db_path, base_url="http://test.local"),
     )
 
-    result = runner.invoke(app, ["import-members", CSV_PATH])
+    result = runner.invoke(app, ["import-members", str(csv_path)])
 
     assert result.exit_code == 0, f"CLI failed: {result.output}"
 
-    # Verify the correct number of members were imported
-    # The CSV has 40 rows, but Jorge Torres Ruiz (row 74) has no email => 39 members
     from backend.data.database import get_connection
 
     conn = get_connection(db_path)
     try:
         member_repo = SqliteMemberRepository(conn)
         members = member_repo.list_all()
-        assert len(members) == 39
+        # 3 rows, but Jorge Torres Ruiz has no email => 2 members
+        assert len(members) == 2
 
-        # Verify Miquel Adell is admin
-        miquel = member_repo.get_by_email("miquel.adell@gmail.com")
-        assert miquel is not None
-        assert miquel.is_admin is True
+        admin = member_repo.get_by_email("admin@test.local")
+        assert admin is not None
+        assert admin.is_admin is True
+        assert admin.last_payment == "24/01/2026"
+        assert admin.gender == "Masculino"
 
-        # Verify a non-admin member
-        carles = member_repo.get_by_email("hothgond@gmail.com")
-        assert carles is not None
-        assert carles.is_admin is False
+        carla = member_repo.get_by_email("carla@test.local")
+        assert carla is not None
+        assert carla.is_admin is False
     finally:
         conn.close()
 
     # Output should contain one-time URLs
     assert "set-password?token=" in result.output
-    assert "39 new member(s) imported" in result.output
+    assert "2 new member(s) imported" in result.output
