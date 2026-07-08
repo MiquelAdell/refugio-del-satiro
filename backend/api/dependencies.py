@@ -155,7 +155,7 @@ def require_current_member(
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cal iniciar sessió.",
+            detail="Es necesario iniciar sesión.",
         )
     return member
 
