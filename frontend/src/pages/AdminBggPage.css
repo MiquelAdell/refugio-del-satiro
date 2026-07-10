@@ -1,0 +1,58 @@
+.admin-bgg-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.admin-bgg-page header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-bgg-description {
+  color: var(--color-text-muted, #555);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.admin-bgg-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.admin-bgg-status {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.admin-bgg-status dt {
+  color: #666;
+}
+
+.admin-bgg-status dd {
+  margin: 0;
+  font-family: "Source Code Pro", monospace;
+}
+
+.admin-bgg-error {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  background: #fff4f4;
+  border: 1px solid #be0000;
+  color: #be0000;
+  border-radius: 4px;
+}
+
+.admin-bgg-result {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  background: #f4fff4;
+  border: 1px solid #2e7d32;
+  color: #2e7d32;
+  border-radius: 4px;
+}
