@@ -105,7 +105,7 @@ context: |
   - Due dates, overdue tracking, or reminders
   - Reservation or waitlist system
   - Email notifications
-  - i18n infrastructure (UI is Catalan-only in V1)
+  - i18n infrastructure (UI is Spanish-only in V1)
   - Pagination (collection is small enough to load at once)
   - CSS-in-JS or UI component framework (plain CSS with design tokens)
 

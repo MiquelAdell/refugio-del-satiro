@@ -874,11 +874,12 @@ before the frontend team starts coding.
    typography of the main portal"~~ **Resolved 2026-04-21**:
    production uses Oswald for headings and Open Sans for body. Plan
    to self-host both under `frontend/public/fonts/` for GDPR.
-3. **Language.** The prototype is in Spanish (`Solicitar préstamo`,
+3. **Language.** ~~The prototype is in Spanish (`Solicitar préstamo`,
    `Catálogo`, etc.). The club is in Sabadell and the thesis itself is
-   in Catalan. Decide whether to ship ES only, or a CA/ES switcher.
-   The BGG→ES translation is already planned via LibreTranslate; a
-   Catalan variant would be additional scope.
+   in Catalan. Decide whether to ship ES only, or a CA/ES switcher.~~
+   **Resolved (see decisions.md, Decision 2)**: ship Spanish only for
+   v1. The BGG→ES translation is planned via LibreTranslate; a Catalan
+   variant would be additional scope if member demand appears.
 4. **Authentication.** Thesis §3.4.3 explicitly *defers* authentication
    design to a future iteration. There are three plausible options:
    username/password stored in PythonAnywhere, Google OAuth (but some
