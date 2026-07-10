@@ -54,7 +54,8 @@ const LUDOTECA_SUBMENU: readonly SubmenuItem[] = [
     roles: ["admin"],
     children: [
       { type: "link", label: "Miembros", to: "/admin/members", roles: ["admin"] },
-      { type: "link", label: "Contenido", to: "/admin/content", roles: ["admin"] },
+      { type: "link", label: "Contenido GSite", to: "/admin/content", roles: ["admin"] },
+      { type: "link", label: "Datos BGG", to: "/admin/bgg", roles: ["admin"] },
     ],
   },
 ];

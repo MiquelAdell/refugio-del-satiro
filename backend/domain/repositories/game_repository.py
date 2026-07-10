@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol
 
 from backend.domain.entities.game import Game
@@ -15,6 +16,8 @@ class GameRepository(Protocol):
     def list_all(self) -> list[Game]: ...
 
     def list_by_type(self, item_type: str) -> list[Game]: ...
+
+    def get_last_updated_at(self) -> datetime | None: ...
 
     def upsert_by_bgg_id(
         self,

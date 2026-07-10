@@ -142,7 +142,7 @@ Préstecs Sàtirs is a web application for the "Refugio del Sátiro" RPG associa
 - [ ] Non-admin users redirected away from `/admin/*` routes
 - [ ] Disabled members cannot log in (auth rejects them)
 - [ ] Admins can re-enable disabled members
-- [ ] All UI text in Catalan
+- [ ] All UI text in Spanish
 - [ ] Typecheck/lint passes
 - [ ] Verify in browser using dev-browser skill
 
@@ -153,7 +153,7 @@ Préstecs Sàtirs is a web application for the "Refugio del Sátiro" RPG associa
 - [ ] Admin clicks "Send access link" for a member
 - [ ] System generates a new password token (48h expiry)
 - [ ] Email sent via configured SMTP with the one-time URL
-- [ ] Email body is in Catalan, simple HTML template
+- [ ] Email body is in Spanish, simple HTML template
 - [ ] If SMTP is not configured, the URL is returned in the API response for manual sharing
 - [ ] Typecheck/lint passes
 
@@ -191,7 +191,7 @@ Préstecs Sàtirs is a web application for the "Refugio del Sátiro" RPG associa
 - No self-registration (admin creates members)
 - No game ratings or reviews
 - No mobile-specific app (responsive web only)
-- No internationalization infrastructure in V1 — UI is in Catalan only (Spanish and English translations are a future idea)
+- No internationalization infrastructure in V1 — UI is in Spanish only (English translation is a future idea)
 - No pagination (collection is small enough to load at once)
 
 ## Design Considerations
@@ -201,7 +201,7 @@ Préstecs Sàtirs is a web application for the "Refugio del Sátiro" RPG associa
 - Clear visual distinction between available and lent-out games
 - Responsive layout that works on phones (members may check at game nights)
 - Borrow and return actions require a confirmation dialog
-- UI language: Catalan
+- UI language: Spanish
 
 ## Technical Considerations
 
@@ -250,7 +250,7 @@ Préstecs Sàtirs is a web application for the "Refugio del Sátiro" RPG associa
 - **Catalog access:** Visible to unauthenticated users (browse-only)
 - **Search:** Client-side debounced filter, all games loaded at once
 - **Borrow/Return:** Confirmation dialog before action
-- **UI language:** Catalan (Spanish and English translations deferred)
+- **UI language:** Spanish (English translation deferred)
 - **API base URL:** `VITE_API_URL` env var, default `/api`
 - **Deployment:** Oracle Cloud Free Tier
 - **Deadline:** None
