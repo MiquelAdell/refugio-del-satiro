@@ -11,6 +11,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { SetPasswordPage } from "./pages/SetPasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
+import { AdminBggPage } from "./pages/AdminBggPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
 import { ValidacionPage } from "./pages/ValidacionPage";
@@ -76,6 +77,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <AdminContentPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/admin/bgg"
+                element={
+                  <PageLayout>
+                    <AdminBggPage />
                   </PageLayout>
                 }
               />

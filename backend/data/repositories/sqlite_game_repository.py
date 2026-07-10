@@ -61,6 +61,10 @@ class SqliteGameRepository:
         ).fetchall()
         return [_row_to_game(row) for row in rows]
 
+    def get_last_updated_at(self) -> datetime | None:
+        row = self._conn.execute("SELECT MAX(updated_at) AS last FROM games").fetchone()
+        return datetime.fromisoformat(row["last"]) if row and row["last"] else None
+
     def _slug_for_upsert(self, bgg_id: int, name: str) -> str:
         existing = self.get_by_bgg_id(bgg_id)
         if existing is not None and slugify(existing.name) == slugify(name):

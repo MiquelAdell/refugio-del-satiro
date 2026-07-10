@@ -298,7 +298,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.getByText("Miembros").tagName).toEqual("A");
-      expect(screen.getByText("Contenido").tagName).toEqual("A");
+      expect(screen.getByText("Contenido GSite").tagName).toEqual("A");
     });
 
     it("does not show nested admin items for guest", () => {
@@ -306,7 +306,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
-      expect(screen.queryByText("Contenido")).toBeNull();
+      expect(screen.queryByText("Contenido GSite")).toBeNull();
     });
 
     it("does not show nested admin items for non-admin member", () => {
@@ -314,7 +314,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
-      expect(screen.queryByText("Contenido")).toBeNull();
+      expect(screen.queryByText("Contenido GSite")).toBeNull();
     });
   });
 
@@ -511,14 +511,14 @@ describe("SiteHeader", () => {
 
       // Miembros and Contenido links are now visible inside the drawer
       expect(within(drawer).getByText("Miembros").tagName).toEqual("A");
-      expect(within(drawer).getByText("Contenido").tagName).toEqual("A");
+      expect(within(drawer).getByText("Contenido GSite").tagName).toEqual("A");
 
       const miembrosLinks = within(drawer)
         .getAllByRole("menuitem")
         .filter((el) => el.textContent?.trim() === "Miembros");
       const contenidoLinks = within(drawer)
         .getAllByRole("menuitem")
-        .filter((el) => el.textContent?.trim() === "Contenido");
+        .filter((el) => el.textContent?.trim() === "Contenido GSite");
 
       expect(miembrosLinks.length).toEqual(1);
       expect(contenidoLinks.length).toEqual(1);
@@ -588,7 +588,7 @@ describe("SiteHeader", () => {
       const { container } = renderHeader();
 
       const allLinks = Array.from(container.querySelectorAll("a"));
-      const contenidoLink = allLinks.find((el) => el.textContent?.trim() === "Contenido");
+      const contenidoLink = allLinks.find((el) => el.textContent?.trim() === "Contenido GSite");
       expect(contenidoLink).not.toBeUndefined();
       expect(contenidoLink!.getAttribute("href")).toEqual("/admin/content");
     });
