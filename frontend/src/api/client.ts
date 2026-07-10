@@ -15,7 +15,7 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: "Error desconegut" }));
-    throw new Error(error.error ?? `Error ${response.status}`);
+    throw new Error(error.detail ?? error.error ?? `Error ${response.status}`);
   }
 
   return response.json() as Promise<T>;

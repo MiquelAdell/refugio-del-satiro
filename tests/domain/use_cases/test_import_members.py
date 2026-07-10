@@ -48,10 +48,13 @@ class FakeMemberRepository:
         is_admin: bool,
         last_payment: str | None = None,
         gender: str | None = None,
+        is_active: bool = True,
     ) -> Member:
         now = datetime.now(UTC)
         existing = self.get_by_email(email)
         if existing:
+            # Matches the SQLite repo: re-imports never change is_admin/is_active
+            # for members that already exist.
             member = Member(
                 id=existing.id,
                 member_number=member_number,
@@ -62,8 +65,8 @@ class FakeMemberRepository:
                 email=email,
                 display_name=display_name,
                 password_hash=existing.password_hash,
-                is_admin=is_admin,
-                is_active=True,
+                is_admin=existing.is_admin,
+                is_active=existing.is_active,
                 created_at=existing.created_at,
                 updated_at=now,
                 last_payment=last_payment,
@@ -81,7 +84,7 @@ class FakeMemberRepository:
                 display_name=display_name,
                 password_hash=None,
                 is_admin=is_admin,
-                is_active=True,
+                is_active=is_active,
                 created_at=now,
                 updated_at=now,
                 last_payment=last_payment,
@@ -90,6 +93,26 @@ class FakeMemberRepository:
             self._next_id += 1
         self._members[member.id] = member
         return member
+
+    def set_admin(self, member_id: int, is_admin: bool) -> None:
+        m = self._members[member_id]
+        self._members[member_id] = Member(
+            id=m.id,
+            member_number=m.member_number,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            nickname=m.nickname,
+            phone=m.phone,
+            email=m.email,
+            display_name=m.display_name,
+            password_hash=m.password_hash,
+            is_admin=is_admin,
+            is_active=m.is_active,
+            created_at=m.created_at,
+            updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
+        )
 
     def update_membership_fields(
         self,
@@ -207,6 +230,7 @@ def _make_raw(
     admin: str = "",
     ultima_cuota: str = "",
     genero: str = "",
+    pagada: str = "",
 ) -> dict[str, str]:
     return {
         "Nº Socio": socio,
@@ -218,6 +242,7 @@ def _make_raw(
         "admin": admin,
         "Última cuota": ultima_cuota,
         "Género": genero,
+        "Pagada": pagada,
     }
 
 
@@ -402,3 +427,78 @@ def test_import_maps_ultima_cuota_and_genero() -> None:
     assert pedro is not None
     assert pedro.last_payment is None
     assert pedro.gender is None
+
+
+def test_unpaid_member_is_created_inactive() -> None:
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    uc.execute(
+        [_make_raw(nombre="Jose", apellidos="Delgado", email="jose@test.com", pagada="No")]
+    )
+
+    jose = member_repo.get_by_email("jose@test.com")
+    assert jose is not None
+    assert jose.is_active is False
+
+
+def test_paid_and_honorary_members_are_created_active() -> None:
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    uc.execute(
+        [
+            _make_raw(nombre="Paid", apellidos="Member", email="paid@test.com", pagada="Sí"),
+            _make_raw(
+                nombre="Honorary",
+                apellidos="Member",
+                email="honorary@test.com",
+                pagada="Honorífic",
+            ),
+        ]
+    )
+
+    assert member_repo.get_by_email("paid@test.com").is_active is True  # type: ignore[union-attr]
+    assert member_repo.get_by_email("honorary@test.com").is_active is True  # type: ignore[union-attr]
+
+
+def test_reimport_does_not_change_admin_status_of_existing_member() -> None:
+    """A member.csv export has no `admin` column, so re-importing it must not
+    silently strip admin rights from members already flagged as admin."""
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    uc.execute([_make_raw(email="admin@test.com", admin="yes")])
+    assert member_repo.get_by_email("admin@test.com").is_admin is True  # type: ignore[union-attr]
+
+    # Re-import the same row without an "admin" column value, as a real sheet
+    # export would look.
+    uc.execute([_make_raw(email="admin@test.com", admin="")])
+    assert member_repo.get_by_email("admin@test.com").is_admin is True  # type: ignore[union-attr]
+
+
+def test_acting_member_id_is_kept_admin_even_if_demoted_by_import() -> None:
+    member_repo = FakeMemberRepository()
+    token_repo = FakePasswordTokenRepository()
+    uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+    acting_admin = member_repo.upsert_by_email(
+        member_number=None,
+        first_name="Acting",
+        last_name="Admin",
+        nickname=None,
+        phone=None,
+        email="acting@test.com",
+        display_name="Acting Admin",
+        is_admin=True,
+    )
+
+    uc.execute(
+        [_make_raw(email="acting@test.com", admin="")],
+        acting_member_id=acting_admin.id,
+    )
+
+    assert member_repo.get_by_id(acting_admin.id).is_admin is True  # type: ignore[union-attr]

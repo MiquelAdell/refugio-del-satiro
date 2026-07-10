@@ -40,7 +40,11 @@ class ImportMembersUseCase:
         self._token_repo = token_repo
         self._base_url = base_url.rstrip("/")
 
-    def execute(self, raw_members: list[dict[str, str]]) -> list[ImportResult]:
+    def execute(
+        self,
+        raw_members: list[dict[str, str]],
+        acting_member_id: int | None = None,
+    ) -> list[ImportResult]:
         # Filter out members without email
         members_with_email = [m for m in raw_members if m.get("Email", "").strip()]
 
@@ -77,6 +81,12 @@ class ImportMembersUseCase:
 
             last_payment = m.get("Última cuota", "").strip() or None
             gender = m.get("Género", "").strip() or None
+            # "Pagada" (payment status) is "Sí", "No", or "Honorífic" (honorary
+            # members don't pay dues). Only an explicit "No" — someone who owes
+            # a fee — should keep them out of the active-socio list; everything
+            # else (paid, honorary, or the column missing entirely) stays active.
+            paid_status = m.get("Pagada", "").strip().lower()
+            is_active = paid_status != "no"
 
             member = self._member_repo.upsert_by_email(
                 member_number=member_number,
@@ -89,6 +99,7 @@ class ImportMembersUseCase:
                 is_admin=is_admin,
                 last_payment=last_payment,
                 gender=gender,
+                is_active=is_active,
             )
             upserted_members.append(member)
 
@@ -109,6 +120,12 @@ class ImportMembersUseCase:
             )
             if member.display_name != correct_display:
                 self._member_repo.update_display_name(member.id, correct_display)
+
+        # Belt-and-braces: upsert_by_email already preserves is_admin for existing
+        # members, but guarantee the admin running this import never loses their
+        # own admin rights, even if their row appears in the sheet without one.
+        if acting_member_id is not None:
+            self._member_repo.set_admin(acting_member_id, True)
 
         # Generate password tokens for NEW members only
         results: list[ImportResult] = []

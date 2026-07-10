@@ -17,11 +17,11 @@ import { Dialog } from "../ui/Dialog";
 import "./AdminMembersPage.css";
 
 const CSV_COLUMNS =
-  "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género";
+  "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género,Pagada";
 
 const SAMPLE_MEMBERS_CSV = `${CSV_COLUMNS}
-1,García López,Carla,Carla,600 00 00 01,carla@example.com,,24/01/2026,Femenino
-2,Torres Ruiz,Jorge,Jordi,600 00 00 02,jorge@example.com,yes,24/01/2026,Masculino
+1,García López,Carla,Carla,600 00 00 01,carla@example.com,,24/01/2026,Femenino,Sí
+2,Torres Ruiz,Jorge,Jordi,600 00 00 02,jorge@example.com,yes,24/01/2026,Masculino,Sí
 `;
 
 function downloadSampleCsv() {
@@ -406,7 +406,14 @@ export function AdminMembersPage() {
             </li>
             <li>
               La columna <code>admin</code> con valor <code>yes</code> marca al
-              socio como administrador.
+              socio como administrador (solo aplica a socios nuevos; los
+              existentes conservan su estado de administrador).
+            </li>
+            <li>
+              La columna <code>Pagada</code> con valor <code>No</code> marca
+              al socio como inactivo (no ha pagado la cuota). Cualquier otro
+              valor (<code>Sí</code>, <code>Honorífic</code> o vacío) lo deja
+              activo.
             </li>
           </ul>
           <div className="admin-import-help-actions">

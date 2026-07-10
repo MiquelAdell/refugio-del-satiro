@@ -36,6 +36,61 @@ class TestSqliteMemberRepository:
             True,
         )
         assert updated.last_name == "Adell Borràs"
+
+    def test_upsert_does_not_change_admin_or_active_for_existing_member(
+        self, member_repo: SqliteMemberRepository
+    ) -> None:
+        """A bulk re-import must never silently promote/demote admin rights or
+        flip active status on a member that already exists."""
+        member_repo.upsert_by_email(
+            66,
+            "Miquel",
+            "Adell",
+            None,
+            None,
+            "miquel@test.com",
+            "Miquel Adell",
+            is_admin=True,
+            is_active=False,
+        )
+        updated = member_repo.upsert_by_email(
+            66,
+            "Miquel",
+            "Adell Borràs",
+            None,
+            "620 01 58 60",
+            "miquel@test.com",
+            "Miquel Adell Borràs",
+            is_admin=False,
+            is_active=True,
+        )
+        assert updated.is_admin is True
+        assert updated.is_active is False
+
+    def test_upsert_applies_admin_and_active_on_creation(
+        self, member_repo: SqliteMemberRepository
+    ) -> None:
+        member = member_repo.upsert_by_email(
+            67,
+            "New",
+            "Member",
+            None,
+            None,
+            "new@test.com",
+            "New Member",
+            is_admin=True,
+            is_active=False,
+        )
+        assert member.is_admin is True
+        assert member.is_active is False
+
+    def test_set_admin(self, member_repo: SqliteMemberRepository) -> None:
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
+        member_repo.set_admin(member.id, True)
+        updated = member_repo.get_by_id(member.id)
+        assert updated is not None
         assert updated.is_admin is True
 
     def test_get_by_email(self, member_repo: SqliteMemberRepository) -> None:

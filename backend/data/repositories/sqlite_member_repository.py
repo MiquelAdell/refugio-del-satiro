@@ -67,15 +67,21 @@ class SqliteMemberRepository:
         is_admin: bool,
         last_payment: str | None = None,
         gender: str | None = None,
+        is_active: bool = True,
     ) -> Member:
+        # is_admin and is_active are intentionally excluded from the ON CONFLICT
+        # UPDATE below: a bulk re-import must never silently promote/demote
+        # admin rights or flip active status on members that already exist.
+        # Those values only apply when a row is first inserted.
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._conn.execute(
             """
             INSERT INTO members (
                 member_number, first_name, last_name, nickname, phone, email,
-                display_name, is_admin, last_payment, gender, created_at, updated_at
+                display_name, is_admin, last_payment, gender, is_active,
+                created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 member_number = excluded.member_number,
                 first_name = excluded.first_name,
@@ -83,7 +89,6 @@ class SqliteMemberRepository:
                 nickname = excluded.nickname,
                 phone = excluded.phone,
                 display_name = excluded.display_name,
-                is_admin = excluded.is_admin,
                 last_payment = excluded.last_payment,
                 gender = excluded.gender,
                 updated_at = ?
@@ -99,6 +104,7 @@ class SqliteMemberRepository:
                 int(is_admin),
                 last_payment,
                 gender,
+                int(is_active),
                 now,
                 now,
                 now,
@@ -135,6 +141,14 @@ class SqliteMemberRepository:
         self._conn.execute(
             "UPDATE members SET is_active = ?, updated_at = ? WHERE id = ?",
             (int(is_active), now, member_id),
+        )
+        self._conn.commit()
+
+    def set_admin(self, member_id: int, is_admin: bool) -> None:
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self._conn.execute(
+            "UPDATE members SET is_admin = ?, updated_at = ? WHERE id = ?",
+            (int(is_admin), now, member_id),
         )
         self._conn.commit()
 

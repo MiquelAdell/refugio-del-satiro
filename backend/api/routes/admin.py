@@ -198,7 +198,7 @@ async def import_members(
     skipped_rows = sum(1 for row in raw_members if not (row.get("Email") or "").strip())
 
     use_case = ImportMembersUseCase(member_repo, token_repo, _settings.base_url)
-    results = use_case.execute(raw_members)
+    results = use_case.execute(raw_members, acting_member_id=_admin.id)
 
     return ImportMembersResponse(
         created=[

@@ -26,9 +26,12 @@ class MemberRepository(Protocol):
         is_admin: bool,
         last_payment: str | None = None,
         gender: str | None = None,
+        is_active: bool = True,
     ) -> Member: ...
 
     def update_display_name(self, member_id: int, display_name: str) -> None: ...
+
+    def set_admin(self, member_id: int, is_admin: bool) -> None: ...
 
     def update_membership_fields(
         self,
