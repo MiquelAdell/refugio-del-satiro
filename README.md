@@ -175,6 +175,12 @@ python -m scraper                        # Equivalent to `refugio content run`
 See [`scraper/README.md`](scraper/README.md) for the content-mirror
 architecture, extension points, and gotchas.
 
+Admins can also re-run `import-games` from the browser: the "Datos BGG"
+page under `/ludoteca/admin/bgg` shows the last import date and has a
+"Reimportar desde BGG" button, so this no longer requires shell access to
+the server. It runs the same BGG-API-first, HTML-scrape-fallback import as
+the CLI command above.
+
 ## Tests
 
 ```bash
@@ -291,6 +297,13 @@ Editors can also hit the admin-only "Resync" button at `/ludoteca/admin/content`
 to refresh the VPS cache immediately — changes are visible on
 `www.refugiodelsatiro.es` right away, but don't reach the repo until someone
 runs the local workflow above.
+
+### BGG game data (manual)
+
+The `import-games` step on the server (see above) also runs automatically
+on every deploy. To re-run it on demand — e.g. after adding a game to the
+club's BGG collection — an admin can use the "Datos BGG" page at
+`/ludoteca/admin/bgg` instead of SSHing in.
 
 ### What the stack runs
 

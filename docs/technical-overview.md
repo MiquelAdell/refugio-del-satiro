@@ -382,6 +382,11 @@ like:
 docker compose exec app refugio migrate
 ```
 
+The `import-games` step can also be triggered without a terminal: the
+"Datos BGG" admin page (`/ludoteca/admin/bgg`) shows when the collection
+was last imported and has a button that runs the same import from the
+browser.
+
 ### Where does the game data come from?
 
 BoardGameGeek (BGG) has a public API. The association has a BGG user called

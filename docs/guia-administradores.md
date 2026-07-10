@@ -18,10 +18,11 @@ directamente. Si necesitas que alguien pase a ser administrador, pide que
 se actualice su ficha por una de esas dos vías.
 
 Cuando entras como administrador, el menú **Ludoteca** muestra, además de
-"Mis préstamos", un apartado **Administración** con dos opciones:
+"Mis préstamos", un apartado **Administración** con tres opciones:
 
 - **Miembros** → Gestión de socios (`/ludoteca/admin/members`)
-- **Contenido** → Resincronizar contenido (`/ludoteca/admin/content`)
+- **Contenido GSite** → Resincronizar contenido (`/ludoteca/admin/content`)
+- **Datos BGG** → Reimportar el catálogo desde BoardGameGeek (`/ludoteca/admin/bgg`)
 
 Tu nombre y el botón **Cerrar sesión** aparecen en la cabecera. Si abres
 una página de administración sin permisos verás "Acceso restringido".
@@ -51,7 +52,7 @@ invertir el orden).
 - **Editar** — abre un diálogo para actualizar dos campos: **Última
   cuota** (fecha del último pago, texto libre, p. ej. `5/02/2022`) y
   **Género**. Estos dos campos alimentan la página pública de validación
-  de socios (ver sección 5), así que conviene mantenerlos al día. El
+  de socios (ver sección 6), así que conviene mantenerlos al día. El
   resto de datos (nombre, email, teléfono…) no se editan aquí: se
   actualizan reimportando el CSV.
 
@@ -113,7 +114,7 @@ administración:
 Cada juego solo puede tener un préstamo activo a la vez; mientras está
 prestado, la ficha muestra quién lo tiene.
 
-## 4. Resincronizar contenido (Administración → Contenido)
+## 4. Resincronizar contenido (Administración → Contenido GSite)
 
 Las páginas informativas de la web (calendario, eventos, FAQ, etc.) se
 editan en **Google Sites**, como siempre. El servidor guarda una copia
@@ -136,7 +137,25 @@ proyecto se redespliega desde cero, se perderían. Avisa a la persona que
 mantiene el código para que los persista (ejecuta el scraper en local y
 hace commit).
 
-## 5. Validación de socios (página pública)
+## 5. Datos BGG (Administración → Datos BGG)
+
+El catálogo de juegos de mesa se gestiona en **BoardGameGeek (BGG)**, en la
+colección de la cuenta `RefugioDelSatiro`. Esta página permite traer los
+cambios de esa colección a la web sin tocar el servidor:
+
+- El bloque de estado muestra la fecha de la **última importación**.
+- Pulsa **Reimportar desde BGG** después de añadir o quitar juegos en la
+  colección de BGG. Al terminar verás cuántos juegos son nuevos, cuántos
+  se han actualizado y el total importado.
+
+**Importante:** esto solo trae **juegos nuevos** y actualiza **nombre,
+imagen y año de publicación** de los existentes. No borra juegos que hayan
+desaparecido de BGG, no toca los juegos de rol y no actualiza puntuación,
+número de jugadores ni duración de partida (eso requiere el comando
+`refugio enrich-games` desde el servidor). Pide esos cambios a la persona
+que mantiene el código.
+
+## 6. Validación de socios (página pública)
 
 En `/ludoteca/validacion` (también accesible desde los códigos QR
 impresos) cualquiera puede introducir un número de socio y ver si esa
@@ -147,19 +166,20 @@ mantienes: el **Nº Socio**, la **Última cuota** y el **Género** de la
 ficha de cada socio. Si la validación muestra datos desfasados, actualiza
 la ficha desde Gestión de socios (botón **Editar**) o reimporta el CSV.
 
-## 6. Qué NO se puede hacer desde la web
+## 7. Qué NO se puede hacer desde la web
 
-- **Editar el catálogo de juegos.** Los juegos de mesa y de rol se cargan
-  por línea de comandos a partir de la colección de BoardGameGeek; no hay
-  pantalla para añadir, editar o borrar juegos. Pide los cambios a la
-  persona que mantiene el código.
+- **Editar el catálogo de juegos a mano.** Desde Datos BGG puedes
+  reimportar la colección de BGG, pero no hay pantalla para añadir, editar
+  o borrar un juego suelto, ni para gestionar los juegos de rol o traer
+  puntuación/jugadores/duración. Pide esos cambios a la persona que
+  mantiene el código.
 - **Cambiar nombre, email o teléfono de un socio** desde el botón Editar
   (solo cambia Última cuota y Género). Para el resto de datos, corrige la
   hoja de cálculo de socios y reimporta el CSV.
 - **Nombrar administradores** desde la web (ver sección 1).
 - **Borrar socios.** Usa **Desactivar** para retirar el acceso.
 
-## 7. Problemas frecuentes
+## 8. Problemas frecuentes
 
 - **Un socio no puede entrar** → usa **Enviar enlace de acceso** para que
   restablezca su contraseña. También existe la página "¿Has olvidado tu
@@ -168,5 +188,8 @@ la ficha desde Gestión de socios (botón **Editar**) o reimporta el CSV.
   ya se usó. Genera uno nuevo con **Enviar enlace de acceso**.
 - **La importación dice "filas omitidas"** → esas filas no tenían email.
   Complétalo en la hoja de cálculo y reimporta.
+- **Falta un juego nuevo, o su nombre/imagen está desactualizado** → lanza
+  una importación desde Administración → Datos BGG. Si el juego sigue sin
+  aparecer, comprueba que está marcado como "own" en la colección de BGG.
 - **He editado Google Sites y la web no cambia** → lanza un resync desde
-  Administración → Contenido, o espera a la sincronización nocturna.
+  Administración → Contenido GSite, o espera a la sincronización nocturna.
