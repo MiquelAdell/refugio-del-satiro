@@ -61,8 +61,15 @@ class CreateMemberRequest(BaseModel):
 
 
 class UpdateMemberRequest(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    nickname: str | None = None
+    phone: str | None = None
+    member_number: int | None = None
     last_payment: str | None = None
     gender: str | None = None
+    is_admin: bool = False
 
 
 class CreateMemberResponse(BaseModel):
@@ -226,11 +233,36 @@ def update_member(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado."
         )
-    member_repo.update_membership_fields(
+
+    email_owner = member_repo.get_by_email(body.email)
+    if email_owner is not None and email_owner.id != member_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un socio con este email.",
+        )
+
+    if body.member_number is not None:
+        number_owner = member_repo.get_by_member_number(body.member_number)
+        if number_owner is not None and number_owner.id != member_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ya existe un socio con este número de socio.",
+            )
+
+    display_name = f"{body.first_name} {body.last_name}"
+    member_repo.update_member_details(
         member_id,
+        member_number=body.member_number,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        nickname=body.nickname,
+        phone=body.phone,
+        email=body.email,
+        display_name=display_name,
         last_payment=body.last_payment,
         gender=body.gender,
     )
+    member_repo.set_admin(member_id, body.is_admin)
     return OkResponse()
 
 

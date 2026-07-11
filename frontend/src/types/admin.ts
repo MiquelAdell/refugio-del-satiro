@@ -29,8 +29,15 @@ export interface CreateMemberRequest {
 }
 
 export interface EditMemberRequest {
+  readonly first_name: string;
+  readonly last_name: string;
+  readonly email: string;
+  readonly nickname?: string | null;
+  readonly phone?: string | null;
+  readonly member_number?: number | null;
   readonly last_payment?: string | null;
   readonly gender?: MemberGender | null;
+  readonly is_admin: boolean;
 }
 
 export interface CreateMemberResponse {

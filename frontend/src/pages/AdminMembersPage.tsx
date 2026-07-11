@@ -602,16 +602,40 @@ interface EditMemberDialogProps {
 }
 
 function EditMemberDialog({ member, onSave, onClose }: EditMemberDialogProps) {
+  const [firstName, setFirstName] = useState(member.first_name);
+  const [lastName, setLastName] = useState(member.last_name);
+  const [email, setEmail] = useState(member.email);
+  const [nickname, setNickname] = useState(member.nickname ?? "");
+  const [phone, setPhone] = useState(member.phone ?? "");
+  const [memberNumber, setMemberNumber] = useState(
+    member.member_number !== null ? String(member.member_number) : ""
+  );
   const [lastPayment, setLastPayment] = useState(member.last_payment ?? "");
   const [gender, setGender] = useState<MemberGender>(
     (member.gender as MemberGender | undefined | null) ?? ""
   );
+  const [isAdmin, setIsAdmin] = useState(member.is_admin);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      setFormError("Nombre, apellidos y email son obligatorios.");
+      return;
+    }
+
     onSave({
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      email: email.trim(),
+      nickname: nickname.trim() || null,
+      phone: phone.trim() || null,
+      member_number: memberNumber.trim() ? Number(memberNumber.trim()) : null,
       last_payment: lastPayment.trim() || null,
       gender: gender || null,
+      is_admin: isAdmin,
     });
   };
 
@@ -622,34 +646,105 @@ function EditMemberDialog({ member, onSave, onClose }: EditMemberDialogProps) {
         if (!open) onClose();
       }}
       title={`Editar socio: ${member.display_name}`}
-      description="Actualiza la última cuota pagada y el género del socio o socia."
+      description="Actualiza los datos del socio o socia."
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="admin-edit-form">
-        <div className="admin-form-field">
-          <label htmlFor="em-last-payment">Última cuota</label>
-          <input
-            id="em-last-payment"
-            type="text"
-            value={lastPayment}
-            onChange={(e) => setLastPayment(e.target.value)}
-            placeholder="ej. 5/02/2022"
-          />
+        <div className="admin-form-grid">
+          <div className="admin-form-field">
+            <label htmlFor="em-first-name">Nombre *</label>
+            <input
+              id="em-first-name"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-last-name">Apellidos *</label>
+            <input
+              id="em-last-name"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-email">Email *</label>
+            <input
+              id="em-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-nickname">Apodo</label>
+            <input
+              id="em-nickname"
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-phone">Teléfono</label>
+            <input
+              id="em-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-member-number">Nº Socio</label>
+            <input
+              id="em-member-number"
+              type="number"
+              value={memberNumber}
+              onChange={(e) => setMemberNumber(e.target.value)}
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-last-payment">Última cuota</label>
+            <input
+              id="em-last-payment"
+              type="text"
+              value={lastPayment}
+              onChange={(e) => setLastPayment(e.target.value)}
+              placeholder="ej. 5/02/2022"
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor="em-gender">Género</label>
+            <select
+              id="em-gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value as MemberGender)}
+              className="admin-form-select"
+            >
+              {memberGenders.map((g) => (
+                <option key={g} value={g}>
+                  {g || "— Sin especificar —"}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-form-field admin-form-field--checkbox">
+            <label htmlFor="em-is-admin">
+              <input
+                id="em-is-admin"
+                type="checkbox"
+                checked={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.checked)}
+              />
+              Administrador
+            </label>
+          </div>
         </div>
-        <div className="admin-form-field">
-          <label htmlFor="em-gender">Género</label>
-          <select
-            id="em-gender"
-            value={gender}
-            onChange={(e) => setGender(e.target.value as MemberGender)}
-            className="admin-form-select"
-          >
-            {memberGenders.map((g) => (
-              <option key={g} value={g}>
-                {g || "— Sin especificar —"}
-              </option>
-            ))}
-          </select>
-        </div>
+        {formError && <p className="admin-form-error">{formError}</p>}
         <div className="admin-form-actions">
           <Button variant="primary" type="submit">
             Guardar

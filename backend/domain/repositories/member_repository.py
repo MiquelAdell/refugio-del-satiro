@@ -40,4 +40,18 @@ class MemberRepository(Protocol):
         gender: str | None = None,
     ) -> None: ...
 
+    def update_member_details(
+        self,
+        member_id: int,
+        member_number: int | None,
+        first_name: str,
+        last_name: str,
+        nickname: str | None,
+        phone: str | None,
+        email: str,
+        display_name: str,
+        last_payment: str | None,
+        gender: str | None,
+    ) -> None: ...
+
     def set_password_hash(self, member_id: int, password_hash: str) -> None: ...

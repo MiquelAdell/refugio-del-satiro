@@ -128,6 +128,44 @@ class SqliteMemberRepository:
         )
         self._conn.commit()
 
+    def update_member_details(
+        self,
+        member_id: int,
+        member_number: int | None,
+        first_name: str,
+        last_name: str,
+        nickname: str | None,
+        phone: str | None,
+        email: str,
+        display_name: str,
+        last_payment: str | None,
+        gender: str | None,
+    ) -> None:
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self._conn.execute(
+            """
+            UPDATE members SET
+                member_number = ?, first_name = ?, last_name = ?, nickname = ?,
+                phone = ?, email = ?, display_name = ?, last_payment = ?,
+                gender = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                member_number,
+                first_name,
+                last_name,
+                nickname,
+                phone,
+                email,
+                display_name,
+                last_payment,
+                gender,
+                now,
+                member_id,
+            ),
+        )
+        self._conn.commit()
+
     def update_display_name(self, member_id: int, display_name: str) -> None:
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._conn.execute(

@@ -224,7 +224,13 @@ class TestAdminPatchMember:
 
         response = client.patch(
             f"/api/admin/members/{target.id}",
-            json={"last_payment": "10/03/2024", "gender": "Femenino"},
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "target@test.com",
+                "last_payment": "10/03/2024",
+                "gender": "Femenino",
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -235,6 +241,117 @@ class TestAdminPatchMember:
         assert updated is not None
         assert updated.last_payment == "10/03/2024"
         assert updated.gender == "Femenino"
+        conn.close()
+
+    def test_patch_updates_name_number_phone_and_admin(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin@test.com",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="target@test.com",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Renamed",
+                "last_name": "Person",
+                "email": "renamed@test.com",
+                "nickname": "Ren",
+                "phone": "600 11 22 33",
+                "member_number": 42,
+                "is_admin": True,
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 200
+        updated = member_repo.get_by_id(target.id)
+        assert updated is not None
+        assert updated.first_name == "Renamed"
+        assert updated.last_name == "Person"
+        assert updated.email == "renamed@test.com"
+        assert updated.nickname == "Ren"
+        assert updated.phone == "600 11 22 33"
+        assert updated.member_number == 42
+        assert updated.display_name == "Renamed Person"
+        assert updated.is_admin is True
+        conn.close()
+
+    def test_patch_email_conflict_returns_409(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin@test.com",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="target@test.com",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "admin@test.com",
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 409
+        conn.close()
+
+    def test_patch_member_number_conflict_returns_409(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin@test.com",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="target@test.com",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "target@test.com",
+                "member_number": 1,
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 409
         conn.close()
 
     def test_patch_clears_fields_when_null(self) -> None:
@@ -260,7 +377,13 @@ class TestAdminPatchMember:
 
         response = client.patch(
             f"/api/admin/members/{target.id}",
-            json={"last_payment": None, "gender": None},
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "target@test.com",
+                "last_payment": None,
+                "gender": None,
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -285,7 +408,12 @@ class TestAdminPatchMember:
 
         response = client.patch(
             "/api/admin/members/9999",
-            json={"last_payment": "1/01/2024"},
+            json={
+                "first_name": "Ghost",
+                "last_name": "Member",
+                "email": "ghost@test.com",
+                "last_payment": "1/01/2024",
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -307,7 +435,12 @@ class TestAdminPatchMember:
 
         response = client.patch(
             f"/api/admin/members/{regular.id}",
-            json={"last_payment": "1/01/2024"},
+            json={
+                "first_name": "Regular",
+                "last_name": "User",
+                "email": "regular@test.com",
+                "last_payment": "1/01/2024",
+            },
             headers=_auth_cookie(regular),
         )
 
