@@ -181,19 +181,24 @@ test.describe("site-shell @ static page (guest)", () => {
     await expect(page.locator("#site-shell-root")).toBeVisible();
   });
 
-  test("static-shell-2: Ludoteca link href points to /ludoteca/", async ({
+  test("static-shell-2: Ludoteca link (under Socios) href points to /socios/ludoteca", async ({
     page,
   }, testInfo) => {
     await page.goto(STATIC_PAGE);
     if (isMobileProject(testInfo.project.name)) {
       await page.getByRole("button", { name: "Abrir menú" }).click();
+      await page
+        .locator("#mobile-drawer")
+        .getByRole("button", { name: "Socios" })
+        .click();
+    } else {
+      await page.getByRole("link", { name: "Socios" }).first().hover();
     }
     const link = page.getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) }).first();
     await expect(link).toBeVisible();
-    // React Router with basename="/ludoteca" generates href="/ludoteca" (no trailing
-    // slash) for <Link to="/">. The Caddyfile 301-redirects /ludoteca → /ludoteca/
-    // at the network layer, so both work functionally.
-    await expect(link).toHaveAttribute("href", "/ludoteca");
+    // Scraped from the Socios submenu on the Google Site; the Caddyfile
+    // 301-redirects /socios/ludoteca → /ludoteca at the network layer.
+    await expect(link).toHaveAttribute("href", "/socios/ludoteca");
   });
 
   test("static-shell-3: Iniciar sesión link visible for guest", async ({
