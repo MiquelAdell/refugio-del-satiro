@@ -9,6 +9,7 @@ import { MyLoansPage } from "./pages/MyLoansPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { SetPasswordPage } from "./pages/SetPasswordPage";
+import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
 import { AdminBggPage } from "./pages/AdminBggPage";
@@ -117,6 +118,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <SetPasswordPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
+                  <PageLayout>
+                    <ChangePasswordPage />
                   </PageLayout>
                 }
               />

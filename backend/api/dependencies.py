@@ -17,6 +17,7 @@ from backend.data.repositories.sqlite_password_token_repository import (
 )
 from backend.domain.entities.member import Member
 from backend.domain.use_cases.authenticate import AuthenticateUseCase
+from backend.domain.use_cases.change_password import ChangePasswordUseCase
 from backend.domain.use_cases.get_game import GetGameUseCase
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
 from backend.domain.use_cases.get_rpg_item import GetRpgItemUseCase
@@ -124,6 +125,10 @@ def get_set_password_use_case(
     token_repo: TokenRepo,
 ) -> SetPasswordUseCase:
     return SetPasswordUseCase(member_repo, token_repo)
+
+
+def get_change_password_use_case(member_repo: MemberRepo) -> ChangePasswordUseCase:
+    return ChangePasswordUseCase(member_repo)
 
 
 def get_request_password_reset_use_case(

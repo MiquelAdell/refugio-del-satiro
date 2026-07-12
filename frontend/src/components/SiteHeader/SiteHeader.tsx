@@ -109,6 +109,11 @@ function UserSubmenu({
           Mis préstamos
         </Link>
       </li>
+      <li className={styles.submenuItem} role="menuitem">
+        <Link to="/change-password" onClick={onItemClick}>
+          Cambiar contraseña
+        </Link>
+      </li>
       {isAdmin && (
         <AdminNestedSubmenu
           mobileExpanded={adminExpanded}
@@ -144,12 +149,6 @@ export function SiteHeader() {
   const [adminExpanded, setAdminExpanded] = useState(false);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
-  // The header is also mounted on static mirror pages under a MemoryRouter,
-  // where router matches are meaningless — use the real URL, same as the
-  // scraped nav items do.
-  const isLudotecaActive =
-    typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/ludoteca");
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
@@ -236,13 +235,6 @@ export function SiteHeader() {
                   </li>
                 );
               })}
-
-            {/* Ludoteca — plain link, identical for every auth state */}
-            <li
-              className={`${styles.navItem} ${isLudotecaActive ? styles.active : ""}`}
-            >
-              <Link to="/">Ludoteca</Link>
-            </li>
           </ul>
         </nav>
 
@@ -376,13 +368,6 @@ export function SiteHeader() {
                   </li>
                 );
               })}
-
-            {/* Ludoteca in drawer — plain link */}
-            <li className={styles.drawerItem}>
-              <Link to="/" onClick={closeDrawer}>
-                Ludoteca
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>

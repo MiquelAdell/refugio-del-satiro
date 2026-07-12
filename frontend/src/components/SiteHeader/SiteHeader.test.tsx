@@ -130,7 +130,7 @@ describe("SiteHeader", () => {
       ]);
     });
 
-    it("renders only the Ludoteca item when status is error", () => {
+    it("renders no top-level items when status is error", () => {
       mockNavState = { items: [], status: "error" };
       const { container } = renderHeader();
 
@@ -140,58 +140,20 @@ describe("SiteHeader", () => {
       const navLinks = Array.from(desktopNav!.querySelectorAll("a")).map(
         (el) => el.textContent
       );
-      expect(navLinks).not.toContain("Inicio");
-      expect(navLinks).not.toContain("Calendario");
+      expect(navLinks).toEqual([]);
     });
 
-    it("renders only the Ludoteca item when items is empty with ready status", () => {
+    it("renders no top-level items when items is empty with ready status", () => {
       mockNavState = { items: [], status: "ready" };
       const { container } = renderHeader();
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      // Get only direct children li of the top-level ul (not nested submenu li)
       const topNavList = desktopNav!.querySelector("ul");
       const topLevelItems = Array.from(topNavList!.children).map((li) => {
         const link = li.querySelector(":scope > a, :scope > button");
         return link?.textContent ?? "";
       });
-      // With empty items, only Ludoteca should be in the top-level nav
-      expect(topLevelItems.map((t) => t.trim())).toEqual(["Ludoteca"]);
-    });
-  });
-
-  describe("Ludoteca nav item", () => {
-    it("renders Ludoteca as a plain link with no submenu and no chevron for every auth state", () => {
-      for (const setAuth of [setGuest, setMember, setAdmin]) {
-        setAuth();
-        const { container, unmount } = renderHeader();
-
-        const desktopNav = container.querySelector("nav[aria-label='Principal']");
-        const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-          (li) => li.querySelector("a")?.textContent?.trim() === "Ludoteca"
-        );
-        expect(ludotecaLi).toBeDefined();
-        expect(ludotecaLi!.querySelectorAll("svg").length).toEqual(0);
-        expect(ludotecaLi!.querySelectorAll("ul").length).toEqual(0);
-
-        unmount();
-      }
-    });
-
-    it("renders Ludoteca in the drawer as a plain link (no expandable submenu)", () => {
-      setMember();
-      const { container } = renderHeader();
-
-      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
-      const ludotecaLinks = Array.from(drawer.querySelectorAll("a")).filter(
-        (el) => el.textContent?.trim() === "Ludoteca"
-      );
-      expect(ludotecaLinks.length).toEqual(1);
-
-      const ludotecaButtons = Array.from(drawer.querySelectorAll("button")).filter(
-        (el) => el.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaButtons).toEqual([]);
+      expect(topLevelItems).toEqual([]);
     });
   });
 
@@ -206,11 +168,12 @@ describe("SiteHeader", () => {
       ).toEqual(0);
     });
 
-    it("does not show Mis préstamos, Cerrar sesión, or Administración for guest", () => {
+    it("does not show Mis préstamos, Cambiar contraseña, Cerrar sesión, or Administración for guest", () => {
       setGuest();
       renderHeader();
 
       expect(screen.queryByText("Mis préstamos")).toBeNull();
+      expect(screen.queryByText("Cambiar contraseña")).toBeNull();
       expect(screen.queryByText("Cerrar sesión")).toBeNull();
       expect(screen.queryByText("Administración")).toBeNull();
     });
@@ -272,7 +235,7 @@ describe("SiteHeader", () => {
       expect(trigger!.querySelectorAll("svg").length).toEqual(1);
     });
 
-    it("renders exactly Mis préstamos and Cerrar sesión as menuitems for member", () => {
+    it("renders exactly Mis préstamos, Cambiar contraseña and Cerrar sesión as menuitems for member", () => {
       setMember();
       renderHeader();
 
@@ -281,7 +244,7 @@ describe("SiteHeader", () => {
       const menuitems = screen
         .getAllByRole("menuitem")
         .map((el) => el.textContent?.trim());
-      expect(menuitems).toEqual(["Mis préstamos", "Cerrar sesión"]);
+      expect(menuitems).toEqual(["Mis préstamos", "Cambiar contraseña", "Cerrar sesión"]);
     });
 
     it("links Mis préstamos to /my-loans", () => {
@@ -294,6 +257,19 @@ describe("SiteHeader", () => {
         .map((el) => el.querySelector("a"));
       misPrestamosLinks.forEach((link) => {
         expect(link).toHaveAttribute("href", "/my-loans");
+      });
+    });
+
+    it("links Cambiar contraseña to /change-password", () => {
+      setMember();
+      renderHeader();
+
+      const changePasswordLinks = screen
+        .getAllByRole("menuitem")
+        .filter((el) => el.textContent?.trim() === "Cambiar contraseña")
+        .map((el) => el.querySelector("a"));
+      changePasswordLinks.forEach((link) => {
+        expect(link).toHaveAttribute("href", "/change-password");
       });
     });
 
@@ -344,6 +320,7 @@ describe("SiteHeader", () => {
       );
       expect(topLevelLabels).toEqual([
         "Mis préstamos",
+        "Cambiar contraseña",
         "Administración",
         "Cerrar sesión",
       ]);
@@ -408,31 +385,6 @@ describe("SiteHeader", () => {
       fireEvent.click(cerrarBtn!);
 
       expect(mockLogout).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("active-route highlighting", () => {
-    it("Ludoteca item has active class when the real URL is under /ludoteca", () => {
-      window.history.replaceState(null, "", "/ludoteca/my-loans");
-      setMember();
-      const { container } = renderHeader("/my-loans");
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaNavItem?.className).toContain("active");
-    });
-
-    it("Ludoteca item is not active on a mirror page URL", () => {
-      window.history.replaceState(null, "", "/calendario/");
-      const { container } = renderHeader();
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaNavItem?.className).not.toContain("active");
     });
   });
 

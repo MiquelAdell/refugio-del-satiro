@@ -126,6 +126,60 @@ class TestGetMe:
         assert response.status_code == 401
 
 
+class TestChangePassword:
+    def _login_cookie(self, member_repo: SqliteMemberRepository, member_id: int) -> dict[str, str]:
+        from backend.api.auth import create_jwt
+        from backend.api.dependencies import _settings
+
+        token = create_jwt(member_id, _settings.jwt_secret)
+        return {"Cookie": f"session_token={token}"}
+
+    def test_change_password_success(self) -> None:
+        client, conn = _setup_test_client()
+        member_repo = SqliteMemberRepository(conn)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
+        member_repo.set_password_hash(member.id, hash_password("oldpassword"))
+
+        response = client.post(
+            "/api/change-password",
+            json={"current_password": "oldpassword", "new_password": "newpassword"},
+            headers=self._login_cookie(member_repo, member.id),
+        )
+        assert response.status_code == 200
+
+        login_response = client.post(
+            "/api/login",
+            json={"email": "test@test.com", "password": "newpassword"},
+        )
+        assert login_response.status_code == 200
+
+    def test_change_password_wrong_current_password(self) -> None:
+        client, conn = _setup_test_client()
+        member_repo = SqliteMemberRepository(conn)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "test@test.com", "Test User", False
+        )
+        member_repo.set_password_hash(member.id, hash_password("oldpassword"))
+
+        response = client.post(
+            "/api/change-password",
+            json={"current_password": "wrongpassword", "new_password": "newpassword"},
+            headers=self._login_cookie(member_repo, member.id),
+        )
+        assert response.status_code == 400
+
+    def test_change_password_unauthenticated(self) -> None:
+        client, _ = _setup_test_client()
+
+        response = client.post(
+            "/api/change-password",
+            json={"current_password": "oldpassword", "new_password": "newpassword"},
+        )
+        assert response.status_code == 401
+
+
 class TestSetPassword:
     def test_set_password_success(self) -> None:
         client, conn = _setup_test_client()
