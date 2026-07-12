@@ -8,8 +8,8 @@ de la web.
 ## 1. Quién es administrador y cómo entrar
 
 No existe un acceso de administrador separado: se entra con la misma
-pantalla que cualquier socio, en **Ludoteca → Iniciar sesión**
-(`/ludoteca/login`), con tu email y contraseña.
+pantalla que cualquier socio, con el botón **Iniciar sesión** de la
+cabecera (`/ludoteca/login`), con tu email y contraseña.
 
 Lo que te convierte en administrador es una marca en tu ficha de socio.
 Esa marca no se puede activar desde la web: se asigna al importar el CSV
@@ -17,15 +17,16 @@ de socios (columna `admin` con valor `yes`) o la pone un desarrollador
 directamente. Si necesitas que alguien pase a ser administrador, pide que
 se actualice su ficha por una de esas dos vías.
 
-Cuando entras como administrador, el menú **Ludoteca** muestra, además de
-"Mis préstamos", un apartado **Administración** con tres opciones:
+Al entrar, tu nombre aparece a la derecha de la cabecera y despliega un
+menú con "Mis préstamos" y **Cerrar sesión**. Si eres administrador, ese
+mismo menú muestra además un apartado **Administración** con tres opciones:
 
 - **Miembros** → Gestión de socios (`/ludoteca/admin/members`)
 - **Contenido GSite** → Resincronizar contenido (`/ludoteca/admin/content`)
 - **Datos BGG** → Reimportar el catálogo desde BoardGameGeek (`/ludoteca/admin/bgg`)
 
-Tu nombre y el botón **Cerrar sesión** aparecen en la cabecera. Si abres
-una página de administración sin permisos verás "Acceso restringido".
+En el móvil, el mismo menú aparece bajo tu nombre al abrir el menú ☰. Si
+abres una página de administración sin permisos verás "Acceso restringido".
 
 ## 2. Gestión de socios (Administración → Miembros)
 
@@ -73,7 +74,7 @@ El botón **Importar CSV** permite subir la exportación en CSV de la hoja
 de cálculo de socios. La primera fila debe ser exactamente esta cabecera:
 
 ```
-Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género
+Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género,Pagada
 ```
 
 Reglas de la importación:
@@ -85,7 +86,13 @@ Reglas de la importación:
 - Los **socios nuevos** reciben un enlace para establecer su contraseña;
   la página los lista tras la importación, cada uno con su botón
   **Copiar**.
-- La columna `admin` con valor `yes` marca al socio como administrador.
+- La columna `admin` con valor `yes` marca al socio como administrador,
+  pero solo para socios nuevos: reimportar el CSV nunca retira el estado
+  de administrador a un socio existente (ni al tuyo propio, aunque tu fila
+  en la hoja no tenga la marca).
+- La columna `Pagada` con valor `No` marca al socio como inactivo (no ha
+  pagado la cuota). Cualquier otro valor (`Sí`, `Honorífic` o la columna
+  vacía) lo deja activo.
 
 El botón **?** junto a "Importar CSV" abre esta misma ayuda dentro de la
 aplicación, con un botón **Descargar CSV de ejemplo**.
