@@ -9,9 +9,9 @@ Usage:
     python scripts/seed_test_users.py
 
 Env vars:
-    TEST_MEMBER_EMAIL    (default: e2e-member@test.local)
+    TEST_MEMBER_EMAIL    (default: TEST_email@domain.com)
     TEST_MEMBER_PASSWORD (default: e2e-test-password-member)
-    TEST_ADMIN_EMAIL     (default: e2e-admin@test.local)
+    TEST_ADMIN_EMAIL     (default: TEST_email@domain.com)
     TEST_ADMIN_PASSWORD  (default: e2e-test-password-admin)
     REFUGIO_DB_PATH      (resolved via backend.config.Settings)
 """
@@ -53,7 +53,7 @@ def _accounts_from_env() -> list[TestAccount]:
     return [
         TestAccount(
             label="TEST_MEMBER",
-            email=os.environ.get("TEST_MEMBER_EMAIL", "e2e-member@test.local"),
+            email=os.environ.get("TEST_MEMBER_EMAIL", "TEST_email@domain.com"),
             password=os.environ.get("TEST_MEMBER_PASSWORD", "e2e-test-password-member"),
             first_name="E2E",
             last_name="Member",
@@ -64,7 +64,7 @@ def _accounts_from_env() -> list[TestAccount]:
         ),
         TestAccount(
             label="TEST_ADMIN",
-            email=os.environ.get("TEST_ADMIN_EMAIL", "e2e-admin@test.local"),
+            email=os.environ.get("TEST_ADMIN_EMAIL", "TEST_email@domain.com"),
             password=os.environ.get("TEST_ADMIN_PASSWORD", "e2e-test-password-admin"),
             first_name="E2E",
             last_name="Admin",

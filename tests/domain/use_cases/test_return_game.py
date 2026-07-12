@@ -39,7 +39,7 @@ class TestReturnGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         loan = loan_repo.create(game.id, member.id)
 
@@ -55,10 +55,10 @@ class TestReturnGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         m1 = member_repo.upsert_by_email(
-            1, "A", "User", None, None, "a@t.com", "A User", False
+            1, "A", "User", None, None, "TEST_email@domain.com", "A User", False
         )
         member_repo.upsert_by_email(
-            2, "B", "User", None, None, "b@t.com", "B User", False
+            2, "B", "User", None, None, "TEST_email@domain.com", "B User", False
         )
         loan = loan_repo.create(game.id, m1.id)
 
@@ -74,10 +74,10 @@ class TestReturnGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         m1 = member_repo.upsert_by_email(
-            1, "A", "User", None, None, "a@t.com", "A User", False
+            1, "A", "User", None, None, "TEST_email@domain.com", "A User", False
         )
         member_repo.upsert_by_email(
-            2, "Admin", "User", None, None, "admin@t.com", "Admin", True
+            2, "Admin", "User", None, None, "TEST_email@domain.com", "Admin", True
         )
         loan = loan_repo.create(game.id, m1.id)
 
@@ -93,7 +93,7 @@ class TestReturnGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         loan = loan_repo.create(game.id, member.id)
         loan_repo.mark_returned(loan.id)

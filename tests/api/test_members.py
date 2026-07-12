@@ -79,7 +79,7 @@ class TestValidateMember:
             number=42,
             first_name="Carlos",
             last_name="López",
-            email="carlos@test.com",
+            email="TEST_email@domain.com",
             gender="Masculino",
             last_payment="5/02/2022",
         )
@@ -105,7 +105,7 @@ class TestValidateMember:
             number=7,
             first_name="Ana",
             last_name="García",
-            email="ana@test.com",
+            email="TEST_email@domain.com",
             gender="Femenino",
             last_payment="1/01/2023",
         )
@@ -131,7 +131,7 @@ class TestValidateMember:
             number=15,
             first_name="Jordan",
             last_name="Martínez",
-            email="jordan@test.com",
+            email="TEST_email@domain.com",
             gender=None,
             last_payment=None,
         )
@@ -157,7 +157,7 @@ class TestValidateMember:
             number=99,
             first_name="Inactivo",
             last_name="Prueba",
-            email="inactivo@test.com",
+            email="TEST_email@domain.com",
             gender="Masculino",
             is_active=False,
         )
@@ -193,7 +193,7 @@ class TestValidateMember:
             number=1,
             first_name="Public",
             last_name="Member",
-            email="pub@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.get("/api/members/validate?number=1")
@@ -211,7 +211,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -219,7 +219,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.patch(
@@ -227,7 +227,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "target@test.com",
+                "email": "TEST_email@domain.com",
                 "last_payment": "10/03/2024",
                 "gender": "Femenino",
             },
@@ -251,7 +251,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -259,7 +259,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.patch(
@@ -267,7 +267,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Renamed",
                 "last_name": "Person",
-                "email": "renamed@test.com",
+                "email": "TEST_email@domain.com",
                 "nickname": "Ren",
                 "phone": "600 11 22 33",
                 "member_number": 42,
@@ -281,7 +281,7 @@ class TestAdminPatchMember:
         assert updated is not None
         assert updated.first_name == "Renamed"
         assert updated.last_name == "Person"
-        assert updated.email == "renamed@test.com"
+        assert updated.email == "TEST_email@domain.com"
         assert updated.nickname == "Ren"
         assert updated.phone == "600 11 22 33"
         assert updated.member_number == 42
@@ -297,7 +297,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -305,7 +305,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.patch(
@@ -313,7 +313,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "admin@test.com",
+                "email": "TEST_email@domain.com",
             },
             headers=_auth_cookie(admin),
         )
@@ -329,7 +329,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -337,7 +337,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.patch(
@@ -345,7 +345,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "target@test.com",
+                "email": "TEST_email@domain.com",
                 "member_number": 1,
             },
             headers=_auth_cookie(admin),
@@ -362,7 +362,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -370,7 +370,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
             last_payment="5/02/2022",
             gender="Masculino",
         )
@@ -380,7 +380,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "target@test.com",
+                "email": "TEST_email@domain.com",
                 "last_payment": None,
                 "gender": None,
             },
@@ -402,7 +402,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
 
@@ -411,7 +411,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Ghost",
                 "last_name": "Member",
-                "email": "ghost@test.com",
+                "email": "TEST_email@domain.com",
                 "last_payment": "1/01/2024",
             },
             headers=_auth_cookie(admin),
@@ -429,7 +429,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Regular",
             last_name="User",
-            email="regular@test.com",
+            email="TEST_email@domain.com",
             is_admin=False,
         )
 
@@ -438,7 +438,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Regular",
                 "last_name": "User",
-                "email": "regular@test.com",
+                "email": "TEST_email@domain.com",
                 "last_payment": "1/01/2024",
             },
             headers=_auth_cookie(regular),
@@ -471,7 +471,7 @@ class TestAdminImportMembers:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
 
@@ -482,8 +482,8 @@ class TestAdminImportMembers:
 
         csv_bytes = self._csv_bytes(
             [
-                "10,García,Ana,Anita,600111222,ana@test.com,,5/02/2022,Femenino",
-                "11,López,Carlos,,600333444,carlos@test.com,,1/01/2023,Masculino",
+                "10,García,Ana,Anita,600111222,TEST_email@domain.com,,5/02/2022,Femenino",
+                "11,López,Carlos,,600333444,TEST_email@domain.com,,1/01/2023,Masculino",
             ]
         )
         response = self._post_import(client, admin, csv_bytes)
@@ -495,12 +495,12 @@ class TestAdminImportMembers:
         assert len(body["created"]) == 2
 
         by_email = {c["email"]: c for c in body["created"]}
-        assert by_email["ana@test.com"]["display_name"] == "Anita"
-        assert by_email["carlos@test.com"]["display_name"] == "Carlos López"
+        assert by_email["TEST_email@domain.com"]["display_name"] == "Anita"
+        assert by_email["TEST_email@domain.com"]["display_name"] == "Carlos López"
         for created in body["created"]:
             assert "/set-password?token=" in created["token_url"]
 
-        ana = member_repo.get_by_email("ana@test.com")
+        ana = member_repo.get_by_email("TEST_email@domain.com")
         assert ana is not None
         assert ana.member_number == 10
         conn.close()
@@ -511,7 +511,7 @@ class TestAdminImportMembers:
         admin = self._make_admin(member_repo)
 
         csv_bytes = self._csv_bytes(
-            ["10,García,Ana,,600111222,ana@test.com,,5/02/2022,Femenino"]
+            ["10,García,Ana,,600111222,TEST_email@domain.com,,5/02/2022,Femenino"]
         )
         first = self._post_import(client, admin, csv_bytes)
         assert first.status_code == 200
@@ -532,7 +532,7 @@ class TestAdminImportMembers:
 
         csv_bytes = self._csv_bytes(
             [
-                "10,García,Ana,,600111222,ana@test.com,,,",
+                "10,García,Ana,,600111222,TEST_email@domain.com,,,",
                 "11,Sin,Email,,600333444,,,,",
             ]
         )
@@ -543,7 +543,7 @@ class TestAdminImportMembers:
         assert body["total_rows"] == 2
         assert body["skipped_rows"] == 1
         assert len(body["created"]) == 1
-        assert body["created"][0]["email"] == "ana@test.com"
+        assert body["created"][0]["email"] == "TEST_email@domain.com"
         conn.close()
 
     def test_missing_email_header_returns_400(self) -> None:
@@ -568,11 +568,11 @@ class TestAdminImportMembers:
             number=1,
             first_name="Regular",
             last_name="User",
-            email="regular@test.com",
+            email="TEST_email@domain.com",
             is_admin=False,
         )
 
-        csv_bytes = self._csv_bytes(["10,García,Ana,,600111222,ana@test.com,,,"])
+        csv_bytes = self._csv_bytes(["10,García,Ana,,600111222,TEST_email@domain.com,,,"])
         response = client.post(
             "/api/admin/members/import",
             files={"file": ("members.csv", csv_bytes, "text/csv")},

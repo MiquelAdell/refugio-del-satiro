@@ -11,8 +11,8 @@ runner = CliRunner()
 
 _CSV_CONTENT = """\
 Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género
-1,Adell,Miquel,Miquel,600 00 00 01,admin@test.local,yes,24/01/2026,Masculino
-2,García López,Carla,Carla,600 00 00 02,carla@test.local,,24/01/2026,Femenino
+1,Adell,Miquel,Miquel,600 00 00 01,TEST_email@domain.com,yes,24/01/2026,Masculino
+2,García López,Carla,Carla,600 00 00 02,TEST_email@domain.com,,24/01/2026,Femenino
 3,Torres Ruiz,Jorge,,600 00 00 03,,,24/01/2026,Masculino
 """
 
@@ -45,13 +45,13 @@ def test_import_members_csv(monkeypatch: object, tmp_path: Path) -> None:
         # 3 rows, but Jorge Torres Ruiz has no email => 2 members
         assert len(members) == 2
 
-        admin = member_repo.get_by_email("admin@test.local")
+        admin = member_repo.get_by_email("TEST_email@domain.com")
         assert admin is not None
         assert admin.is_admin is True
         assert admin.last_payment == "24/01/2026"
         assert admin.gender == "Masculino"
 
-        carla = member_repo.get_by_email("carla@test.local")
+        carla = member_repo.get_by_email("TEST_email@domain.com")
         assert carla is not None
         assert carla.is_admin is False
     finally:

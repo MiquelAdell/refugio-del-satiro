@@ -41,15 +41,15 @@ class TestRequestPasswordReset:
         token_repo: SqlitePasswordTokenRepository,
     ) -> None:
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case, fake_email = self._make_use_case(member_repo, token_repo)
 
-        use_case.execute("test@test.com")
+        use_case.execute("TEST_email@domain.com")
 
         assert len(fake_email.sent) == 1
         to_email, display_name, url = fake_email.sent[0]
-        assert to_email == "test@test.com"
+        assert to_email == "TEST_email@domain.com"
         assert display_name == "Test User"
         assert url.startswith("https://example.com/set-password?token=")
 
@@ -60,11 +60,11 @@ class TestRequestPasswordReset:
         db_conn: sqlite3.Connection,
     ) -> None:
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case, _ = self._make_use_case(member_repo, token_repo)
 
-        use_case.execute("test@test.com")
+        use_case.execute("TEST_email@domain.com")
 
         row = db_conn.execute("SELECT COUNT(*) FROM password_tokens").fetchone()
         assert row[0] == 1
@@ -77,7 +77,7 @@ class TestRequestPasswordReset:
     ) -> None:
         use_case, fake_email = self._make_use_case(member_repo, token_repo)
 
-        use_case.execute("nobody@test.com")
+        use_case.execute("TEST_email@domain.com")
 
         assert len(fake_email.sent) == 0
         row = db_conn.execute("SELECT COUNT(*) FROM password_tokens").fetchone()
@@ -90,12 +90,12 @@ class TestRequestPasswordReset:
         db_conn: sqlite3.Connection,
     ) -> None:
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_active(member.id, False)
         use_case, fake_email = self._make_use_case(member_repo, token_repo)
 
-        use_case.execute("test@test.com")
+        use_case.execute("TEST_email@domain.com")
 
         assert len(fake_email.sent) == 0
         row = db_conn.execute("SELECT COUNT(*) FROM password_tokens").fetchone()

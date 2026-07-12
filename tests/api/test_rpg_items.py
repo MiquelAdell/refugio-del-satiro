@@ -157,7 +157,7 @@ class TestListRpgItems:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
@@ -189,14 +189,14 @@ class TestListRpgItems:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="TEST_email@domain.com",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
@@ -283,7 +283,7 @@ class TestGetRpgItem:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
@@ -313,14 +313,14 @@ class TestGetRpgItem:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="TEST_email@domain.com",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
@@ -378,7 +378,7 @@ class TestRpgItemHistory:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
         loan_repo.mark_returned(loan.id)
@@ -409,7 +409,7 @@ class TestRpgItemHistory:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
         loan_repo.mark_returned(loan.id)
@@ -458,7 +458,7 @@ class TestLendingGuards:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.post(

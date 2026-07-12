@@ -12,7 +12,7 @@ class TestSqlitePasswordTokenRepository:
             "User",
             None,
             None,
-            "test@test.com",
+            "TEST_email@domain.com",
             "Test User",
             False,
         )

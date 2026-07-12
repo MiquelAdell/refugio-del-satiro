@@ -15,7 +15,7 @@ class TestChangePassword:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(member.id, hash_password("oldpassword"))
         member = member_repo.get_by_id(member.id)
@@ -33,7 +33,7 @@ class TestChangePassword:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(member.id, hash_password("oldpassword"))
         member = member_repo.get_by_id(member.id)
@@ -47,7 +47,7 @@ class TestChangePassword:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case = ChangePasswordUseCase(member_repo)
 
@@ -58,7 +58,7 @@ class TestChangePassword:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(member.id, hash_password("oldpassword"))
         member = member_repo.get_by_id(member.id)

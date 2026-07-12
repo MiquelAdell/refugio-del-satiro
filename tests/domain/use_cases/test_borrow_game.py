@@ -17,7 +17,7 @@ class TestBorrowGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = use_case.execute(game.id, member.id)
@@ -33,10 +33,10 @@ class TestBorrowGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         m1 = member_repo.upsert_by_email(
-            1, "A", "User", None, None, "a@t.com", "A User", False
+            1, "A", "User", None, None, "TEST_email@domain.com", "A User", False
         )
         m2 = member_repo.upsert_by_email(
-            2, "B", "User", None, None, "b@t.com", "B User", False
+            2, "B", "User", None, None, "TEST_email@domain.com", "B User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         use_case.execute(game.id, m1.id)
@@ -65,7 +65,7 @@ class TestBorrowGameUseCase:
             item_type="rpgitem",
         )
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = use_case.execute(rpg.id, member.id)

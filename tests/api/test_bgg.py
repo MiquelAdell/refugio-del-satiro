@@ -45,7 +45,7 @@ def _make_member(
         last_name="Admin",
         nickname=None,
         phone=None,
-        email="ada@example.com",
+        email="TEST_email@domain.com",
         display_name="Ada Admin",
         is_admin=is_admin,
     )

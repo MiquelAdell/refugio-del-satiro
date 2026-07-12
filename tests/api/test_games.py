@@ -96,7 +96,7 @@ class TestListGames:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=game2.id, member_id=alice.id)
 
@@ -141,14 +141,14 @@ class TestListGames:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="TEST_email@domain.com",
         )
 
         loan = loan_repo.create(game_id=game2.id, member_id=alice.id)
@@ -218,7 +218,7 @@ class TestGetGame:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=game.id, member_id=alice.id)
 
@@ -248,14 +248,14 @@ class TestGetGame:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="TEST_email@domain.com",
         )
         loan = loan_repo.create(game_id=game.id, member_id=alice.id)
 
@@ -339,14 +339,14 @@ class TestGetGameHistory:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="TEST_email@domain.com",
         )
 
         loan1 = loan_repo.create(game_id=game.id, member_id=alice.id)
