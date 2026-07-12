@@ -136,6 +136,12 @@
   opacity: 1;
 }
 
+/* Right-aligned variant (user menu sits at the right edge of the header). */
+.submenuRight {
+  left: auto;
+  right: 0;
+}
+
 .submenuItem {
   position: relative;
 }
@@ -255,6 +261,8 @@
 /* Desktop: rotate when the submenu is revealed by hover/focus-within. */
 .hasSubmenu:hover > a > .chevron,
 .hasSubmenu:focus-within > a > .chevron,
+.hasSubmenu:hover > button > .chevron,
+.hasSubmenu:focus-within > button > .chevron,
 .hasNested:hover > .nestedTrigger > .chevron,
 .hasNested:focus-within > .nestedTrigger > .chevron {
   transform: rotate(180deg);
@@ -316,61 +324,46 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* ─── User actions (authenticated state) ──────────────────────────── */
+/* ─── User menu (authenticated state) ─────────────────────────────── */
 
-.userDisplayName {
-  color: var(--color-header-fg);
-  font-family: var(--font-family-body);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
+.userMenu {
+  position: relative;
 }
 
-.logoutAction {
+.userMenuTrigger {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-xs) var(--space-md);
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
   color: var(--color-header-fg);
   font-family: var(--font-family-body);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  border: 1px solid var(--color-header-fg);
-  border-radius: var(--radius-sm, 4px);
   white-space: nowrap;
-  background: none;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.logoutAction:hover,
-.logoutAction:focus-visible {
-  background-color: var(--color-header-fg);
-  color: var(--color-header-bg);
-}
-
-.drawerUserRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.drawerUserDisplayName {
-  padding: var(--space-md) var(--space-lg);
-  color: var(--color-header-fg);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-}
-
-.drawerLogoutAction {
-  padding: var(--space-md) var(--space-lg);
-  color: var(--color-header-fg-active);
-  font-size: var(--font-size-sm);
   background: none;
   border: none;
   cursor: pointer;
-  font-family: var(--font-family-body);
-  font-weight: var(--font-weight-medium);
-  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.userMenuTrigger:hover,
+.userMenu:focus-within > .userMenuTrigger {
+  color: var(--color-header-fg-hover);
+}
+
+/* Long display names must not push the header into overflow — truncate. */
+.userMenuName {
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Separator above "Cerrar sesión" inside the user dropdown. */
+.logoutItem {
+  border-top: 1px solid var(--color-header-divider);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
 }
 
 /* ─── Hamburger ──────────────────────────────────────────────────────── */
@@ -469,6 +462,29 @@
   }
 }
 
+/* Tighter still below 1280 px: 8 nav items + user name compete for width,
+   so shave horizontal padding down to the minimum that stays clickable. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .inner {
+    gap: var(--space-xs);
+    padding: 0 var(--space-sm);
+  }
+
+  .navItem > a,
+  .navItem > button,
+  .userMenuTrigger {
+    padding: var(--space-sm) var(--space-xs);
+  }
+
+  .headerActions {
+    margin-left: 0;
+  }
+
+  .userMenuName {
+    max-width: 13ch;
+  }
+}
+
 @media (max-width: 767px) {
   .desktopNav {
     display: none;
@@ -500,8 +516,7 @@
 .drawerItem > a:focus-visible,
 .drawerParent:focus-visible,
 .logoLink:focus-visible,
-.logoutAction:focus-visible,
-.drawerLogoutAction:focus-visible {
+.userMenuTrigger:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.8);
   outline-offset: 2px;
   border-radius: var(--radius-sm);

@@ -8,12 +8,17 @@ from scraper.shell_injector import inject_site_shell
 
 _SCRIPT_SRC = "/_assets/site-shell.js"
 _MOUNT_ID = "site-shell-root"
+_FAVICON_HREF = "/ludoteca/favicon.png"
 
 
 def _make_soup(
     body_content: str = "<header><nav>nav</nav></header><main>content</main>",
+    head_content: str = "",
 ) -> BeautifulSoup:
-    html = f"<!doctype html><html><head></head><body>{body_content}</body></html>"
+    html = (
+        f"<!doctype html><html><head>{head_content}</head>"
+        f"<body>{body_content}</body></html>"
+    )
     return BeautifulSoup(html, "html.parser")
 
 
@@ -63,6 +68,34 @@ class TestInjectSiteShell:
         soup = BeautifulSoup("<html><head></head></html>", "html.parser")
         inject_site_shell(soup)
         # Should silently do nothing without raising.
+
+    def test_replaces_google_favicon_with_app_favicon(self) -> None:
+        soup = _make_soup(
+            head_content=(
+                '<link rel="icon" href="https://lh3.googleusercontent.com/x.png">'
+                '<link rel="shortcut icon" href="/_assets/55b791a54bbdfb22.png">'
+            )
+        )
+        inject_site_shell(soup)
+        icon_links = [
+            tag
+            for tag in soup.find_all("link")
+            if any("icon" in rel.lower() for rel in tag.get("rel") or [])
+        ]
+        assert [tag.get("href") for tag in icon_links] == [_FAVICON_HREF]
+
+    def test_adds_favicon_when_page_has_none(self) -> None:
+        soup = _make_soup()
+        inject_site_shell(soup)
+        favicon = soup.find("link", href=_FAVICON_HREF)
+        assert favicon is not None
+
+    def test_idempotent_favicon(self) -> None:
+        soup = _make_soup()
+        inject_site_shell(soup)
+        inject_site_shell(soup)
+        favicons = soup.find_all("link", href=_FAVICON_HREF)
+        assert len(favicons) == 1
 
     def test_mount_div_positioned_before_original_header(self) -> None:
         soup = _make_soup()

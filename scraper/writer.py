@@ -132,6 +132,12 @@ def read_previous_manifest(output_dir: Path, filename: str) -> Manifest | None:
     return load(output_dir / filename)
 
 
+# Assets that live in the assets dir but are produced by the frontend build,
+# not the scraper — never in the manifest, must survive re-scrapes (a purge of
+# site-shell.js would remove the injected header from every mirror page).
+_PRESERVED_ASSETS = frozenset({"site-shell.js"})
+
+
 def purge_orphan_assets(
     *, output_dir: Path, assets_subdir: str, manifest: Manifest
 ) -> list[str]:
@@ -146,7 +152,11 @@ def purge_orphan_assets(
     referenced = {name for page in manifest.pages for name in page.asset_filenames}
     deleted: list[str] = []
     for entry in assets_dir.iterdir():
-        if entry.is_file() and entry.name not in referenced:
+        if (
+            entry.is_file()
+            and entry.name not in referenced
+            and entry.name not in _PRESERVED_ASSETS
+        ):
             entry.unlink()
             deleted.append(entry.name)
     return deleted

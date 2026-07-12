@@ -1,3 +1,13 @@
+/* The SPA loads reset.css (border-box) but mirror pages only get Google Sites
+   CSS, which leaves the default content-box — making header elements measure
+   wider here than in the app. Scope the same reset to the shell mount. */
+#site-shell-root,
+#site-shell-root *,
+#site-shell-root *::before,
+#site-shell-root *::after {
+  box-sizing: border-box;
+}
+
 /* Hide the original Google Sites header once the React site-shell is mounted.
    The scraper tags it with data-gs-header="1" so we can target it without
    depending on obfuscated Google Sites class names. */
