@@ -57,9 +57,13 @@ _BROWSER_HEADERS = {
 }
 
 
+_IMAGE_ID_PATTERN = re.compile(r"pic(\d+)\.")
+
+
 class BggClient:
     XML_API_URL = "https://boardgamegeek.com/xmlapi2/collection"
     THING_API_URL = "https://boardgamegeek.com/xmlapi2/thing"
+    IMAGES_API_URL = "https://api.geekdo.com/api/images"
     WEB_URL = "https://boardgamegeek.com/collection/user"
     MAX_RETRIES = 5
     INITIAL_BACKOFF = 5.0
@@ -175,6 +179,34 @@ class BggClient:
 
         return games
 
+    def _resolve_display_image_url(self, image_url: str) -> str:
+        """Resolve a BGG image URL to the "medium" (fit-in 500x500) variant.
+
+        BGG's own <image>/<thumbnail> XML fields only offer the full-resolution
+        original or a tiny 200x150 crop — nothing sized for a catalog card. The
+        geekdo images API exposes a "medium" preset that's much closer to what
+        we display, so we look it up by image id and fall back to the original
+        URL if that lookup fails for any reason.
+        """
+        match = _IMAGE_ID_PATTERN.search(image_url)
+        if not match:
+            return image_url
+
+        try:
+            response = httpx.get(
+                f"{self.IMAGES_API_URL}/{match.group(1)}", timeout=15.0
+            )
+        except httpx.HTTPError:
+            return image_url
+
+        if response.status_code != 200:
+            return image_url
+
+        try:
+            return response.json()["images"]["medium"]["url"] or image_url
+        except (KeyError, TypeError, ValueError):
+            return image_url
+
     def fetch_details(
         self, bgg_ids: list[int], batch_size: int = 20
     ) -> dict[int, BggGameDetails]:
@@ -205,6 +237,8 @@ class BggClient:
                 image_url = (
                     image_el.text if image_el is not None and image_el.text else ""
                 )
+                if image_url:
+                    image_url = self._resolve_display_image_url(image_url)
                 thumb_el = item.find("thumbnail")
                 thumbnail_url = (
                     thumb_el.text if thumb_el is not None and thumb_el.text else ""
