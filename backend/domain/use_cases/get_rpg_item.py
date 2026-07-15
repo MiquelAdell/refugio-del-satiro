@@ -22,6 +22,6 @@ class GetRpgItemUseCase:
 
     def execute(self, slug: str) -> RpgItemWithStatus | None:
         game = self._game_repo.get_by_slug(slug)
-        if game is None or game.item_type != "rpgitem":
+        if game is None or game.item_type != "rpgitem" or not game.is_active:
             return None
         return build_rpg_with_status(game, self._loan_repo, self._member_repo)

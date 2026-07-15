@@ -224,7 +224,7 @@ def _make_raw(
     nombre: str = "Test",
     apellidos: str = "User",
     apodo: str = "",
-    email: str = "test@example.com",
+    email: str = "TEST_email@domain.com",
     telefono: str = "",
     socio: str = "",
     admin: str = "",
@@ -260,13 +260,13 @@ def test_display_name_uses_nickname_when_unique() -> None:
                 nombre="Carles",
                 apellidos="Codina",
                 apodo="Caradras",
-                email="a@test.com",
+                email="TEST_email@domain.com",
             ),
             _make_raw(
                 nombre="Lucas",
                 apellidos="De la Cruz",
                 apodo="Borkyl",
-                email="b@test.com",
+                email="TEST_email@domain.com",
             ),
         ]
     )
@@ -285,9 +285,9 @@ def test_display_name_falls_back_when_nickname_not_unique() -> None:
     results = uc.execute(
         [
             _make_raw(
-                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com"
             ),
-            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="TEST_email@domain.com"),
         ]
     )
 
@@ -305,12 +305,12 @@ def test_members_without_email_are_skipped() -> None:
     results = uc.execute(
         [
             _make_raw(nombre="Jorge", apellidos="Torres", email=""),
-            _make_raw(nombre="Valid", apellidos="User", email="valid@test.com"),
+            _make_raw(nombre="Valid", apellidos="User", email="TEST_email@domain.com"),
         ]
     )
 
     assert len(results) == 1
-    assert results[0].member.email == "valid@test.com"
+    assert results[0].member.email == "TEST_email@domain.com"
     assert len(member_repo.list_all()) == 1
 
 
@@ -320,18 +320,18 @@ def test_upsert_updates_existing_members() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # First import
-    uc.execute([_make_raw(nombre="Old", apellidos="Name", email="x@test.com")])
+    uc.execute([_make_raw(nombre="Old", apellidos="Name", email="TEST_email@domain.com")])
 
     # Second import with updated name
     results = uc.execute(
-        [_make_raw(nombre="New", apellidos="Name", email="x@test.com")]
+        [_make_raw(nombre="New", apellidos="Name", email="TEST_email@domain.com")]
     )
 
     # No new members, so no tokens
     assert len(results) == 0
 
     # But member was updated
-    member = member_repo.get_by_email("x@test.com")
+    member = member_repo.get_by_email("TEST_email@domain.com")
     assert member is not None
     assert member.first_name == "New"
 
@@ -345,20 +345,20 @@ def test_password_tokens_generated_for_new_members_only() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # Import first member
-    results1 = uc.execute([_make_raw(nombre="A", apellidos="B", email="a@test.com")])
+    results1 = uc.execute([_make_raw(nombre="A", apellidos="B", email="TEST_email@domain.com")])
     assert len(results1) == 1  # new member gets token
 
     # Import both old and new member
     results2 = uc.execute(
         [
-            _make_raw(nombre="A", apellidos="B", email="a@test.com"),
-            _make_raw(nombre="C", apellidos="D", email="c@test.com"),
+            _make_raw(nombre="A", apellidos="B", email="TEST_email@domain.com"),
+            _make_raw(nombre="C", apellidos="D", email="TEST_email@domain.com"),
         ]
     )
 
     # Only the new member gets a token
     assert len(results2) == 1
-    assert results2[0].member.email == "c@test.com"
+    assert results2[0].member.email == "TEST_email@domain.com"
     assert "set-password?token=" in results2[0].token_url
 
 
@@ -369,9 +369,9 @@ def test_display_name_recomputation_on_collision() -> None:
 
     # First import: nickname "Ace" is unique
     uc.execute(
-        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com")]
+        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com")]
     )
-    m = member_repo.get_by_email("a@test.com")
+    m = member_repo.get_by_email("TEST_email@domain.com")
     assert m is not None
     assert m.display_name == "Ace"
 
@@ -379,15 +379,15 @@ def test_display_name_recomputation_on_collision() -> None:
     uc.execute(
         [
             _make_raw(
-                nombre="Alice", apellidos="Smith", apodo="Ace", email="a@test.com"
+                nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com"
             ),
-            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="b@test.com"),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="TEST_email@domain.com"),
         ]
     )
 
     # After recomputation, both should fall back to full names
-    alice = member_repo.get_by_email("a@test.com")
-    bob = member_repo.get_by_email("b@test.com")
+    alice = member_repo.get_by_email("TEST_email@domain.com")
+    bob = member_repo.get_by_email("TEST_email@domain.com")
     assert alice is not None
     assert bob is not None
     assert alice.display_name == "Alice Smith"
@@ -404,26 +404,26 @@ def test_import_maps_ultima_cuota_and_genero() -> None:
             _make_raw(
                 nombre="Ana",
                 apellidos="García",
-                email="ana@test.com",
+                email="TEST_email@domain.com",
                 ultima_cuota="5/02/2022",
                 genero="Femenino",
             ),
             _make_raw(
                 nombre="Pedro",
                 apellidos="López",
-                email="pedro@test.com",
+                email="TEST_email@domain.com",
                 ultima_cuota="",
                 genero="",
             ),
         ]
     )
 
-    ana = member_repo.get_by_email("ana@test.com")
+    ana = member_repo.get_by_email("TEST_email@domain.com")
     assert ana is not None
     assert ana.last_payment == "5/02/2022"
     assert ana.gender == "Femenino"
 
-    pedro = member_repo.get_by_email("pedro@test.com")
+    pedro = member_repo.get_by_email("TEST_email@domain.com")
     assert pedro is not None
     assert pedro.last_payment is None
     assert pedro.gender is None
@@ -435,10 +435,10 @@ def test_unpaid_member_is_created_inactive() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     uc.execute(
-        [_make_raw(nombre="Jose", apellidos="Delgado", email="jose@test.com", pagada="No")]
+        [_make_raw(nombre="Jose", apellidos="Delgado", email="TEST_email@domain.com", pagada="No")]
     )
 
-    jose = member_repo.get_by_email("jose@test.com")
+    jose = member_repo.get_by_email("TEST_email@domain.com")
     assert jose is not None
     assert jose.is_active is False
 
@@ -450,18 +450,18 @@ def test_paid_and_honorary_members_are_created_active() -> None:
 
     uc.execute(
         [
-            _make_raw(nombre="Paid", apellidos="Member", email="paid@test.com", pagada="Sí"),
+            _make_raw(nombre="Paid", apellidos="Member", email="TEST_email@domain.com", pagada="Sí"),
             _make_raw(
                 nombre="Honorary",
                 apellidos="Member",
-                email="honorary@test.com",
+                email="TEST_email@domain.com",
                 pagada="Honorífic",
             ),
         ]
     )
 
-    assert member_repo.get_by_email("paid@test.com").is_active is True  # type: ignore[union-attr]
-    assert member_repo.get_by_email("honorary@test.com").is_active is True  # type: ignore[union-attr]
+    assert member_repo.get_by_email("TEST_email@domain.com").is_active is True  # type: ignore[union-attr]
+    assert member_repo.get_by_email("TEST_email@domain.com").is_active is True  # type: ignore[union-attr]
 
 
 def test_reimport_does_not_change_admin_status_of_existing_member() -> None:
@@ -471,13 +471,13 @@ def test_reimport_does_not_change_admin_status_of_existing_member() -> None:
     token_repo = FakePasswordTokenRepository()
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
-    uc.execute([_make_raw(email="admin@test.com", admin="yes")])
-    assert member_repo.get_by_email("admin@test.com").is_admin is True  # type: ignore[union-attr]
+    uc.execute([_make_raw(email="TEST_email@domain.com", admin="yes")])
+    assert member_repo.get_by_email("TEST_email@domain.com").is_admin is True  # type: ignore[union-attr]
 
     # Re-import the same row without an "admin" column value, as a real sheet
     # export would look.
-    uc.execute([_make_raw(email="admin@test.com", admin="")])
-    assert member_repo.get_by_email("admin@test.com").is_admin is True  # type: ignore[union-attr]
+    uc.execute([_make_raw(email="TEST_email@domain.com", admin="")])
+    assert member_repo.get_by_email("TEST_email@domain.com").is_admin is True  # type: ignore[union-attr]
 
 
 def test_acting_member_id_is_kept_admin_even_if_demoted_by_import() -> None:
@@ -491,13 +491,13 @@ def test_acting_member_id_is_kept_admin_even_if_demoted_by_import() -> None:
         last_name="Admin",
         nickname=None,
         phone=None,
-        email="acting@test.com",
+        email="TEST_email@domain.com",
         display_name="Acting Admin",
         is_admin=True,
     )
 
     uc.execute(
-        [_make_raw(email="acting@test.com", admin="")],
+        [_make_raw(email="TEST_email@domain.com", admin="")],
         acting_member_id=acting_admin.id,
     )
 

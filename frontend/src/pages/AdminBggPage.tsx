@@ -12,6 +12,9 @@ type BggImportResponse = {
   created: number;
   updated: number;
   total: number;
+  deleted: number;
+  deactivated: number;
+  skip_reason: string | null;
   last_imported_at: string | null;
 };
 
@@ -104,8 +107,14 @@ export function AdminBggPage() {
 
       {result && (
         <p className="admin-bgg-result">
-          {result.created} nuevos, {result.updated} actualizados, {result.total} en total.
+          {result.created} nuevos, {result.updated} actualizados, {result.deleted}{" "}
+          eliminados, {result.deactivated} ocultados (prestados), {result.total} en
+          total.
         </p>
+      )}
+
+      {result?.skip_reason && (
+        <p className="admin-bgg-error">{result.skip_reason}</p>
       )}
     </div>
   );

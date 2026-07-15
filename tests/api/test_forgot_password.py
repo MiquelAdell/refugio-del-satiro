@@ -31,10 +31,10 @@ class TestForgotPassword:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
 
-        response = client.post("/api/forgot-password", json={"email": "test@test.com"})
+        response = client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}
@@ -43,7 +43,7 @@ class TestForgotPassword:
         client, _ = _setup_test_client()
 
         response = client.post(
-            "/api/forgot-password", json={"email": "nobody@test.com"}
+            "/api/forgot-password", json={"email": "TEST_email@domain.com"}
         )
 
         assert response.status_code == 200
@@ -53,11 +53,11 @@ class TestForgotPassword:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_active(member.id, False)
 
-        response = client.post("/api/forgot-password", json={"email": "test@test.com"})
+        response = client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}
@@ -66,10 +66,10 @@ class TestForgotPassword:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
 
-        client.post("/api/forgot-password", json={"email": "test@test.com"})
+        client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
 
         row = conn.execute("SELECT COUNT(*) FROM password_tokens").fetchone()
         assert row[0] == 1
@@ -77,7 +77,7 @@ class TestForgotPassword:
     def test_does_not_create_token_for_nonexistent_email(self) -> None:
         client, conn = _setup_test_client()
 
-        client.post("/api/forgot-password", json={"email": "nobody@test.com"})
+        client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
 
         row = conn.execute("SELECT COUNT(*) FROM password_tokens").fetchone()
         assert row[0] == 0

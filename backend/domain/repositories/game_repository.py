@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from datetime import datetime
 from typing import Protocol
 
@@ -15,7 +16,18 @@ class GameRepository(Protocol):
 
     def list_all(self) -> list[Game]: ...
 
-    def list_by_type(self, item_type: str) -> list[Game]: ...
+    def list_by_type(self, item_type: str) -> list[Game]: ...  # active items only
+
+    def list_by_type_including_inactive(self, item_type: str) -> list[Game]: ...
+
+    # active and inactive (soft-deleted) items — used by BGG reconciliation,
+    # which must see previously soft-deleted rows too
+
+    def deactivate_by_bgg_ids(self, bgg_ids: Collection[int]) -> int: ...
+
+    def delete_by_bgg_ids(
+        self, bgg_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]: ...  # (deleted, blocked_by_history)
 
     def get_last_updated_at(self) -> datetime | None: ...
 

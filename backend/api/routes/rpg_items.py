@@ -60,7 +60,10 @@ def list_rpg_items(
     member: OptionalMember,
 ) -> list[RpgItemResponse]:
     is_authenticated = member is not None
-    return [_to_response(item, is_authenticated=is_authenticated) for item in use_case.execute()]
+    return [
+        _to_response(item, is_authenticated=is_authenticated)
+        for item in use_case.execute()
+    ]
 
 
 @router.get("/{slug}/history", response_model=list[LoanHistoryEntryResponse])

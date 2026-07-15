@@ -21,19 +21,25 @@ class GetGameHistoryUseCase:
         game_repo: GameRepository,
         loan_repo: LoanRepository,
         member_repo: MemberRepository,
+        item_type: str | None = None,
     ) -> None:
         self._game_repo = game_repo
         self._loan_repo = loan_repo
         self._member_repo = member_repo
+        self._item_type = item_type
 
     def execute(self, slug: str) -> list[LoanHistoryEntry] | None:
         """Return loan history for the game identified by ``slug``.
 
         Returns ``None`` when no game matches the slug, so the caller can
         distinguish "no such game" (404) from "game has no history" ([]).
+        Deliberately ignores ``is_active`` — loan history for a removed game
+        must stay reachable.
         """
         game = self._game_repo.get_by_slug(slug)
         if game is None:
+            return None
+        if self._item_type is not None and game.item_type != self._item_type:
             return None
         loans = self._loan_repo.list_by_game_id(game.id)
         return [

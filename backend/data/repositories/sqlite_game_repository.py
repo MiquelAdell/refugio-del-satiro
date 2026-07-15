@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Collection
 from datetime import UTC, datetime
 
 from backend.domain.entities.game import Game
@@ -26,6 +27,7 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         updated_at=datetime.fromisoformat(row["updated_at"]),
         item_type=row["item_type"] if "item_type" in keys else "boardgame",
         description=row["description"] if "description" in keys else "",
+        is_active=bool(row["is_active"]) if "is_active" in keys else True,
     )
 
 
@@ -57,9 +59,46 @@ class SqliteGameRepository:
 
     def list_by_type(self, item_type: str) -> list[Game]:
         rows = self._conn.execute(
+            "SELECT * FROM games WHERE item_type = ? AND is_active = 1 ORDER BY name",
+            (item_type,),
+        ).fetchall()
+        return [_row_to_game(row) for row in rows]
+
+    def list_by_type_including_inactive(self, item_type: str) -> list[Game]:
+        rows = self._conn.execute(
             "SELECT * FROM games WHERE item_type = ? ORDER BY name", (item_type,)
         ).fetchall()
         return [_row_to_game(row) for row in rows]
+
+    def deactivate_by_bgg_ids(self, bgg_ids: Collection[int]) -> int:
+        if not bgg_ids:
+            return 0
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        placeholders = ",".join("?" for _ in bgg_ids)
+        cursor = self._conn.execute(
+            f"UPDATE games SET is_active = 0, updated_at = ? "
+            f"WHERE bgg_id IN ({placeholders}) AND is_active = 1",
+            (now, *bgg_ids),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
+    def delete_by_bgg_ids(
+        self, bgg_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]:
+        deleted: set[int] = set()
+        blocked: set[int] = set()
+        for bgg_id in bgg_ids:
+            try:
+                cursor = self._conn.execute(
+                    "DELETE FROM games WHERE bgg_id = ?", (bgg_id,)
+                )
+                self._conn.commit()
+                if cursor.rowcount:
+                    deleted.add(bgg_id)
+            except sqlite3.IntegrityError:
+                blocked.add(bgg_id)
+        return frozenset(deleted), frozenset(blocked)
 
     def get_last_updated_at(self) -> datetime | None:
         row = self._conn.execute("SELECT MAX(updated_at) AS last FROM games").fetchone()
@@ -98,9 +137,9 @@ class SqliteGameRepository:
             INSERT INTO games (
                 bgg_id, name, slug, thumbnail_url, image_url, year_published,
                 min_players, max_players, playing_time, bgg_rating, location,
-                item_type, description, created_at, updated_at
+                item_type, description, is_active, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             ON CONFLICT(bgg_id) DO UPDATE SET
                 name = excluded.name,
                 slug = excluded.slug,
@@ -114,6 +153,7 @@ class SqliteGameRepository:
                 location = excluded.location,
                 item_type = excluded.item_type,
                 description = excluded.description,
+                is_active = 1,
                 updated_at = ?
             """,
             (

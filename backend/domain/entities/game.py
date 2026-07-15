@@ -22,3 +22,4 @@ class Game:
     updated_at: datetime
     item_type: str = field(default="boardgame")
     description: str = field(default="")
+    is_active: bool = field(default=True)

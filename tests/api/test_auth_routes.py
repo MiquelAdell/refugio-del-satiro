@@ -35,15 +35,15 @@ class TestLogin:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(
-            member_repo.get_by_email("test@test.com").id,  # type: ignore[union-attr]
+            member_repo.get_by_email("TEST_email@domain.com").id,  # type: ignore[union-attr]
             hash_password("mypassword"),
         )
 
         response = client.post(
-            "/api/login", json={"email": "test@test.com", "password": "mypassword"}
+            "/api/login", json={"email": "TEST_email@domain.com", "password": "mypassword"}
         )
         assert response.status_code == 200
         assert response.json() == {"ok": True}
@@ -53,22 +53,22 @@ class TestLogin:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(
-            member_repo.get_by_email("test@test.com").id,  # type: ignore[union-attr]
+            member_repo.get_by_email("TEST_email@domain.com").id,  # type: ignore[union-attr]
             hash_password("mypassword"),
         )
 
         response = client.post(
-            "/api/login", json={"email": "test@test.com", "password": "wrong"}
+            "/api/login", json={"email": "TEST_email@domain.com", "password": "wrong"}
         )
         assert response.status_code == 401
 
     def test_login_nonexistent_email(self) -> None:
         client, _ = _setup_test_client()
         response = client.post(
-            "/api/login", json={"email": "nobody@test.com", "password": "test"}
+            "/api/login", json={"email": "TEST_email@domain.com", "password": "test"}
         )
         assert response.status_code == 401
 
@@ -76,11 +76,11 @@ class TestLogin:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
 
         response = client.post(
-            "/api/login", json={"email": "test@test.com", "password": "anything"}
+            "/api/login", json={"email": "TEST_email@domain.com", "password": "anything"}
         )
         assert response.status_code == 401
 
@@ -98,10 +98,10 @@ class TestGetMe:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", True
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", True
         )
         member_repo.set_password_hash(
-            member_repo.get_by_email("test@test.com").id,  # type: ignore[union-attr]
+            member_repo.get_by_email("TEST_email@domain.com").id,  # type: ignore[union-attr]
             hash_password("mypassword"),
         )
 
@@ -109,7 +109,7 @@ class TestGetMe:
         from backend.api.auth import create_jwt
         from backend.api.dependencies import _settings
 
-        member = member_repo.get_by_email("test@test.com")
+        member = member_repo.get_by_email("TEST_email@domain.com")
         assert member is not None
         token = create_jwt(member.id, _settings.jwt_secret)
 
@@ -117,7 +117,7 @@ class TestGetMe:
         assert response.status_code == 200
         data = response.json()
         assert data["display_name"] == "Test User"
-        assert data["email"] == "test@test.com"
+        assert data["email"] == "TEST_email@domain.com"
         assert data["is_admin"] is True
 
     def test_get_me_unauthenticated(self) -> None:
@@ -138,7 +138,7 @@ class TestChangePassword:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(member.id, hash_password("oldpassword"))
 
@@ -151,7 +151,7 @@ class TestChangePassword:
 
         login_response = client.post(
             "/api/login",
-            json={"email": "test@test.com", "password": "newpassword"},
+            json={"email": "TEST_email@domain.com", "password": "newpassword"},
         )
         assert login_response.status_code == 200
 
@@ -159,7 +159,7 @@ class TestChangePassword:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         member_repo.set_password_hash(member.id, hash_password("oldpassword"))
 
@@ -186,7 +186,7 @@ class TestSetPassword:
         member_repo = SqliteMemberRepository(conn)
         token_repo = SqlitePasswordTokenRepository(conn)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         password_token = token_repo.create(member.id)
 
@@ -203,7 +203,7 @@ class TestSetPassword:
         login_response = client.post(
             "/api/login",
             json={
-                "email": "test@test.com",
+                "email": "TEST_email@domain.com",
                 "password": "newpassword123",
             },
         )
@@ -225,7 +225,7 @@ class TestSetPassword:
         member_repo = SqliteMemberRepository(conn)
         token_repo = SqlitePasswordTokenRepository(conn)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "test@test.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         password_token = token_repo.create(member.id)
         token_repo.mark_used(password_token.id)
