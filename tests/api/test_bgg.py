@@ -36,9 +36,7 @@ def _auth_cookie(member: Member) -> dict[str, str]:
     return {"Cookie": f"session_token={token}"}
 
 
-def _make_member(
-    member_repo: SqliteMemberRepository, *, is_admin: bool
-) -> Member:
+def _make_member(member_repo: SqliteMemberRepository, *, is_admin: bool) -> Member:
     return member_repo.upsert_by_email(
         member_number=1,
         first_name="Ada",
@@ -110,12 +108,17 @@ class TestBggImport:
                 BggGame(230802, "Azul", "https://a.jpg", 2017),
             ],
         ):
-            response = client.post("/api/admin/bgg/import", headers=_auth_cookie(member))
+            response = client.post(
+                "/api/admin/bgg/import", headers=_auth_cookie(member)
+            )
 
         assert response.status_code == 200
         body = response.json()
         assert body["created"] == 2
         assert body["updated"] == 0
         assert body["total"] == 2
+        assert body["deleted"] == 0
+        assert body["deactivated"] == 0
+        assert body["skip_reason"] is None
         assert body["last_imported_at"] is not None
         conn.close()

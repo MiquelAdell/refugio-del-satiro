@@ -91,15 +91,11 @@ def get_game(
 @router.get("/{slug}/history", response_model=list[LoanHistoryEntryResponse])
 def get_game_history(
     slug: str,
-    game_use_case: Annotated[GetGameUseCase, Depends(get_game_use_case)],
-    history_use_case: Annotated[GetGameHistoryUseCase, Depends(get_game_history_use_case)],
+    history_use_case: Annotated[
+        GetGameHistoryUseCase, Depends(get_game_history_use_case)
+    ],
     member: OptionalMember,
 ) -> list[LoanHistoryEntryResponse]:
-    # Guard: history is only exposed for boardgames via this endpoint.
-    if game_use_case.execute(slug) is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Juego no encontrado."
-        )
     entries = history_use_case.execute(slug)
     if entries is None:
         raise HTTPException(

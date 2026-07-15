@@ -49,7 +49,7 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 7
+        assert len(first_run) == 8
         assert len(second_run) == 0
         conn.close()
 
@@ -83,6 +83,7 @@ class TestMigrationRunner:
             "updated_at",
             "item_type",
             "description",
+            "is_active",
         }
         conn.close()
 

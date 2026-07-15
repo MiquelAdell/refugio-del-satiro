@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 from datetime import UTC, datetime
 
 from backend.domain.entities.game import Game
@@ -218,3 +219,45 @@ class TestGetGameHistoryUseCase:
         assert result[1].member_display_name == "Alice"
         assert result[1].borrowed_at == borrowed_earlier
         assert result[1].returned_at == returned_date
+
+    def test_deactivated_game_history_still_returns_entries(self) -> None:
+        """Loan history for a soft-deleted (deactivated) game must stay
+        reachable — is_active is deliberately ignored."""
+        game = dataclasses.replace(_make_game(1, "catan"), is_active=False)
+        loan = _make_loan(
+            id=10, game_id=1, member_id=1, borrowed_at=NOW, returned_at=NOW
+        )
+        member = _make_member(1, "Alice")
+
+        use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository([game]),
+            loan_repo=FakeLoanRepository([loan]),
+            member_repo=FakeMemberRepository([member]),
+        )
+
+        result = use_case.execute(slug="catan")
+
+        assert result is not None
+        assert len(result) == 1
+
+    def test_item_type_scoping_returns_none_for_wrong_type(self) -> None:
+        boardgame = _make_game(1, "catan")
+        use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository([boardgame]),
+            loan_repo=FakeLoanRepository(),
+            member_repo=FakeMemberRepository(),
+            item_type="rpgitem",
+        )
+
+        assert use_case.execute(slug="catan") is None
+
+    def test_item_type_scoping_allows_matching_type(self) -> None:
+        boardgame = _make_game(1, "catan")
+        use_case = GetGameHistoryUseCase(
+            game_repo=FakeGameRepository([boardgame]),
+            loan_repo=FakeLoanRepository(),
+            member_repo=FakeMemberRepository(),
+            item_type="boardgame",
+        )
+
+        assert use_case.execute(slug="catan") == []

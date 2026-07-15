@@ -159,9 +159,9 @@ Stop with `docker compose down` (volumes survive) or `docker compose down -v`
 
 ```bash
 refugio migrate                          # Run migrations
-refugio import-games data/bgg_collection.json  # Import board games from JSON
-refugio import-games                     # Import board games from BGG API (requires BGG_BEARER_TOKEN)
-refugio import-rol                       # Import RPG items (libros de rol) from BGG API
+refugio import-games data/bgg_collection.json  # Import board games from JSON (no reconciliation)
+refugio import-games                     # Import board games from BGG API — BGG is the source of truth (requires BGG_BEARER_TOKEN)
+refugio import-rol                       # Import RPG items (libros de rol) from BGG API — same reconciliation
 refugio import-members members.csv       # Import members from CSV
 refugio import-members --email x@y.com --name "First Last"  # Add a single member
 
@@ -180,6 +180,18 @@ page under `/ludoteca/admin/bgg` shows the last import date and has a
 "Reimportar desde BGG" button, so this no longer requires shell access to
 the server. It runs the same BGG-API-first, HTML-scrape-fallback import as
 the CLI command above.
+
+Re-importing from the BGG API (`import-games` and `import-rol`, but not the
+JSON-seed form) treats BGG as the source of truth: an item that has
+disappeared from the club's BGG collection is removed. If it's not
+currently on loan, it's hard-deleted; if it is, it's hidden from the
+catalog (but its loan can still be returned normally) and gets deleted on
+a later import once returned — unless it has past loan history, in which
+case it stays hidden indefinitely rather than losing that history. As a
+safety guard, if the BGG fetch comes back empty or would newly remove more
+than 50% of the current active catalog, that run skips removing
+newly-missing items (still applying updates and cleaning up already-hidden
+ones) and reports a warning instead.
 
 ## Tests
 

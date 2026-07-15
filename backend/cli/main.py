@@ -54,6 +54,7 @@ def import_games(
     import json
 
     from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
     from backend.domain.use_cases.import_games import ImportGamesUseCase
 
     settings = _get_settings()
@@ -63,7 +64,10 @@ def import_games(
         game_repo = SqliteGameRepository(conn)
 
         if json_file:
-            # Import from JSON seed file
+            # Import from JSON seed file. No reconciliation here: seed files
+            # are partial/test fixtures, not full collection dumps, so
+            # diffing against them would wrongly delete/deactivate the real
+            # catalog.
             path = Path(json_file)
             if not path.exists():
                 typer.echo(f"Error: file not found: {json_file}", err=True)
@@ -122,13 +126,18 @@ def import_games(
             bgg_client = BggClient(
                 username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
             )
-            use_case = ImportGamesUseCase(game_repo, bgg_client)
+            loan_repo = SqliteLoanRepository(conn)
+            use_case = ImportGamesUseCase(game_repo, bgg_client, loan_repo)
 
             typer.echo("Fetching games from BGG (this may take a moment)...")
             result = use_case.execute()
             typer.echo(
-                f"Done. {result.created} new, {result.updated} updated, {result.total} total."
+                f"Done. {result.created} new, {result.updated} updated, "
+                f"{result.deleted} deleted, {result.deactivated} deactivated "
+                f"(on loan), {result.total} total."
             )
+            if result.skip_reason:
+                typer.echo(f"Warning: {result.skip_reason}", err=True)
     finally:
         conn.close()
 
@@ -181,6 +190,7 @@ def import_rol() -> None:
     """Import RPG items (libros de rol) from BGG API."""
     from backend.data.bgg_client import BggClient
     from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
     from backend.domain.use_cases.import_rpg_items import ImportRpgItemsUseCase
 
     settings = _get_settings()
@@ -199,13 +209,18 @@ def import_rol() -> None:
         bgg_client = BggClient(
             username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
         )
-        use_case = ImportRpgItemsUseCase(game_repo, bgg_client)
+        loan_repo = SqliteLoanRepository(conn)
+        use_case = ImportRpgItemsUseCase(game_repo, bgg_client, loan_repo)
 
         typer.echo("Fetching RPG items from BGG (this may take a moment)...")
         result = use_case.execute()
         typer.echo(
-            f"Done. {result.created} new, {result.updated} updated, {result.total} total."
+            f"Done. {result.created} new, {result.updated} updated, "
+            f"{result.deleted} deleted, {result.deactivated} deactivated "
+            f"(on loan), {result.total} total."
         )
+        if result.skip_reason:
+            typer.echo(f"Warning: {result.skip_reason}", err=True)
     finally:
         conn.close()
 

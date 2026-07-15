@@ -6,6 +6,7 @@ from backend.data.repositories.sqlite_game_repository import SqliteGameRepositor
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
 from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseCase
+from backend.domain.use_cases.return_game import ReturnGameUseCase
 
 
 class TestBorrowGameUseCase:
@@ -51,6 +52,40 @@ class TestBorrowGameUseCase:
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         with pytest.raises(BorrowGameError, match="no encontrado"):
             use_case.execute(999, 1)
+
+    def test_cannot_borrow_deactivated_game(
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
+        game_repo.deactivate_by_bgg_ids([1])
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
+        )
+        use_case = BorrowGameUseCase(game_repo, loan_repo)
+        with pytest.raises(BorrowGameError, match="no encontrado"):
+            use_case.execute(game.id, member.id)
+
+    def test_returning_loan_succeeds_on_deactivated_game(
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
+        )
+        borrow_use_case = BorrowGameUseCase(game_repo, loan_repo)
+        loan = borrow_use_case.execute(game.id, member.id)
+        game_repo.deactivate_by_bgg_ids([game.bgg_id])
+
+        return_use_case = ReturnGameUseCase(loan_repo)
+        returned = return_use_case.execute(loan.id, member)
+
+        assert returned.returned_at is not None
 
     def test_borrow_rpg_item_succeeds(
         self,

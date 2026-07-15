@@ -383,7 +383,9 @@ class TestRpgItemHistory:
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
         loan_repo.mark_returned(loan.id)
 
-        response = client.get(f"/api/rol/{rpg.slug}/history", headers=_auth_cookie(alice))
+        response = client.get(
+            f"/api/rol/{rpg.slug}/history", headers=_auth_cookie(alice)
+        )
 
         assert response.status_code == 200
         data = response.json()
