@@ -30,6 +30,8 @@ class GameWithStatus:
     status: str  # "available" or "lent"
     borrower_display_name: str | None
     loan_id: int | None
+    min_age: int
+    primary_tag: str
 
 
 def build_game_with_status(
@@ -59,6 +61,8 @@ def build_game_with_status(
             status="available",
             borrower_display_name=None,
             loan_id=None,
+            min_age=game.min_age,
+            primary_tag=game.primary_tag,
         )
 
     member = member_repo.get_by_id(active_loan.member_id)
@@ -82,6 +86,8 @@ def build_game_with_status(
         status="lent",
         borrower_display_name=member.display_name if member else None,
         loan_id=active_loan.id,
+        min_age=game.min_age,
+        primary_tag=game.primary_tag,
     )
 
 

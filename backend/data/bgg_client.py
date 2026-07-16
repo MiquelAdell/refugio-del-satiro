@@ -36,6 +36,8 @@ class BggGameDetails:
     bgg_rating: float
     description: str
     categories: tuple[str, ...]
+    min_age: int = 0
+    primary_tag: str = ""
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,38 @@ def _element_int_value(item: ET.Element, element_name: str) -> int:
     if element is None:
         return 0
     return int(element.get("value", "0") or element.text or "0")
+
+
+def _rank_value(rank: ET.Element) -> int | None:
+    """Parse a <rank>'s numeric value attribute, or None if unranked/unparsable."""
+    try:
+        return int(rank.get("value", ""))
+    except ValueError:
+        return None
+
+
+def _primary_tag(item: ET.Element) -> str:
+    """Resolve the game's primary BGG subdomain (family rank) tag.
+
+    Selection hierarchy: among all `rank type="family"` entries, pick the one
+    with the best (lowest) numeric rank value; entries with an unparsable
+    ("Not Ranked") value lose to any numeric one, and if all are unranked,
+    the first family entry wins. Returns "" when there is no family rank.
+    """
+    family_ranks = [
+        rank
+        for rank in item.findall("statistics/ratings/ranks/rank")
+        if rank.get("type") == "family"
+    ]
+    if not family_ranks:
+        return ""
+
+    ranked = [(rank, _rank_value(rank)) for rank in family_ranks]
+    numeric = [(rank, value) for rank, value in ranked if value is not None]
+    if numeric:
+        best_rank, _ = min(numeric, key=lambda pair: pair[1])
+        return best_rank.get("name", "") or ""
+    return family_ranks[0].get("name", "") or ""
 
 
 _BROWSER_HEADERS = {
@@ -288,6 +322,8 @@ class BggClient:
                 min_p = _element_int_value(item, "minplayers")
                 max_p = _element_int_value(item, "maxplayers")
                 play_time = _element_int_value(item, "playingtime")
+                min_age = _element_int_value(item, "minage")
+                primary_tag = _primary_tag(item)
 
                 # Rating is in statistics/ratings/average
                 rating = 0.0
@@ -323,6 +359,8 @@ class BggClient:
                     bgg_rating=round(rating, 2),
                     description=description,
                     categories=categories,
+                    min_age=min_age,
+                    primary_tag=primary_tag,
                 )
 
             if i + batch_size < len(bgg_ids):

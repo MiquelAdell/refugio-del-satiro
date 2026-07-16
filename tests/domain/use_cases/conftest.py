@@ -139,6 +139,8 @@ class FakeGameRepository:
         description: str = "",
         categories: tuple[str, ...] = (),
         publication_types: tuple[str, ...] = (),
+        min_age: int = 0,
+        primary_tag: str = "",
     ) -> Game:
         """Legacy path: no collection_id concept."""
         now = datetime.now(UTC)
@@ -165,6 +167,8 @@ class FakeGameRepository:
             publication_types=publication_types,
             is_active=True,
             bgg_collection_id=existing.bgg_collection_id if existing else None,
+            min_age=min_age,
+            primary_tag=primary_tag,
         )
         self._games[game.id] = game
         if existing is None:
@@ -188,6 +192,8 @@ class FakeGameRepository:
         description: str = "",
         categories: tuple[str, ...] = (),
         publication_types: tuple[str, ...] = (),
+        min_age: int = 0,
+        primary_tag: str = "",
     ) -> tuple[Game, bool]:
         now = datetime.now(UTC)
         existing = self.get_by_collection_id(bgg_collection_id)
@@ -224,6 +230,8 @@ class FakeGameRepository:
             categories=categories,
             publication_types=publication_types,
             is_active=True,
+            min_age=min_age,
+            primary_tag=primary_tag,
         )
         self._games[game.id] = game
         if was_created:

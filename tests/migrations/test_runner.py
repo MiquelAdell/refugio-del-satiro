@@ -68,12 +68,62 @@ class TestMigrationRunner:
 
         applied = run_migrations(conn)
 
-        assert applied == ["010_add_catalog_metadata"]
+        assert applied == [
+            "010_add_catalog_metadata",
+            "011_add_game_min_age_and_primary_tag",
+        ]
         game = SqliteGameRepository(conn).get_by_bgg_id(99)
         assert game is not None
         assert game.bgg_collection_id == 123456
         assert game.categories == ()
         assert game.publication_types == ()
+        assert game.min_age == 0
+        assert game.primary_tag == ""
+        assert run_migrations(conn) == []
+        conn.close()
+
+    def test_applies_min_age_and_primary_tag_migration(self) -> None:
+        conn = get_memory_connection()
+        applied = run_migrations(conn)
+        assert "011_add_game_min_age_and_primary_tag" in applied
+        conn.close()
+
+    def test_min_age_and_primary_tag_default_for_existing_rows(self) -> None:
+        conn = get_memory_connection()
+        migrations = sorted(MIGRATIONS_DIR.glob("*.sql"))
+        schema_ten_migrations = [
+            migration
+            for migration in migrations
+            if migration.stem <= "010_add_catalog_metadata"
+        ]
+        for migration in schema_ten_migrations:
+            conn.executescript(migration.read_text(encoding="utf-8"))
+        conn.execute("""
+            CREATE TABLE schema_migrations (
+                version TEXT PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                )
+            )
+            """)
+        conn.executemany(
+            "INSERT INTO schema_migrations (version) VALUES (?)",
+            ((migration.stem,) for migration in schema_ten_migrations),
+        )
+        conn.execute(
+            "INSERT INTO games "
+            "(bgg_id, bgg_collection_id, name, thumbnail_url, year_published) "
+            "VALUES (99, 123456, 'Existing game', 'https://t.jpg', 2020)"
+        )
+        conn.commit()
+
+        applied = run_migrations(conn)
+
+        assert applied == ["011_add_game_min_age_and_primary_tag"]
+        game = SqliteGameRepository(conn).get_by_bgg_id(99)
+        assert game is not None
+        assert game.min_age == 0
+        assert game.primary_tag == ""
         assert run_migrations(conn) == []
         conn.close()
 
@@ -96,7 +146,7 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 10
+        assert len(first_run) == 11
         assert len(second_run) == 0
         conn.close()
 
@@ -134,6 +184,8 @@ class TestMigrationRunner:
             "publication_types_json",
             "is_active",
             "bgg_collection_id",
+            "min_age",
+            "primary_tag",
         }
         conn.close()
 

@@ -30,6 +30,8 @@ def _details(
     bgg_id: int = 13,
     description: str = "Trade and build.",
     categories: tuple[str, ...] = ("Economic", "Strategy"),
+    min_age: int = 10,
+    primary_tag: str = "familygames",
 ) -> BggGameDetails:
     return BggGameDetails(
         bgg_id=bgg_id,
@@ -41,6 +43,8 @@ def _details(
         bgg_rating=7.15,
         description=description,
         categories=categories,
+        min_age=min_age,
+        primary_tag=primary_tag,
     )
 
 
@@ -75,6 +79,43 @@ class TestImportGamesUseCase:
         assert game.bgg_rating == 7.15
         assert game.description == "Trade and build."
         assert game.categories == ("Economic", "Strategy")
+        assert game.min_age == 10
+        assert game.primary_tag == "familygames"
+
+    def test_missing_details_fall_back_to_existing_min_age_and_primary_tag(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            13,
+            "Old Catan",
+            "https://old-thumb.jpg",
+            min_age=8,
+            primary_tag="strategygames",
+        )
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://new-thumb.jpg", 1995)]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.min_age == 8
+        assert game.primary_tag == "strategygames"
+
+    def test_missing_details_and_no_existing_row_defaults_min_age_and_primary_tag(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://new-thumb.jpg", 1995)]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.min_age == 0
+        assert game.primary_tag == ""
 
     def test_missing_collection_thumbnail_uses_detail_then_stored_fallback(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository

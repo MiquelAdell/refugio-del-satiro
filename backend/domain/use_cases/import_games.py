@@ -129,6 +129,16 @@ class ImportGamesUseCase:
                 publication_types=(
                     existing.publication_types if existing is not None else ()
                 ),
+                min_age=(
+                    details.min_age
+                    if details is not None
+                    else existing.min_age if existing is not None else 0
+                ),
+                primary_tag=(
+                    details.primary_tag
+                    if details is not None
+                    else existing.primary_tag if existing is not None else ""
+                ),
             )
             if was_created:
                 created += 1

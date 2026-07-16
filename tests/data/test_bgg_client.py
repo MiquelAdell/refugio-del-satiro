@@ -20,6 +20,30 @@ IMAGE_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
     </item>
 </items>"""
 
+
+def _thing_xml_with_ranks(ranks_xml: str, *, minage: str = "") -> str:
+    minage_tag = f'<minage value="{minage}"/>' if minage else ""
+    return f"""<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="boardgame" id="13">
+        <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
+        <image>https://cf.geekdo-images.com/catan.png</image>
+        {minage_tag}
+        <minplayers value="3"/>
+        <maxplayers value="4"/>
+        <playingtime value="90"/>
+        <statistics page="1">
+            <ratings>
+                <average value="7.20"/>
+                <ranks>
+                    {ranks_xml}
+                </ranks>
+            </ratings>
+        </statistics>
+    </item>
+</items>"""
+
+
 IMAGES_API_RESPONSE = {
     "images": {
         "medium": {
@@ -132,6 +156,67 @@ class TestBggClientFetchDetails:
         client = BggClient("test")
         details = client.fetch_details([1])
         assert details[1].image_url == ""
+
+
+class TestBggClientMinAgeAndPrimaryTag:
+    OVERALL_RANK = '<rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="150"/>'
+
+    def _details(self, xml: str, monkeypatch: object):  # type: ignore[no-untyped-def]
+        import httpx
+
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: _FakeResponse(text=xml))
+        return BggClient("test").fetch_details([13])[13]
+
+    def test_parses_min_age(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK, minage="7")
+        assert self._details(xml, monkeypatch).min_age == 7
+
+    def test_min_age_defaults_to_zero_when_absent(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK)
+        assert self._details(xml, monkeypatch).min_age == 0
+
+    def test_single_family_rank_is_primary_tag(self, monkeypatch: object) -> None:
+        ranks = (
+            self.OVERALL_RANK + '<rank type="family" id="5499" name="familygames" '
+            'friendlyname="Family Game Rank" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_multiple_family_ranks_picks_best_numeric_value(
+        self, monkeypatch: object
+    ) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="strategygames" value="200"/>'
+            + '<rank type="family" id="5499" name="familygames" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_unranked_family_entries_lose_to_numeric_ones(
+        self, monkeypatch: object
+    ) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="partygames" value="Not Ranked"/>'
+            + '<rank type="family" id="5499" name="familygames" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_all_unranked_family_entries_takes_first(self, monkeypatch: object) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="partygames" value="Not Ranked"/>'
+            + '<rank type="family" id="5499" name="familygames" value="Not Ranked"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "partygames"
+
+    def test_no_family_rank_yields_empty_primary_tag(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK)
+        assert self._details(xml, monkeypatch).primary_tag == ""
 
 
 SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>

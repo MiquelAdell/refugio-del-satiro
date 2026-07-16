@@ -40,6 +40,8 @@ class GameResponse(BaseModel):
     status: str
     borrower_display_name: str | None
     loan_id: int | None
+    min_age: int
+    primary_tag: str
 
 
 def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
@@ -63,6 +65,8 @@ def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
         status=g.status,
         borrower_display_name=g.borrower_display_name if is_authenticated else None,
         loan_id=g.loan_id if is_authenticated else None,
+        min_age=g.min_age,
+        primary_tag=g.primary_tag,
     )
 
 
