@@ -166,7 +166,7 @@ refugio migrate                          # Run migrations
 refugio import-games data/bgg_collection.json  # Import board games from JSON (no reconciliation)
 refugio import-games                     # Import board games from BGG API — BGG is the source of truth (requires BGG_BEARER_TOKEN)
 refugio import-rol                       # Import RPG items (libros de rol) from BGG API — same reconciliation
-refugio import-members members.csv       # Import members from CSV
+refugio import-members members.csv       # Sync members from CSV (missing active members are disabled with a >50% safety guard)
 refugio import-members --email x@y.com --name "First Last"  # Add a single member
 
 refugio content run                      # Scrape Google Sites → frontend/public/content-mirror/
@@ -205,6 +205,12 @@ single base game rather than giving each its own id); keying on the
 collection entry instead of the objectid keeps those as separate catalog
 rows instead of collapsing them into one. Rows imported before this
 existed adopt their collection id automatically on the next import.
+
+Admins can upload the members CSV from `/ludoteca/admin/members`. The upload
+creates and updates members, disables active members that are absent from the
+file, and preserves the administrator running the import. Empty files and files
+that would disable more than 50% of the other active members skip deactivation
+and show a safety warning instead.
 
 ## Tests
 

@@ -11,8 +11,8 @@ runner = CliRunner()
 
 _CSV_CONTENT = """\
 Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género
-1,Adell,Miquel,Miquel,600 00 00 01,TEST_email@domain.com,yes,24/01/2026,Masculino
-2,García López,Carla,Carla,600 00 00 02,TEST_email@domain.com,,24/01/2026,Femenino
+1,Adell,Miquel,Miquel,600 00 00 01,miquel@example.test,yes,24/01/2026,Masculino
+2,García López,Carla,Carla,600 00 00 02,carla@example.test,,24/01/2026,Femenino
 3,Torres Ruiz,Jorge,,600 00 00 03,,,24/01/2026,Masculino
 """
 
@@ -45,13 +45,13 @@ def test_import_members_csv(monkeypatch: object, tmp_path: Path) -> None:
         # 3 rows, but Jorge Torres Ruiz has no email => 2 members
         assert len(members) == 2
 
-        admin = member_repo.get_by_email("TEST_email@domain.com")
+        admin = member_repo.get_by_email("miquel@example.test")
         assert admin is not None
         assert admin.is_admin is True
         assert admin.last_payment == "24/01/2026"
         assert admin.gender == "Masculino"
 
-        carla = member_repo.get_by_email("TEST_email@domain.com")
+        carla = member_repo.get_by_email("carla@example.test")
         assert carla is not None
         assert carla.is_admin is False
     finally:
@@ -59,4 +59,6 @@ def test_import_members_csv(monkeypatch: object, tmp_path: Path) -> None:
 
     # Output should contain one-time URLs
     assert "set-password?token=" in result.output
-    assert "2 new member(s) imported" in result.output
+    assert (
+        "Import summary: 2 created, 0 updated, 1 skipped, 0 disabled " "(3 total rows)."
+    ) in result.output

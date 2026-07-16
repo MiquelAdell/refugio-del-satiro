@@ -158,13 +158,7 @@ export function AdminMembersPage() {
         "/admin/members/import",
         formData
       );
-      if (res.created.length === 0) {
-        setSuccessMessage(
-          "Importación completada. Ningún socio nuevo (socios existentes actualizados)."
-        );
-      } else {
-        setImportResult(res);
-      }
+      setImportResult(res);
       void fetchMembers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error importando el CSV.");
@@ -273,8 +267,14 @@ export function AdminMembersPage() {
       {importResult && (
         <div className="admin-token-banner">
           <p>
-            {`${importResult.created.length} socios nuevos, ${importResult.skipped_rows} filas omitidas de ${importResult.total_rows}`}
+            {`Importación completada. Creados: ${importResult.created_count}. Actualizados: ${importResult.updated_count}. Filas omitidas: ${importResult.skipped_rows} de ${importResult.total_rows}. Desactivados: ${importResult.disabled_count}.`}
           </p>
+          {importResult.deactivation_skip_reason && (
+            <p className="admin-import-warning" role="alert">
+              <strong>Aviso de seguridad:</strong>{" "}
+              {importResult.deactivation_skip_reason}
+            </p>
+          )}
           <ul className="admin-import-list">
             {importResult.created.map((imported) => (
               <li key={imported.email} className="admin-import-item">
@@ -399,6 +399,14 @@ export function AdminMembersPage() {
             <li>
               Si el email ya existe, se actualizan los datos del socio (no se
               duplica).
+            </li>
+            <li>
+              Los socios activos que no aparezcan en el CSV se desactivan. El
+              administrador que realiza la importación siempre queda protegido.
+            </li>
+            <li>
+              Los archivos vacíos o sospechosamente pequeños no desactivan socios
+              ausentes: la importación muestra un aviso de seguridad en ese caso.
             </li>
             <li>
               Los socios nuevos reciben un enlace para establecer su

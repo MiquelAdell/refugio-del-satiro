@@ -16,7 +16,10 @@ from backend.api.dependencies import (
 )
 from backend.data.email_client import EmailClient
 from backend.domain.entities.member import Member
-from backend.domain.use_cases.import_members import ImportMembersUseCase
+from backend.domain.use_cases.import_members import (
+    ImportMembersUseCase,
+    MemberImportValidationError,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -94,8 +97,12 @@ class ImportedMember(BaseModel):
 
 class ImportMembersResponse(BaseModel):
     created: list[ImportedMember]
+    created_count: int
+    updated_count: int
+    disabled_count: int
     total_rows: int
     skipped_rows: int
+    deactivation_skip_reason: str | None
 
 
 @router.get("/members", response_model=list[MemberListItem])
@@ -194,18 +201,49 @@ async def import_members(
             detail="El archivo debe ser un CSV codificado en UTF-8.",
         ) from exc
 
-    reader = csv.DictReader(io.StringIO(text))
-    if reader.fieldnames is None or "Email" not in reader.fieldnames:
+    try:
+        reader = csv.DictReader(io.StringIO(text, newline=""), strict=True)
+        fieldnames = reader.fieldnames
+    except csv.Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo CSV no tiene un formato válido.",
+        ) from exc
+
+    if fieldnames is None or "Email" not in fieldnames:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El archivo CSV debe tener una columna 'Email'.",
         )
 
-    raw_members = list(reader)
-    skipped_rows = sum(1 for row in raw_members if not (row.get("Email") or "").strip())
+    try:
+        raw_members = list(reader)
+    except csv.Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo CSV no tiene un formato válido.",
+        ) from exc
+
+    if any(
+        None in row or any(value is None for value in row.values())
+        for row in raw_members
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Todas las filas del CSV deben tener el mismo número de columnas.",
+        )
 
     use_case = ImportMembersUseCase(member_repo, token_repo, _settings.base_url)
-    results = use_case.execute(raw_members, acting_member_id=_admin.id)
+    try:
+        result = use_case.execute(raw_members, acting_member_id=_admin.id)
+    except MemberImportValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "El archivo CSV contiene datos no válidos. "
+                "Revisa los números de socio y vuelve a intentarlo."
+            ),
+        ) from exc
 
     return ImportMembersResponse(
         created=[
@@ -214,10 +252,14 @@ async def import_members(
                 email=r.member.email,
                 token_url=r.token_url,
             )
-            for r in results
+            for r in result.created
         ],
-        total_rows=len(raw_members),
-        skipped_rows=skipped_rows,
+        created_count=result.created_count,
+        updated_count=result.updated_count,
+        disabled_count=result.disabled_count,
+        total_rows=result.total_rows,
+        skipped_rows=result.skipped_count,
+        deactivation_skip_reason=result.deactivation_skip_reason,
     )
 
 

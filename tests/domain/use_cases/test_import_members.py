@@ -3,9 +3,14 @@ from __future__ import annotations
 import secrets
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from backend.domain.entities.member import Member
 from backend.domain.entities.password_token import PasswordToken
-from backend.domain.use_cases.import_members import ImportMembersUseCase
+from backend.domain.use_cases.import_members import (
+    ImportMembersUseCase,
+    MemberImportValidationError,
+)
 
 
 class FakeMemberRepository:
@@ -108,6 +113,26 @@ class FakeMemberRepository:
             password_hash=m.password_hash,
             is_admin=is_admin,
             is_active=m.is_active,
+            created_at=m.created_at,
+            updated_at=datetime.now(UTC),
+            last_payment=m.last_payment,
+            gender=m.gender,
+        )
+
+    def set_active(self, member_id: int, is_active: bool) -> None:
+        m = self._members[member_id]
+        self._members[member_id] = Member(
+            id=m.id,
+            member_number=m.member_number,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            nickname=m.nickname,
+            phone=m.phone,
+            email=m.email,
+            display_name=m.display_name,
+            password_hash=m.password_hash,
+            is_admin=m.is_admin,
+            is_active=is_active,
             created_at=m.created_at,
             updated_at=datetime.now(UTC),
             last_payment=m.last_payment,
@@ -247,6 +272,8 @@ def _make_raw(
 
 
 BASE_URL = "http://localhost:8000"
+EMAIL_A = "alice@example.test"
+EMAIL_B = "bob@example.test"
 
 
 def test_display_name_uses_nickname_when_unique() -> None:
@@ -260,19 +287,19 @@ def test_display_name_uses_nickname_when_unique() -> None:
                 nombre="Carles",
                 apellidos="Codina",
                 apodo="Caradras",
-                email="TEST_email@domain.com",
+                email=EMAIL_A,
             ),
             _make_raw(
                 nombre="Lucas",
                 apellidos="De la Cruz",
                 apodo="Borkyl",
-                email="TEST_email@domain.com",
+                email=EMAIL_B,
             ),
         ]
     )
 
-    assert len(results) == 2
-    names = {r.member.display_name for r in results}
+    assert results.created_count == 2
+    names = {r.member.display_name for r in results.created}
     assert "Caradras" in names
     assert "Borkyl" in names
 
@@ -284,14 +311,12 @@ def test_display_name_falls_back_when_nickname_not_unique() -> None:
 
     results = uc.execute(
         [
-            _make_raw(
-                nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com"
-            ),
-            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="TEST_email@domain.com"),
+            _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email=EMAIL_A),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email=EMAIL_B),
         ]
     )
 
-    names = {r.member.display_name for r in results}
+    names = {r.member.display_name for r in results.created}
     assert "Alice Smith" in names
     assert "Bob Jones" in names
     assert "Ace" not in names
@@ -309,8 +334,9 @@ def test_members_without_email_are_skipped() -> None:
         ]
     )
 
-    assert len(results) == 1
-    assert results[0].member.email == "TEST_email@domain.com"
+    assert results.created_count == 1
+    assert results.skipped_count == 1
+    assert results.created[0].member.email == "TEST_email@domain.com"
     assert len(member_repo.list_all()) == 1
 
 
@@ -320,7 +346,9 @@ def test_upsert_updates_existing_members() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # First import
-    uc.execute([_make_raw(nombre="Old", apellidos="Name", email="TEST_email@domain.com")])
+    uc.execute(
+        [_make_raw(nombre="Old", apellidos="Name", email="TEST_email@domain.com")]
+    )
 
     # Second import with updated name
     results = uc.execute(
@@ -328,7 +356,8 @@ def test_upsert_updates_existing_members() -> None:
     )
 
     # No new members, so no tokens
-    assert len(results) == 0
+    assert results.created == ()
+    assert results.updated_count == 1
 
     # But member was updated
     member = member_repo.get_by_email("TEST_email@domain.com")
@@ -345,21 +374,22 @@ def test_password_tokens_generated_for_new_members_only() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     # Import first member
-    results1 = uc.execute([_make_raw(nombre="A", apellidos="B", email="TEST_email@domain.com")])
-    assert len(results1) == 1  # new member gets token
+    results1 = uc.execute([_make_raw(nombre="A", apellidos="B", email=EMAIL_A)])
+    assert results1.created_count == 1
 
     # Import both old and new member
     results2 = uc.execute(
         [
-            _make_raw(nombre="A", apellidos="B", email="TEST_email@domain.com"),
-            _make_raw(nombre="C", apellidos="D", email="TEST_email@domain.com"),
+            _make_raw(nombre="A", apellidos="B", email=EMAIL_A),
+            _make_raw(nombre="C", apellidos="D", email=EMAIL_B),
         ]
     )
 
     # Only the new member gets a token
-    assert len(results2) == 1
-    assert results2[0].member.email == "TEST_email@domain.com"
-    assert "set-password?token=" in results2[0].token_url
+    assert results2.created_count == 1
+    assert results2.updated_count == 1
+    assert results2.created[0].member.email == EMAIL_B
+    assert "set-password?token=" in results2.created[0].token_url
 
 
 def test_display_name_recomputation_on_collision() -> None:
@@ -369,25 +399,23 @@ def test_display_name_recomputation_on_collision() -> None:
 
     # First import: nickname "Ace" is unique
     uc.execute(
-        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com")]
+        [_make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email=EMAIL_A)]
     )
-    m = member_repo.get_by_email("TEST_email@domain.com")
+    m = member_repo.get_by_email(EMAIL_A)
     assert m is not None
     assert m.display_name == "Ace"
 
     # Second import: adds another "Ace" -- collision!
     uc.execute(
         [
-            _make_raw(
-                nombre="Alice", apellidos="Smith", apodo="Ace", email="TEST_email@domain.com"
-            ),
-            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email="TEST_email@domain.com"),
+            _make_raw(nombre="Alice", apellidos="Smith", apodo="Ace", email=EMAIL_A),
+            _make_raw(nombre="Bob", apellidos="Jones", apodo="Ace", email=EMAIL_B),
         ]
     )
 
     # After recomputation, both should fall back to full names
-    alice = member_repo.get_by_email("TEST_email@domain.com")
-    bob = member_repo.get_by_email("TEST_email@domain.com")
+    alice = member_repo.get_by_email(EMAIL_A)
+    bob = member_repo.get_by_email(EMAIL_B)
     assert alice is not None
     assert bob is not None
     assert alice.display_name == "Alice Smith"
@@ -404,26 +432,26 @@ def test_import_maps_ultima_cuota_and_genero() -> None:
             _make_raw(
                 nombre="Ana",
                 apellidos="García",
-                email="TEST_email@domain.com",
+                email=EMAIL_A,
                 ultima_cuota="5/02/2022",
                 genero="Femenino",
             ),
             _make_raw(
                 nombre="Pedro",
                 apellidos="López",
-                email="TEST_email@domain.com",
+                email=EMAIL_B,
                 ultima_cuota="",
                 genero="",
             ),
         ]
     )
 
-    ana = member_repo.get_by_email("TEST_email@domain.com")
+    ana = member_repo.get_by_email(EMAIL_A)
     assert ana is not None
     assert ana.last_payment == "5/02/2022"
     assert ana.gender == "Femenino"
 
-    pedro = member_repo.get_by_email("TEST_email@domain.com")
+    pedro = member_repo.get_by_email(EMAIL_B)
     assert pedro is not None
     assert pedro.last_payment is None
     assert pedro.gender is None
@@ -435,7 +463,14 @@ def test_unpaid_member_is_created_inactive() -> None:
     uc = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
 
     uc.execute(
-        [_make_raw(nombre="Jose", apellidos="Delgado", email="TEST_email@domain.com", pagada="No")]
+        [
+            _make_raw(
+                nombre="Jose",
+                apellidos="Delgado",
+                email="TEST_email@domain.com",
+                pagada="No",
+            )
+        ]
     )
 
     jose = member_repo.get_by_email("TEST_email@domain.com")
@@ -450,18 +485,18 @@ def test_paid_and_honorary_members_are_created_active() -> None:
 
     uc.execute(
         [
-            _make_raw(nombre="Paid", apellidos="Member", email="TEST_email@domain.com", pagada="Sí"),
+            _make_raw(nombre="Paid", apellidos="Member", email=EMAIL_A, pagada="Sí"),
             _make_raw(
                 nombre="Honorary",
                 apellidos="Member",
-                email="TEST_email@domain.com",
+                email=EMAIL_B,
                 pagada="Honorífic",
             ),
         ]
     )
 
-    assert member_repo.get_by_email("TEST_email@domain.com").is_active is True  # type: ignore[union-attr]
-    assert member_repo.get_by_email("TEST_email@domain.com").is_active is True  # type: ignore[union-attr]
+    assert member_repo.get_by_email(EMAIL_A).is_active is True  # type: ignore[union-attr]
+    assert member_repo.get_by_email(EMAIL_B).is_active is True  # type: ignore[union-attr]
 
 
 def test_reimport_does_not_change_admin_status_of_existing_member() -> None:
@@ -502,3 +537,158 @@ def test_acting_member_id_is_kept_admin_even_if_demoted_by_import() -> None:
     )
 
     assert member_repo.get_by_id(acting_admin.id).is_admin is True  # type: ignore[union-attr]
+
+
+def _seed_member(
+    member_repo: FakeMemberRepository,
+    email: str,
+    *,
+    first_name: str = "Existing",
+    is_admin: bool = False,
+    is_active: bool = True,
+) -> Member:
+    member = member_repo.upsert_by_email(
+        member_number=None,
+        first_name=first_name,
+        last_name="Member",
+        nickname=None,
+        phone=None,
+        email=email,
+        display_name=f"{first_name} Member",
+        is_admin=is_admin,
+        is_active=is_active,
+    )
+    if not is_active:
+        member_repo.set_active(member.id, False)
+    return member
+
+
+class TestMemberBatchReconciliation:
+    def test_missing_member_is_disabled_but_remains_retrievable(self) -> None:
+        member_repo = FakeMemberRepository()
+        present = _seed_member(member_repo, EMAIL_A)
+        missing = _seed_member(member_repo, EMAIL_B)
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute([_make_raw(email=present.email)])
+
+        assert result.disabled_count == 1
+        assert result.deactivation_skip_reason is None
+        disabled_member = member_repo.get_by_id(missing.id)
+        assert disabled_member is not None
+        assert disabled_member.is_active is False
+
+    def test_present_existing_member_is_updated_and_counted(self) -> None:
+        member_repo = FakeMemberRepository()
+        existing = _seed_member(member_repo, EMAIL_A, first_name="Old")
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute([_make_raw(email=EMAIL_A, nombre="New")])
+
+        assert result.created_count == 0
+        assert result.updated_count == 1
+        assert result.skipped_count == 0
+        assert result.total_rows == 1
+        assert member_repo.get_by_id(existing.id).first_name == "New"  # type: ignore[union-attr]
+
+    def test_acting_admin_absent_from_upload_remains_active_and_admin(self) -> None:
+        member_repo = FakeMemberRepository()
+        acting_admin = _seed_member(
+            member_repo,
+            "admin@example.test",
+            is_admin=True,
+        )
+        present = _seed_member(member_repo, EMAIL_A)
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute(
+            [_make_raw(email=present.email)], acting_member_id=acting_admin.id
+        )
+
+        protected_admin = member_repo.get_by_id(acting_admin.id)
+        assert result.disabled_count == 0
+        assert protected_admin is not None
+        assert protected_admin.is_active is True
+        assert protected_admin.is_admin is True
+
+    def test_empty_upload_warns_and_does_not_disable_members(self) -> None:
+        member_repo = FakeMemberRepository()
+        existing = _seed_member(member_repo, EMAIL_A)
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute([_make_raw(email="")])
+
+        assert result.disabled_count == 0
+        assert result.skipped_count == 1
+        assert result.deactivation_skip_reason == (
+            "No se desactivaron socios ausentes porque la importación "
+            "no contiene ninguna dirección de email válida."
+        )
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+
+    def test_more_than_half_missing_is_guarded(self) -> None:
+        member_repo = FakeMemberRepository()
+        existing_members = tuple(
+            _seed_member(member_repo, email)
+            for email in (EMAIL_A, EMAIL_B, "third@example.test")
+        )
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute([_make_raw(email=EMAIL_A)])
+
+        assert result.disabled_count == 0
+        assert result.deactivation_skip_reason == (
+            "Faltan 2 de 3 socios activos en la importación (> 50%); "
+            "no se desactivaron los socios ausentes."
+        )
+        assert [member_repo.get_by_id(member.id).is_active for member in existing_members] == [  # type: ignore[union-attr]
+            True,
+            True,
+            True,
+        ]
+
+    def test_exactly_half_missing_is_disabled(self) -> None:
+        member_repo = FakeMemberRepository()
+        _seed_member(member_repo, EMAIL_A)
+        missing = _seed_member(member_repo, EMAIL_B)
+        use_case = ImportMembersUseCase(
+            member_repo, FakePasswordTokenRepository(), BASE_URL
+        )
+
+        result = use_case.execute([_make_raw(email=EMAIL_A)])
+
+        assert result.disabled_count == 1
+        assert result.deactivation_skip_reason is None
+        assert member_repo.get_by_id(missing.id).is_active is False  # type: ignore[union-attr]
+
+    def test_malformed_member_number_causes_zero_mutations(self) -> None:
+        member_repo = FakeMemberRepository()
+        existing = _seed_member(member_repo, EMAIL_A)
+        before = member_repo.list_all()
+        token_repo = FakePasswordTokenRepository()
+        use_case = ImportMembersUseCase(member_repo, token_repo, BASE_URL)
+
+        with pytest.raises(
+            MemberImportValidationError,
+            match="Invalid member number on row 2: 'not-a-number'",
+        ):
+            use_case.execute(
+                [
+                    _make_raw(email=EMAIL_A, nombre="Changed"),
+                    _make_raw(email=EMAIL_B, socio="not-a-number"),
+                ]
+            )
+
+        assert member_repo.list_all() == before
+        assert member_repo.get_by_id(existing.id).first_name == "Existing"  # type: ignore[union-attr]
+        assert token_repo._tokens == {}
