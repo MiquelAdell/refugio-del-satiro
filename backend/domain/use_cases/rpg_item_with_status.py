@@ -18,6 +18,8 @@ class RpgItemWithStatus:
     year_published: int
     bgg_rating: float
     description: str
+    categories: tuple[str, ...]
+    publication_types: tuple[str, ...]
     status: str  # "available" | "lent"
     borrower_display_name: str | None
     loan_id: int | None
@@ -40,6 +42,8 @@ def build_rpg_with_status(
             year_published=game.year_published,
             bgg_rating=game.bgg_rating,
             description=game.description,
+            categories=game.categories,
+            publication_types=game.publication_types,
             status="available",
             borrower_display_name=None,
             loan_id=None,
@@ -56,6 +60,8 @@ def build_rpg_with_status(
         year_published=game.year_published,
         bgg_rating=game.bgg_rating,
         description=game.description,
+        categories=game.categories,
+        publication_types=game.publication_types,
         status="lent",
         borrower_display_name=member.display_name if member else None,
         loan_id=active_loan.id,

@@ -34,6 +34,8 @@ class BggGameDetails:
     max_players: int
     playing_time: int
     bgg_rating: float
+    description: str
+    categories: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,9 @@ class BggRpgItem:
     bgg_rating: float
     description: str
     collection_id: int | None = None
+    categories: tuple[str, ...] = ()
+    publication_types: tuple[str, ...] = ()
+    details_loaded: bool = True
 
 
 @dataclass(frozen=True)
@@ -57,6 +62,27 @@ class _RpgDetails:
     year_published: int
     bgg_rating: float
     description: str
+    categories: tuple[str, ...]
+    publication_types: tuple[str, ...]
+
+
+def _normalize_classifications(values: list[str]) -> tuple[str, ...]:
+    cleaned = sorted(
+        (value.strip() for value in values if value.strip()),
+        key=lambda value: (value.casefold(), value),
+    )
+    return tuple(
+        value
+        for index, value in enumerate(cleaned)
+        if index == 0 or value.casefold() != cleaned[index - 1].casefold()
+    )
+
+
+def _element_int_value(item: ET.Element, element_name: str) -> int:
+    element = item.find(element_name)
+    if element is None:
+        return 0
+    return int(element.get("value", "0") or element.text or "0")
 
 
 _BROWSER_HEADERS = {
@@ -225,7 +251,7 @@ class BggClient:
     def fetch_details(
         self, bgg_ids: list[int], batch_size: int = 20
     ) -> dict[int, BggGameDetails]:
-        """Fetch full details (image, players, time, rating) from the BGG thing API.
+        """Fetch complete board-game details from the BGG thing API.
 
         Returns a mapping of bgg_id → BggGameDetails.
         """
@@ -259,15 +285,9 @@ class BggClient:
                     thumb_el.text if thumb_el is not None and thumb_el.text else ""
                 )
 
-                def _int_val(el_name: str, _item: object = item) -> int:  # noqa: B023
-                    el = _item.find(el_name)  # type: ignore[union-attr]
-                    if el is None:
-                        return 0
-                    return int(el.get("value", "0") or el.text or "0")
-
-                min_p = _int_val("minplayers")
-                max_p = _int_val("maxplayers")
-                play_time = _int_val("playingtime")
+                min_p = _element_int_value(item, "minplayers")
+                max_p = _element_int_value(item, "maxplayers")
+                play_time = _element_int_value(item, "playingtime")
 
                 # Rating is in statistics/ratings/average
                 rating = 0.0
@@ -279,6 +299,20 @@ class BggClient:
                         if avg is not None:
                             rating = float(avg.get("value", "0") or "0")
 
+                description_el = item.find("description")
+                description = (
+                    unescape(description_el.text)
+                    if description_el is not None and description_el.text
+                    else ""
+                )
+                categories = _normalize_classifications(
+                    [
+                        link.get("value", "")
+                        for link in item.findall("link")
+                        if link.get("type") == "boardgamecategory"
+                    ]
+                )
+
                 details[bgg_id] = BggGameDetails(
                     bgg_id=bgg_id,
                     image_url=image_url,
@@ -287,6 +321,8 @@ class BggClient:
                     max_players=max_p,
                     playing_time=play_time,
                     bgg_rating=round(rating, 2),
+                    description=description,
+                    categories=categories,
                 )
 
             if i + batch_size < len(bgg_ids):
@@ -305,7 +341,9 @@ class BggClient:
             BggGame(
                 bgg_id=int(item.get("objectid", "0")),
                 collection_id=(
-                    int(item.get("collid")) if item.get("collid") is not None else None
+                    int(collection_id)
+                    if (collection_id := item.get("collid")) is not None
+                    else None
                 ),
                 name=_text(item, "name") or "Unknown",
                 thumbnail_url=_text(item, "thumbnail"),
@@ -352,7 +390,7 @@ class BggClient:
                     )
                 ),
                 year_published=(
-                    details[item.bgg_id].year_published
+                    details[item.bgg_id].year_published or item.year_published
                     if item.bgg_id in details
                     else item.year_published
                 ),
@@ -362,6 +400,15 @@ class BggClient:
                 description=(
                     details[item.bgg_id].description if item.bgg_id in details else ""
                 ),
+                categories=(
+                    details[item.bgg_id].categories if item.bgg_id in details else ()
+                ),
+                publication_types=(
+                    details[item.bgg_id].publication_types
+                    if item.bgg_id in details
+                    else ()
+                ),
+                details_loaded=item.bgg_id in details,
             )
             for item in collection_items
         ]
@@ -411,12 +458,11 @@ class BggClient:
 
             try:
                 response = httpx.get(url, headers=headers, timeout=30.0)
-            except httpx.HTTPError as exc:
-                raise RuntimeError(
-                    f"HTTP error fetching RPG item details: {exc}"
-                ) from exc
+            except httpx.HTTPError:
+                continue
 
-            response.raise_for_status()
+            if response.status_code != 200:
+                continue
 
             root = ET.fromstring(response.text)
             for item in root.findall("item"):
@@ -426,6 +472,8 @@ class BggClient:
                 image_url = (
                     image_el.text if image_el is not None and image_el.text else ""
                 )
+                if image_url:
+                    image_url = self._resolve_display_image_url(image_url)
                 thumb_el = item.find("thumbnail")
                 thumbnail_url = (
                     thumb_el.text if thumb_el is not None and thumb_el.text else ""
@@ -439,6 +487,20 @@ class BggClient:
                     unescape(desc_el.text)
                     if desc_el is not None and desc_el.text
                     else ""
+                )
+                categories = _normalize_classifications(
+                    [
+                        link.get("value", "")
+                        for link in item.findall("link")
+                        if link.get("type") == "rpggenre"
+                    ]
+                )
+                publication_types = _normalize_classifications(
+                    [
+                        link.get("value", "")
+                        for link in item.findall("link")
+                        if link.get("type") == "rpgcategory"
+                    ]
                 )
 
                 rating = 0.0
@@ -456,6 +518,8 @@ class BggClient:
                     year_published=year_published,
                     bgg_rating=round(rating, 2),
                     description=description,
+                    categories=categories,
+                    publication_types=publication_types,
                 )
 
             if i + batch_size < len(bgg_ids):

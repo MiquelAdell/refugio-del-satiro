@@ -119,6 +119,8 @@ def _make_game(id: int, name: str = "Test Game") -> Game:
         location="armari",
         created_at=NOW,
         updated_at=NOW,
+        description="Trade and build across the island.",
+        categories=("Economic", "Negotiation"),
     )
 
 
@@ -167,6 +169,8 @@ class TestListGamesUseCase:
         assert len(result) == 1
         assert result[0].id == 1
         assert result[0].name == "Catan"
+        assert result[0].description == "Trade and build across the island."
+        assert result[0].categories == ("Economic", "Negotiation")
         assert result[0].status == "available"
         assert result[0].borrower_display_name is None
         assert result[0].loan_id is None
@@ -186,6 +190,8 @@ class TestListGamesUseCase:
 
         assert len(result) == 1
         assert result[0].status == "lent"
+        assert result[0].description == "Trade and build across the island."
+        assert result[0].categories == ("Economic", "Negotiation")
         assert result[0].borrower_display_name == "Bob"
         assert result[0].loan_id == 100
 

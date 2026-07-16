@@ -51,6 +51,8 @@ class GameRepository(Protocol):
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game: ...
 
     # legacy path: JSON-seed import, which has no collection_id concept
@@ -70,6 +72,8 @@ class GameRepository(Protocol):
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> tuple[Game, bool]: ...  # (game, was_created)
 
     # Match rule: (1) an existing row with this bgg_collection_id, (2) else a
@@ -85,6 +89,8 @@ class GameRepository(Protocol):
         max_players: int,
         playing_time: int,
         bgg_rating: float,
+        description: str = "",
+        categories: tuple[str, ...] = (),
     ) -> Game: ...
 
     # Updates by primary key, not bgg_id — enrich_games fetches shared

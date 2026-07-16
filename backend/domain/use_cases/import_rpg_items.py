@@ -43,6 +43,11 @@ class ImportRpgItemsUseCase:
             for g in all_local_items
             if g.is_active and g.bgg_collection_id is not None
         )
+        legacy_by_bgg_id = {
+            game.bgg_id: game
+            for game in all_local_items
+            if game.bgg_collection_id is None
+        }
 
         rpg_items = self._bgg_client.fetch_owned_rpg_items()
         fetched_ids = frozenset(_resolve_collection_id(item) for item in rpg_items)
@@ -51,15 +56,40 @@ class ImportRpgItemsUseCase:
         updated = 0
         for item in rpg_items:
             collection_id = _resolve_collection_id(item)
+            existing = self._game_repo.get_by_collection_id(collection_id)
+            if existing is None:
+                existing = legacy_by_bgg_id.pop(item.bgg_id, None)
             _, was_created = self._game_repo.upsert_by_collection_id(
                 bgg_collection_id=collection_id,
                 bgg_id=item.bgg_id,
                 name=item.name,
                 thumbnail_url=item.thumbnail_url,
-                image_url=item.image_url,
+                image_url=(
+                    item.image_url
+                    or (existing.image_url if existing is not None else "")
+                ),
                 year_published=item.year_published,
-                bgg_rating=item.bgg_rating,
-                description=item.description,
+                bgg_rating=(
+                    item.bgg_rating
+                    if item.details_loaded
+                    else existing.bgg_rating if existing is not None else 0.0
+                ),
+                location=existing.location if existing is not None else "armari",
+                description=(
+                    item.description
+                    if item.details_loaded
+                    else existing.description if existing is not None else ""
+                ),
+                categories=(
+                    item.categories
+                    if item.details_loaded
+                    else existing.categories if existing is not None else ()
+                ),
+                publication_types=(
+                    item.publication_types
+                    if item.details_loaded
+                    else existing.publication_types if existing is not None else ()
+                ),
                 item_type=ITEM_TYPE,
             )
             if was_created:

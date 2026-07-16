@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import httpx
+
 from backend.data.bgg_client import BggClient
 
-THING_XML = """<?xml version="1.0" encoding="utf-8"?>
+IMAGE_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
 <items>
     <item type="boardgame" id="13">
         <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
@@ -105,7 +107,7 @@ class TestBggClientFetchDetails:
 
         responses = iter(
             [
-                _FakeResponse(text=THING_XML),
+                _FakeResponse(text=IMAGE_THING_XML),
                 _FakeResponse(json_body=IMAGES_API_RESPONSE),
             ]
         )
@@ -157,6 +159,23 @@ SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>
     </item>
 </items>"""
 
+THING_XML = """<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="boardgame" id="13">
+        <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
+        <image>https://cf.geekdo-images.com/catan.png</image>
+        <description>Trade &amp;amp; build across the island.</description>
+        <minplayers value="3"/>
+        <maxplayers value="4"/>
+        <playingtime value="90"/>
+        <link type="boardgamecategory" value=" Strategy "/>
+        <link type="boardgamecategory" value="Economic"/>
+        <link type="boardgamecategory" value="strategy"/>
+        <link type="boardgamepublisher" value="Ignored Publisher"/>
+        <statistics><ratings><average value="7.15"/></ratings></statistics>
+    </item>
+</items>"""
+
 
 class TestBggClientParsing:
     def test_parses_collection_xml(self) -> None:
@@ -169,7 +188,9 @@ class TestBggClientParsing:
         games = client._parse_xml_collection(SAMPLE_XML)
         catan = next(g for g in games if g.bgg_id == 13)
         assert catan.name == "Catan"
+        assert catan.collection_id == 1001
         assert catan.thumbnail_url == "https://cf.geekdo-images.com/catan_t.png"
+        assert catan.image_url == "https://cf.geekdo-images.com/catan.png"
         assert catan.year_published == 1995
 
     def test_parses_all_game_ids(self) -> None:
@@ -197,3 +218,22 @@ class TestBggClientParsing:
         games = client._parse_xml_collection(xml)
         assert len(games) == 1
         assert games[0].thumbnail_url == ""
+
+    def test_fetch_details_parses_description_and_normalized_categories(
+        self, monkeypatch: object
+    ) -> None:
+        class _FakeResponse:
+            status_code = 200
+            text = THING_XML
+
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: _FakeResponse())
+
+        details = BggClient("test").fetch_details([13])
+
+        assert details[13].description == "Trade & build across the island."
+        assert details[13].categories == ("Economic", "Strategy")
+        assert details[13].image_url == "https://cf.geekdo-images.com/catan.png"
+        assert details[13].min_players == 3
+        assert details[13].max_players == 4
+        assert details[13].playing_time == 90
+        assert details[13].bgg_rating == 7.15

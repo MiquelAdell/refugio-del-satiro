@@ -1,11 +1,33 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from collections.abc import Collection
 from datetime import UTC, datetime
 
 from backend.domain.entities.game import Game
 from backend.domain.slug import ensure_unique, slugify
+
+
+def _normalize_metadata(values: tuple[str, ...]) -> tuple[str, ...]:
+    cleaned = sorted(
+        (value.strip() for value in values if value.strip()),
+        key=lambda value: (value.casefold(), value),
+    )
+    return tuple(
+        value
+        for index, value in enumerate(cleaned)
+        if index == 0 or value.casefold() != cleaned[index - 1].casefold()
+    )
+
+
+def _serialize_metadata(values: tuple[str, ...]) -> str:
+    return json.dumps(_normalize_metadata(values), ensure_ascii=False)
+
+
+def _deserialize_metadata(value: str) -> tuple[str, ...]:
+    decoded = json.loads(value)
+    return _normalize_metadata(tuple(str(item) for item in decoded))
 
 
 def _row_to_game(row: sqlite3.Row) -> Game:
@@ -27,6 +49,16 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         updated_at=datetime.fromisoformat(row["updated_at"]),
         item_type=row["item_type"] if "item_type" in keys else "boardgame",
         description=row["description"] if "description" in keys else "",
+        categories=(
+            _deserialize_metadata(row["categories_json"])
+            if "categories_json" in keys
+            else ()
+        ),
+        publication_types=(
+            _deserialize_metadata(row["publication_types_json"])
+            if "publication_types_json" in keys
+            else ()
+        ),
         is_active=bool(row["is_active"]) if "is_active" in keys else True,
         bgg_collection_id=(
             row["bgg_collection_id"]
@@ -122,7 +154,10 @@ class SqliteGameRepository:
             row = self._conn.execute(
                 "SELECT slug FROM games WHERE id = ?", (existing_id,)
             ).fetchone()
-            return row["slug"]
+            assert row is not None
+            slug = row["slug"]
+            assert isinstance(slug, str)
+            return slug
         base = slugify(name)
         excluded_id = existing_id if existing_id is not None else -1
         taken_rows = self._conn.execute(
@@ -145,6 +180,8 @@ class SqliteGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game:
         """Legacy path for the JSON-seed import, which has no collection_id."""
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -154,6 +191,8 @@ class SqliteGameRepository:
             existing.name if existing else None,
             name,
         )
+        categories_json = _serialize_metadata(categories)
+        publication_types_json = _serialize_metadata(publication_types)
         values = (
             name,
             slug,
@@ -167,6 +206,8 @@ class SqliteGameRepository:
             location,
             item_type,
             description,
+            categories_json,
+            publication_types_json,
             now,
         )
         if existing is not None:
@@ -176,7 +217,8 @@ class SqliteGameRepository:
                     name = ?, slug = ?, thumbnail_url = ?, image_url = ?,
                     year_published = ?, min_players = ?, max_players = ?,
                     playing_time = ?, bgg_rating = ?, location = ?,
-                    item_type = ?, description = ?, is_active = 1, updated_at = ?
+                    item_type = ?, description = ?, categories_json = ?,
+                    publication_types_json = ?, is_active = 1, updated_at = ?
                 WHERE id = ?
                 """,
                 (*values, existing.id),
@@ -187,9 +229,10 @@ class SqliteGameRepository:
                 INSERT INTO games (
                     bgg_id, name, slug, thumbnail_url, image_url, year_published,
                     min_players, max_players, playing_time, bgg_rating, location,
-                    item_type, description, is_active, created_at, updated_at
+                    item_type, description, categories_json,
+                    publication_types_json, is_active, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 """,
                 (bgg_id, *values, now),
             )
@@ -213,6 +256,8 @@ class SqliteGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> tuple[Game, bool]:
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         existing = self.get_by_collection_id(bgg_collection_id)
@@ -229,6 +274,8 @@ class SqliteGameRepository:
             existing.name if existing else None,
             name,
         )
+        categories_json = _serialize_metadata(categories)
+        publication_types_json = _serialize_metadata(publication_types)
         values = (
             bgg_id,
             bgg_collection_id,
@@ -244,6 +291,8 @@ class SqliteGameRepository:
             location,
             item_type,
             description,
+            categories_json,
+            publication_types_json,
             now,
         )
         if existing is not None:
@@ -254,6 +303,7 @@ class SqliteGameRepository:
                     thumbnail_url = ?, image_url = ?, year_published = ?,
                     min_players = ?, max_players = ?, playing_time = ?,
                     bgg_rating = ?, location = ?, item_type = ?, description = ?,
+                    categories_json = ?, publication_types_json = ?,
                     is_active = 1, updated_at = ?
                 WHERE id = ?
                 """,
@@ -265,10 +315,10 @@ class SqliteGameRepository:
                 INSERT INTO games (
                     bgg_id, bgg_collection_id, name, slug, thumbnail_url, image_url,
                     year_published, min_players, max_players, playing_time,
-                    bgg_rating, location, item_type, description, is_active,
-                    created_at, updated_at
+                    bgg_rating, location, item_type, description, categories_json,
+                    publication_types_json, is_active, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 """,
                 (*values, now),
             )
@@ -286,13 +336,17 @@ class SqliteGameRepository:
         max_players: int,
         playing_time: int,
         bgg_rating: float,
+        description: str = "",
+        categories: tuple[str, ...] = (),
     ) -> Game:
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        categories_json = _serialize_metadata(categories)
         self._conn.execute(
             """
             UPDATE games SET
                 thumbnail_url = ?, image_url = ?, min_players = ?,
-                max_players = ?, playing_time = ?, bgg_rating = ?, updated_at = ?
+                max_players = ?, playing_time = ?, bgg_rating = ?, description = ?,
+                categories_json = ?, updated_at = ?
             WHERE id = ?
             """,
             (
@@ -302,6 +356,8 @@ class SqliteGameRepository:
                 max_players,
                 playing_time,
                 bgg_rating,
+                description,
+                categories_json,
                 now,
                 game_id,
             ),

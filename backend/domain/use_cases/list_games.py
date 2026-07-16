@@ -23,6 +23,8 @@ class GameWithStatus:
     playing_time: int
     bgg_rating: float
     location: str
+    description: str
+    categories: tuple[str, ...]
     created_at: datetime
     updated_at: datetime
     status: str  # "available" or "lent"
@@ -50,6 +52,8 @@ def build_game_with_status(
             playing_time=game.playing_time,
             bgg_rating=game.bgg_rating,
             location=game.location,
+            description=game.description,
+            categories=game.categories,
             created_at=game.created_at,
             updated_at=game.updated_at,
             status="available",
@@ -71,6 +75,8 @@ def build_game_with_status(
         playing_time=game.playing_time,
         bgg_rating=game.bgg_rating,
         location=game.location,
+        description=game.description,
+        categories=game.categories,
         created_at=game.created_at,
         updated_at=game.updated_at,
         status="lent",

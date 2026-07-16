@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Collection
 from datetime import UTC, datetime
 
 import pytest
@@ -62,7 +63,7 @@ class FakeGameRepository:
             key=lambda g: g.name,
         )
 
-    def deactivate_by_collection_ids(self, collection_ids: object) -> int:
+    def deactivate_by_collection_ids(self, collection_ids: Collection[int]) -> int:
         count = 0
         for collection_id in collection_ids:
             game = self.get_by_collection_id(collection_id)
@@ -72,7 +73,7 @@ class FakeGameRepository:
         return count
 
     def delete_by_collection_ids(
-        self, collection_ids: object
+        self, collection_ids: Collection[int]
     ) -> tuple[frozenset[int], frozenset[int]]:
         deleted: set[int] = set()
         blocked: set[int] = set()
@@ -112,6 +113,8 @@ class FakeGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game:
         """Legacy path: no collection_id concept."""
         now = datetime.now(UTC)
@@ -134,6 +137,8 @@ class FakeGameRepository:
             updated_at=now,
             item_type=item_type,
             description=description,
+            categories=categories,
+            publication_types=publication_types,
             is_active=True,
             bgg_collection_id=existing.bgg_collection_id if existing else None,
         )
@@ -157,6 +162,8 @@ class FakeGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> tuple[Game, bool]:
         now = datetime.now(UTC)
         existing = self.get_by_collection_id(bgg_collection_id)
@@ -190,6 +197,8 @@ class FakeGameRepository:
             updated_at=now,
             item_type=item_type,
             description=description,
+            categories=categories,
+            publication_types=publication_types,
             is_active=True,
         )
         self._games[game.id] = game
@@ -206,6 +215,8 @@ class FakeGameRepository:
         max_players: int,
         playing_time: int,
         bgg_rating: float,
+        description: str = "",
+        categories: tuple[str, ...] = (),
     ) -> Game:
         game = self._games[game_id]
         updated = dataclasses.replace(
@@ -216,6 +227,8 @@ class FakeGameRepository:
             max_players=max_players,
             playing_time=playing_time,
             bgg_rating=bgg_rating,
+            description=description,
+            categories=categories,
             updated_at=datetime.now(UTC),
         )
         self._games[game_id] = updated

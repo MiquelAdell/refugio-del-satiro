@@ -32,6 +32,8 @@ class RpgItemResponse(BaseModel):
     year_published: int
     bgg_rating: float
     description: str
+    categories: list[str]
+    publication_types: list[str]
     status: str
     borrower_display_name: str | None
     loan_id: int | None
@@ -48,6 +50,8 @@ def _to_response(item: RpgItemWithStatus, *, is_authenticated: bool) -> RpgItemR
         year_published=item.year_published,
         bgg_rating=item.bgg_rating,
         description=item.description,
+        categories=list(item.categories),
+        publication_types=list(item.publication_types),
         status=item.status,
         borrower_display_name=item.borrower_display_name if is_authenticated else None,
         loan_id=item.loan_id if is_authenticated else None,

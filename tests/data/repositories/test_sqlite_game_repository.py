@@ -1,3 +1,5 @@
+import sqlite3
+
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
@@ -99,6 +101,43 @@ class TestSqliteGameRepository:
         )
         assert game.item_type == "rpgitem"
         assert game.description == "A guide for adventurers."
+
+    def test_upsert_normalizes_boardgame_categories(
+        self, game_repo: SqliteGameRepository, db_conn: sqlite3.Connection
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(
+            13,
+            "Catan",
+            "https://c.jpg",
+            categories=(" Strategy ", "", "Family", "strategy", "  ", "Economic"),
+        )
+
+        assert game.categories == ("Economic", "Family", "Strategy")
+        row = db_conn.execute(
+            "SELECT categories_json FROM games WHERE bgg_id = 13"
+        ).fetchone()
+        assert row["categories_json"] == '["Economic", "Family", "Strategy"]'
+
+    def test_upsert_normalizes_rpg_publication_types(
+        self, game_repo: SqliteGameRepository
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(
+            1001,
+            "D&D Player's Handbook",
+            "https://dnd.jpg",
+            item_type="rpgitem",
+            publication_types=(
+                " Scenario / Adventure / Module ",
+                "Core Rules",
+                "core rules",
+                "",
+            ),
+        )
+
+        assert game.publication_types == (
+            "Core Rules",
+            "Scenario / Adventure / Module",
+        )
 
     def test_list_by_type_excludes_other_types(
         self, game_repo: SqliteGameRepository
@@ -242,13 +281,29 @@ class TestSqliteGameRepository:
     def test_upsert_by_collection_id_updates_existing_row(
         self, game_repo: SqliteGameRepository
     ) -> None:
-        game_repo.upsert_by_collection_id(101, 13, "Catan", "https://old.jpg", 1995)
+        game_repo.upsert_by_collection_id(
+            101,
+            13,
+            "Catan",
+            "https://old.jpg",
+            1995,
+            categories=("Family",),
+            publication_types=("Base Game",),
+        )
         updated, was_created = game_repo.upsert_by_collection_id(
-            101, 13, "Catan: 25th Anniversary", "https://new.jpg", 1995
+            101,
+            13,
+            "Catan: 25th Anniversary",
+            "https://new.jpg",
+            1995,
+            categories=(" Strategy ", "Economic", "strategy"),
+            publication_types=("Anniversary Edition",),
         )
         assert was_created is False
         assert updated.name == "Catan: 25th Anniversary"
         assert updated.thumbnail_url == "https://new.jpg"
+        assert updated.categories == ("Economic", "Strategy")
+        assert updated.publication_types == ("Anniversary Edition",)
 
     def test_upsert_by_collection_id_adopts_legacy_bgg_id_row(
         self, game_repo: SqliteGameRepository
@@ -281,6 +336,8 @@ class TestSqliteGameRepository:
             "https://mitos_t.jpg",
             year_published=2020,
             image_url="https://mitos.jpg",
+            categories=(" Mythology ", "Card Game", "mythology"),
+            publication_types=("Base Game",),
         )
         historia, _ = game_repo.upsert_by_collection_id(
             146444335,
@@ -289,6 +346,8 @@ class TestSqliteGameRepository:
             "https://historia_t.jpg",
             year_published=2020,
             image_url="https://historia.jpg",
+            categories=(" Educational ", "Card Game"),
+            publication_types=("Expansion",),
         )
 
         assert mitos.id != historia.id
@@ -297,6 +356,10 @@ class TestSqliteGameRepository:
         assert historia.slug == "similo-historia"
         assert mitos.image_url == "https://mitos.jpg"
         assert historia.image_url == "https://historia.jpg"
+        assert mitos.categories == ("Card Game", "Mythology")
+        assert historia.categories == ("Card Game", "Educational")
+        assert mitos.publication_types == ("Base Game",)
+        assert historia.publication_types == ("Expansion",)
         all_games = game_repo.list_all()
         assert len(all_games) == 2
 
@@ -331,10 +394,14 @@ class TestSqliteGameRepository:
             max_players=4,
             playing_time=15,
             bgg_rating=7.5,
+            description="Shared Similo details",
+            categories=(" Deduction ", "Card Game", "deduction"),
         )
 
         assert updated.image_url == "new_img.jpg"
         assert updated.min_players == 2
+        assert updated.description == "Shared Similo details"
+        assert updated.categories == ("Card Game", "Deduction")
         unaffected = game_repo.get_by_id(historia.id)
         assert unaffected is not None
         assert unaffected.image_url == "img2.jpg"

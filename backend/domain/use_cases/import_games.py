@@ -50,21 +50,77 @@ class ImportGamesUseCase:
             for g in all_local_items
             if g.is_active and g.bgg_collection_id is not None
         )
+        legacy_by_bgg_id = {
+            game.bgg_id: game
+            for game in all_local_items
+            if game.bgg_collection_id is None
+        }
 
         bgg_games = self._bgg_client.fetch_owned_games()
         fetched_ids = frozenset(_resolve_collection_id(g) for g in bgg_games)
+        details_by_bgg_id = (
+            self._bgg_client.fetch_details(list(dict.fromkeys(g.bgg_id for g in bgg_games)))
+            if bgg_games
+            else {}
+        )
 
         created = 0
         updated = 0
         for bgg_game in bgg_games:
             collection_id = _resolve_collection_id(bgg_game)
+            existing = self._game_repo.get_by_collection_id(collection_id)
+            if existing is None:
+                existing = legacy_by_bgg_id.pop(bgg_game.bgg_id, None)
+            details = details_by_bgg_id.get(bgg_game.bgg_id)
             _, was_created = self._game_repo.upsert_by_collection_id(
                 bgg_collection_id=collection_id,
                 bgg_id=bgg_game.bgg_id,
                 name=bgg_game.name,
-                thumbnail_url=bgg_game.thumbnail_url,
-                image_url=bgg_game.image_url,
+                thumbnail_url=(
+                    bgg_game.thumbnail_url
+                    or (details.thumbnail_url if details is not None else "")
+                    or (existing.thumbnail_url if existing is not None else "")
+                ),
+                image_url=(
+                    bgg_game.image_url
+                    or (details.image_url if details is not None else "")
+                    or (existing.image_url if existing is not None else "")
+                ),
                 year_published=bgg_game.year_published,
+                min_players=(
+                    details.min_players
+                    if details is not None
+                    else existing.min_players if existing is not None else 0
+                ),
+                max_players=(
+                    details.max_players
+                    if details is not None
+                    else existing.max_players if existing is not None else 0
+                ),
+                playing_time=(
+                    details.playing_time
+                    if details is not None
+                    else existing.playing_time if existing is not None else 0
+                ),
+                bgg_rating=(
+                    details.bgg_rating
+                    if details is not None
+                    else existing.bgg_rating if existing is not None else 0.0
+                ),
+                location=existing.location if existing is not None else "armari",
+                description=(
+                    details.description
+                    if details is not None
+                    else existing.description if existing is not None else ""
+                ),
+                categories=(
+                    details.categories
+                    if details is not None
+                    else existing.categories if existing is not None else ()
+                ),
+                publication_types=(
+                    existing.publication_types if existing is not None else ()
+                ),
             )
             if was_created:
                 created += 1

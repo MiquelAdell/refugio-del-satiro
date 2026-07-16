@@ -33,6 +33,8 @@ class GameResponse(BaseModel):
     playing_time: int
     bgg_rating: float
     location: str
+    description: str
+    categories: list[str]
     created_at: datetime
     updated_at: datetime
     status: str
@@ -54,6 +56,8 @@ def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
         playing_time=g.playing_time,
         bgg_rating=g.bgg_rating,
         location=g.location,
+        description=g.description,
+        categories=list(g.categories),
         created_at=g.created_at,
         updated_at=g.updated_at,
         status=g.status,

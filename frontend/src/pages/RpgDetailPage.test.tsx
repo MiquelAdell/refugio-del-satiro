@@ -40,6 +40,8 @@ const item: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original tabletop RPG.",
+  categories: ["Fantasy", "Mythology"],
+  publication_types: ["Core Rules", "Sourcebook"],
   status: "available",
   loan_id: null,
   borrower_display_name: null,
@@ -394,5 +396,38 @@ describe("RpgDetailPage content", () => {
     expect(
       screen.getByRole("link", { name: /Volver al catálogo/i }),
     ).toHaveAttribute("href", "/juegos-de-rol");
+  });
+
+  it("renders the exact description, categories, and publication types", () => {
+    setHook();
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.getByText("Categorías")).toBeInTheDocument();
+    expect(screen.getByText("Fantasy, Mythology")).toBeInTheDocument();
+    expect(screen.getByText("Tipo de publicación")).toBeInTheDocument();
+    expect(screen.getByText("Core Rules, Sourcebook")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Descripción" }),
+    ).toHaveTextContent("The original tabletop RPG.");
+  });
+
+  it("omits classification and description groups when metadata is empty", () => {
+    setHook({
+      item: {
+        ...item,
+        description: "",
+        categories: [],
+        publication_types: [],
+      },
+    });
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.queryByText("Categorías")).toBeNull();
+    expect(screen.queryByText("Tipo de publicación")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Descripción" })).toBeNull();
   });
 });

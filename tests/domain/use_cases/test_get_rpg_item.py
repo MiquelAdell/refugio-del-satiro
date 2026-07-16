@@ -50,6 +50,8 @@ class TestGetRpgItemUseCase:
         assert result.id == 1
         assert result.name == "Pathfinder"
         assert result.description == "A great RPG book."
+        assert result.categories == ("Fantasy", "Mythology")
+        assert result.publication_types == ("Core Rules", "Sourcebook")
         assert result.status == "available"
         assert result.borrower_display_name is None
         assert result.loan_id is None
@@ -68,6 +70,8 @@ class TestGetRpgItemUseCase:
 
         assert result is not None
         assert result.status == "lent"
+        assert result.categories == ("Fantasy", "Mythology")
+        assert result.publication_types == ("Core Rules", "Sourcebook")
         assert result.borrower_display_name == "Alice"
         assert result.loan_id == 100
 

@@ -1,5 +1,6 @@
 from backend.data.database import get_memory_connection
-from backend.migrations.runner import run_migrations
+from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+from backend.migrations.runner import MIGRATIONS_DIR, run_migrations
 
 
 class TestMigrationRunner:
@@ -28,6 +29,52 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         applied = run_migrations(conn)
         assert "007_add_membership_validation_fields" in applied
+        conn.close()
+
+    def test_applies_catalog_metadata_migration(self) -> None:
+        conn = get_memory_connection()
+        applied = run_migrations(conn)
+        assert "010_add_catalog_metadata" in applied
+        conn.close()
+
+    def test_catalog_metadata_migration_preserves_existing_rows(self) -> None:
+        conn = get_memory_connection()
+        migrations = sorted(MIGRATIONS_DIR.glob("*.sql"))
+        schema_nine_migrations = [
+            migration
+            for migration in migrations
+            if migration.stem <= "009_add_game_bgg_collection_id"
+        ]
+        for migration in schema_nine_migrations:
+            conn.executescript(migration.read_text(encoding="utf-8"))
+        conn.execute("""
+            CREATE TABLE schema_migrations (
+                version TEXT PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                )
+            )
+            """)
+        conn.executemany(
+            "INSERT INTO schema_migrations (version) VALUES (?)",
+            ((migration.stem,) for migration in schema_nine_migrations),
+        )
+        conn.execute(
+            "INSERT INTO games "
+            "(bgg_id, bgg_collection_id, name, thumbnail_url, year_published) "
+            "VALUES (99, 123456, 'Existing game', 'https://t.jpg', 2020)"
+        )
+        conn.commit()
+
+        applied = run_migrations(conn)
+
+        assert applied == ["010_add_catalog_metadata"]
+        game = SqliteGameRepository(conn).get_by_bgg_id(99)
+        assert game is not None
+        assert game.bgg_collection_id == 123456
+        assert game.categories == ()
+        assert game.publication_types == ()
+        assert run_migrations(conn) == []
         conn.close()
 
     def test_creates_all_tables(self) -> None:
@@ -83,10 +130,10 @@ class TestMigrationRunner:
             "updated_at",
             "item_type",
             "description",
-            "is_active",
-            "bgg_collection_id",
             "categories_json",
             "publication_types_json",
+            "is_active",
+            "bgg_collection_id",
         }
         conn.close()
 
@@ -183,10 +230,13 @@ class TestMigrationRunner:
             "'2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z')"
         )
         row = conn.execute(
-            "SELECT item_type, description FROM games WHERE bgg_id = 99"
+            "SELECT item_type, description, categories_json, publication_types_json "
+            "FROM games WHERE bgg_id = 99"
         ).fetchone()
         assert row[0] == "boardgame"
         assert row[1] == ""
+        assert row[2] == "[]"
+        assert row[3] == "[]"
         conn.close()
 
     def test_members_table_columns(self) -> None:

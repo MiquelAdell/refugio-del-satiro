@@ -181,6 +181,8 @@ def enrich_games() -> None:
                     max_players=d.max_players,
                     playing_time=d.playing_time,
                     bgg_rating=d.bgg_rating,
+                    description=d.description,
+                    categories=d.categories,
                 )
                 updated += 1
 

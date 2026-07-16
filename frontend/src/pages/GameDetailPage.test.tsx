@@ -44,6 +44,9 @@ const game: GameWithStatus = {
   playing_time: 90,
   bgg_rating: 7.2,
   location: "armario",
+  description:
+    "Trade and build across the island.\n\nEvery route changes the table.",
+  categories: ["Economic", "Negotiation"],
   status: "available",
   borrower_display_name: null,
   loan_id: null,
@@ -345,5 +348,32 @@ describe("GameDetailPage history section", () => {
     expect(
       screen.getByText("Este juego nunca ha sido prestado."),
     ).toBeInTheDocument();
+  });
+});
+
+describe("GameDetailPage catalog metadata", () => {
+  it("renders the exact categories and description paragraphs", () => {
+    setHook();
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.getByText("Categorías")).toBeInTheDocument();
+    expect(screen.getByText("Economic, Negotiation")).toBeInTheDocument();
+    const description = screen.getByRole("region", { name: "Descripción" });
+    expect(description).toHaveTextContent("Trade and build across the island.");
+    expect(description).toHaveTextContent("Every route changes the table.");
+  });
+
+  it("omits category and description groups when metadata is empty", () => {
+    setHook({
+      game: { ...game, description: "", categories: [] },
+    });
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.queryByText("Categorías")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Descripción" })).toBeNull();
   });
 });
