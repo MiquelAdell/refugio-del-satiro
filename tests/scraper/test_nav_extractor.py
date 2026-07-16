@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from bs4 import BeautifulSoup
 
 from scraper.nav_extractor import NavItem, extract_nav
@@ -207,6 +208,8 @@ class TestRealMirror:
         self,
     ) -> None:
         """Guards the chosen DOM traversal against the actual scraped HTML."""
+        if not _REAL_MIRROR.exists():
+            pytest.skip("local content mirror is not available")
         doc = BeautifulSoup(_REAL_MIRROR.read_text(encoding="utf-8"), "lxml")
         assert extract_nav(doc) == (
             NavItem(label="Inicio", href="/inicio"),
