@@ -224,7 +224,10 @@ async def import_members(
             detail="El archivo CSV no tiene un formato válido.",
         ) from exc
 
-    if any(None in row or any(value is None for value in row.values()) for row in raw_members):
+    if any(
+        None in row or any(value is None for value in row.values())
+        for row in raw_members
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Todas las filas del CSV deben tener el mismo número de columnas.",

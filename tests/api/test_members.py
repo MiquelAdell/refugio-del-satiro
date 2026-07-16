@@ -592,9 +592,7 @@ class TestAdminImportMembers:
         response = self._post_import(
             client,
             admin,
-            self._csv_bytes(
-                ["2,Member,Retained,,,retained@example.invalid,,,"]
-            ),
+            self._csv_bytes(["2,Member,Retained,,,retained@example.invalid,,,"]),
         )
 
         assert response.status_code == 200
@@ -620,9 +618,7 @@ class TestAdminImportMembers:
         response = self._post_import(
             client,
             admin,
-            self._csv_bytes(
-                ["2,Member,New,,,new-member@example.invalid,,,"]
-            ),
+            self._csv_bytes(["2,Member,New,,,new-member@example.invalid,,,"]),
         )
 
         assert response.status_code == 200
@@ -828,7 +824,9 @@ class TestAdminImportMembers:
             is_admin=False,
         )
 
-        csv_bytes = self._csv_bytes(["10,García,Ana,,600111222,TEST_email@domain.com,,,"])
+        csv_bytes = self._csv_bytes(
+            ["10,García,Ana,,600111222,TEST_email@domain.com,,,"]
+        )
         response = client.post(
             "/api/admin/members/import",
             files={"file": ("members.csv", csv_bytes, "text/csv")},
