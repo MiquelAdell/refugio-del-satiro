@@ -47,16 +47,30 @@ const item: RpgItem = {
 
 const member: CurrentMember = {
   id: 42,
+  member_number: 42,
+  first_name: "Alice",
+  last_name: "Smith",
+  nickname: "Ali",
+  phone: "600 111 222",
   display_name: "Alice Smith",
   email: "alice@example.com",
   is_admin: false,
+  is_active: true,
+  last_payment: "1/03/2026",
 };
 
 const admin: CurrentMember = {
   id: 99,
+  member_number: 99,
+  first_name: "Admin",
+  last_name: "User",
+  nickname: null,
+  phone: null,
   display_name: "Admin User",
   email: "admin@example.com",
   is_admin: true,
+  is_active: true,
+  last_payment: null,
 };
 
 const historyEntry: LoanHistoryEntry = {
@@ -127,13 +141,20 @@ describe("RpgDetailPage borrow CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: BORROW_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: BORROW_CTA }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
   });
 
   it("shows the 'Prestado' status instead of the CTA for a lent item when logged out", () => {
     setHook({
-      item: { ...item, status: "lent", borrower_display_name: null, loan_id: null },
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -200,7 +221,9 @@ describe("RpgDetailPage anonymous mode", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 });
@@ -208,7 +231,12 @@ describe("RpgDetailPage anonymous mode", () => {
 describe("RpgDetailPage borrower visibility", () => {
   it("shows no-name 'Prestado' badge when payload omits the name", () => {
     setHook({
-      item: { ...item, status: "lent", borrower_display_name: null, loan_id: null },
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -248,7 +276,9 @@ describe("RpgDetailPage return CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
   });
 
   it("shows the return CTA to an admin even when the loan is someone else's", () => {
@@ -264,7 +294,9 @@ describe("RpgDetailPage return CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -319,7 +351,9 @@ describe("RpgDetailPage history section", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 
@@ -342,12 +376,13 @@ describe("RpgDetailPage content", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Dungeons & Dragons" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Dungeons & Dragons" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("1974")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver en RPGGeek" })).toHaveAttribute(
-      "href",
-      "https://rpggeek.com/rpgitem/200",
-    );
+    expect(
+      screen.getByRole("link", { name: "Ver en RPGGeek" }),
+    ).toHaveAttribute("href", "https://rpggeek.com/rpgitem/200");
   });
 
   it("renders the back link to the catalog", () => {

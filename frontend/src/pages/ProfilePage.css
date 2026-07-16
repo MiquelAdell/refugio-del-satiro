@@ -1,0 +1,127 @@
+.profile-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-2xl);
+}
+
+.profile-loading {
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.profile-card {
+  overflow: hidden;
+}
+
+.profile-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-card-heading h2 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+
+.profile-status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.profile-status--active {
+  color: var(--color-text-body);
+  background-color: var(--color-available);
+}
+
+.profile-status--inactive {
+  color: var(--color-text-body);
+  background-color: var(--color-lent);
+}
+
+.profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-xl);
+  margin: 0;
+}
+
+.profile-fields > div {
+  min-width: 0;
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-fields dt {
+  margin-bottom: var(--space-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.profile-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-body);
+}
+
+.profile-fields a {
+  color: var(--color-brand);
+}
+
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.profile-links a {
+  display: inline-flex;
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--color-brand);
+  border-radius: var(--radius-sm);
+  color: var(--color-brand);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.profile-links a:hover {
+  color: var(--color-brand-contrast);
+  background-color: var(--color-brand);
+}
+
+.profile-fields a:focus-visible,
+.profile-links a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .profile-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-links {
+    flex-direction: column;
+  }
+
+  .profile-links a {
+    justify-content: center;
+  }
+}
