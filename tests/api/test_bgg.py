@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from backend.api.app import create_app
 from backend.api.auth import create_jwt
 from backend.api.dependencies import _settings, get_db_conn
-from backend.data.bgg_client import BggGame
+from backend.data.bgg_client import BggGame, BggRpgItem
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
 from backend.domain.entities.member import Member
@@ -96,17 +96,34 @@ class TestBggImport:
         assert response.status_code == 403
         conn.close()
 
-    def test_imports_owned_games_and_reports_counts(self) -> None:
+    def test_imports_owned_games_and_rpg_items_and_reports_counts(self) -> None:
         client, conn = _setup_client()
         member_repo = SqliteMemberRepository(conn)
+        game_repo = SqliteGameRepository(conn)
         member = _make_member(member_repo, is_admin=True)
 
-        with patch(
-            "backend.api.routes.bgg.BggClient.fetch_owned_games",
-            return_value=[
-                BggGame(13, "Catan", "https://c.jpg", 1995),
-                BggGame(230802, "Azul", "https://a.jpg", 2017),
-            ],
+        with (
+            patch(
+                "backend.api.routes.bgg.BggClient.fetch_owned_games",
+                return_value=[
+                    BggGame(13, "Catan", "https://c.jpg", 1995),
+                    BggGame(230802, "Azul", "https://a.jpg", 2017),
+                ],
+            ),
+            patch(
+                "backend.api.routes.bgg.BggClient.fetch_owned_rpg_items",
+                return_value=[
+                    BggRpgItem(
+                        bgg_id=1001,
+                        name="D&D Player's Handbook",
+                        thumbnail_url="https://dnd-thumb.jpg",
+                        image_url="https://dnd.jpg",
+                        year_published=2014,
+                        bgg_rating=8.2,
+                        description="Core rules",
+                    )
+                ],
+            ),
         ):
             response = client.post(
                 "/api/admin/bgg/import", headers=_auth_cookie(member)
@@ -114,11 +131,77 @@ class TestBggImport:
 
         assert response.status_code == 200
         body = response.json()
-        assert body["created"] == 2
-        assert body["updated"] == 0
-        assert body["total"] == 2
-        assert body["deleted"] == 0
-        assert body["deactivated"] == 0
-        assert body["skip_reason"] is None
+        assert set(body) == {"boardgames", "rpg_items", "last_imported_at"}
+        assert body["boardgames"] == {
+            "result": {
+                "created": 2,
+                "updated": 0,
+                "total": 2,
+                "deleted": 0,
+                "deactivated": 0,
+                "skip_reason": None,
+            },
+            "error": None,
+        }
+        assert body["rpg_items"] == {
+            "result": {
+                "created": 1,
+                "updated": 0,
+                "total": 1,
+                "deleted": 0,
+                "deactivated": 0,
+                "skip_reason": None,
+            },
+            "error": None,
+        }
         assert body["last_imported_at"] is not None
+        boardgame = game_repo.get_by_bgg_id(13)
+        rpg_item = game_repo.get_by_bgg_id(1001)
+        assert boardgame is not None
+        assert boardgame.item_type == "boardgame"
+        assert rpg_item is not None
+        assert rpg_item.item_type == "rpgitem"
+        conn.close()
+
+    def test_preserves_boardgame_result_when_rpg_import_fails(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        game_repo = SqliteGameRepository(conn)
+        member = _make_member(member_repo, is_admin=True)
+
+        with (
+            patch(
+                "backend.api.routes.bgg.BggClient.fetch_owned_games",
+                return_value=[BggGame(13, "Catan", "https://c.jpg", 1995)],
+            ) as fetch_owned_games,
+            patch(
+                "backend.api.routes.bgg.BggClient.fetch_owned_rpg_items",
+                side_effect=RuntimeError("upstream secret details"),
+            ) as fetch_owned_rpg_items,
+        ):
+            response = client.post(
+                "/api/admin/bgg/import", headers=_auth_cookie(member)
+            )
+
+        assert response.status_code == 200
+        assert response.json()["boardgames"] == {
+            "result": {
+                "created": 1,
+                "updated": 0,
+                "total": 1,
+                "deleted": 0,
+                "deactivated": 0,
+                "skip_reason": None,
+            },
+            "error": None,
+        }
+        assert response.json()["rpg_items"] == {
+            "result": None,
+            "error": "No se han podido sincronizar los juegos de rol.",
+        }
+        fetch_owned_games.assert_called_once_with()
+        fetch_owned_rpg_items.assert_called_once_with()
+        persisted_game = game_repo.get_by_bgg_id(13)
+        assert persisted_game is not None
+        assert persisted_game.item_type == "boardgame"
         conn.close()
