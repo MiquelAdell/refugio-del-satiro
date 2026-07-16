@@ -3,17 +3,21 @@
 Website for the **Refugio del Sátiro** RPG association.
 
 Current scope: the game-lending feature (mounted at `/ludoteca`). Members can
-browse the catalog, borrow games, and return them. The catalog is imported
-from [BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
-The catalog is publicly browsable read-only (no account needed; borrowing
-requires logging in). Legacy `/prestamos` URLs redirect permanently to
-`/ludoteca`.
+browse the catalog, borrow and return games, and review their own profile. The
+catalog is imported from
+[BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
+The catalog is publicly browsable read-only (no account needed; borrowing and
+reviewing a member's own profile require logging in). Legacy `/prestamos` URLs
+redirect permanently to `/ludoteca`.
 
 A public membership-validation page lives at `/ludoteca/validacion`: anyone
 can enter a member number and see whether that person is a current member
 (name, ES/NO ES socio·a verdict, last paid fee). The legacy
 `/Validacion-Membresia` URL (printed on QR codes) 301-redirects there. The
 page also accepts `?id=<n>` for direct lookups.
+
+Authenticated members can review their read-only membership information at
+`/ludoteca/profile`, with links to their loans and password-change flow.
 
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.

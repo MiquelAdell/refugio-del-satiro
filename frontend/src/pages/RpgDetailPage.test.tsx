@@ -49,16 +49,30 @@ const item: RpgItem = {
 
 const member: CurrentMember = {
   id: 42,
+  member_number: 42,
+  first_name: "Alice",
+  last_name: "Smith",
+  nickname: "Ali",
+  phone: "600 111 222",
   display_name: "Alice Smith",
   email: "alice@example.com",
   is_admin: false,
+  is_active: true,
+  last_payment: "1/03/2026",
 };
 
 const admin: CurrentMember = {
   id: 99,
+  member_number: 99,
+  first_name: "Admin",
+  last_name: "User",
+  nickname: null,
+  phone: null,
   display_name: "Admin User",
   email: "admin@example.com",
   is_admin: true,
+  is_active: true,
+  last_payment: null,
 };
 
 const historyEntry: LoanHistoryEntry = {
