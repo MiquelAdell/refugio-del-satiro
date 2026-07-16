@@ -52,6 +52,14 @@
   font-weight: 500;
 }
 
+.admin-import-warning {
+  padding: var(--space-sm);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
 /* CSV import help dialog */
 .admin-import-help {
   display: flex;

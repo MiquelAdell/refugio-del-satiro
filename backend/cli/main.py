@@ -310,18 +310,27 @@ def import_members(
             )
             raise typer.Exit(code=1)
 
-        results = use_case.execute(raw_members)
+        batch_result = use_case.execute(raw_members)
 
-        for result in results:
+        for result in batch_result.created:
             typer.echo(
                 f"{result.member.display_name} ({result.member.email}): "
                 f"{result.token_url}"
             )
 
-        if not results:
+        if not batch_result.created:
             typer.echo("No new members added.")
-        else:
-            typer.echo(f"\n{len(results)} new member(s) imported.")
+
+        typer.echo(
+            "\nImport summary: "
+            f"{batch_result.created_count} created, "
+            f"{batch_result.updated_count} updated, "
+            f"{batch_result.skipped_count} skipped, "
+            f"{batch_result.disabled_count} disabled "
+            f"({batch_result.total_rows} total rows)."
+        )
+        if batch_result.deactivation_skip_reason is not None:
+            typer.echo(f"Warning: {batch_result.deactivation_skip_reason}", err=True)
     finally:
         conn.close()
 
