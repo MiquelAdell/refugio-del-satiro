@@ -105,6 +105,11 @@ function UserSubmenu({
       role="menu"
     >
       <li className={styles.submenuItem} role="menuitem">
+        <Link to="/profile" onClick={onItemClick}>
+          Mi perfil
+        </Link>
+      </li>
+      <li className={styles.submenuItem} role="menuitem">
         <Link to="/my-loans" onClick={onItemClick}>
           Mis préstamos
         </Link>
