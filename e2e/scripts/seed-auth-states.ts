@@ -42,12 +42,12 @@ interface TestUser {
 const users: ReadonlyArray<TestUser> = [
   {
     role: "member",
-    email: process.env.TEST_MEMBER_EMAIL ?? "TEST_email@domain.com",
+    email: process.env.TEST_MEMBER_EMAIL ?? "e2e-member@example.invalid",
     password: process.env.TEST_MEMBER_PASSWORD ?? "e2e-test-password-member",
   },
   {
     role: "admin",
-    email: process.env.TEST_ADMIN_EMAIL ?? "TEST_email@domain.com",
+    email: process.env.TEST_ADMIN_EMAIL ?? "e2e-admin@example.invalid",
     password: process.env.TEST_ADMIN_PASSWORD ?? "e2e-test-password-admin",
   },
 ];
