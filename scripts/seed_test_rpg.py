@@ -1,8 +1,7 @@
-"""Idempotently seed one test RPG item into the dev SQLite DB.
+"""Idempotently seed test board-game and RPG items into the dev SQLite DB.
 
-The seeded item provides a stable fixture for the e2e RPG catalog journey
-(ludo-4..ludo-6).  It is upserted so re-runs are safe and the slug is
-deterministic.
+The seeded items provide stable fixtures for the e2e catalog journeys. They
+are upserted so re-runs are safe and their slugs are deterministic.
 
 Usage:
     python -m scripts.seed_test_rpg
@@ -15,14 +14,46 @@ Env vars:
 
 from __future__ import annotations
 
+from typing import TypedDict
+
 from backend.config import Settings
 from backend.data.database import get_connection
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.migrations.runner import run_migrations
 
-# A stable fictional RPG entry that doesn't clash with real BGG IDs in use.
-# bgg_id 999999999 is safely outside the real ID space.
-_RPG_SEED = {
+
+class CatalogSeed(TypedDict):
+    bgg_id: int
+    name: str
+    thumbnail_url: str
+    image_url: str
+    year_published: int
+    min_players: int
+    max_players: int
+    playing_time: int
+    bgg_rating: float
+    location: str
+    item_type: str
+    description: str
+
+
+# Stable fictional catalog entries that don't clash with real BGG IDs in use.
+_BOARD_GAME_SEED: CatalogSeed = {
+    "bgg_id": 999999998,
+    "name": "E2E Test Board Game",
+    "thumbnail_url": "",
+    "image_url": "",
+    "year_published": 2024,
+    "min_players": 2,
+    "max_players": 4,
+    "playing_time": 45,
+    "bgg_rating": 7.0,
+    "location": "armari",
+    "item_type": "boardgame",
+    "description": "A board game seeded for e2e catalog tests.",
+}
+
+_RPG_SEED: CatalogSeed = {
     "bgg_id": 999999999,
     "name": "E2E Test RPG Manual",
     "thumbnail_url": "",
@@ -37,6 +68,8 @@ _RPG_SEED = {
     "description": "A test RPG item seeded by scripts/seed_test_rpg.py for e2e purposes.",
 }
 
+_CATALOG_SEEDS = (_BOARD_GAME_SEED, _RPG_SEED)
+
 
 def main() -> None:
     settings = Settings()
@@ -44,25 +77,12 @@ def main() -> None:
     try:
         run_migrations(conn)
         repo = SqliteGameRepository(conn)
-        repo.upsert_by_bgg_id(
-            bgg_id=_RPG_SEED["bgg_id"],
-            name=_RPG_SEED["name"],
-            thumbnail_url=_RPG_SEED["thumbnail_url"],
-            image_url=_RPG_SEED["image_url"],
-            year_published=_RPG_SEED["year_published"],
-            min_players=_RPG_SEED["min_players"],
-            max_players=_RPG_SEED["max_players"],
-            playing_time=_RPG_SEED["playing_time"],
-            bgg_rating=_RPG_SEED["bgg_rating"],
-            location=_RPG_SEED["location"],
-            item_type=_RPG_SEED["item_type"],
-            description=_RPG_SEED["description"],
-        )
-        game = repo.get_by_bgg_id(_RPG_SEED["bgg_id"])
-        print(
-            f"seeded rpgitem bgg_id={_RPG_SEED['bgg_id']} "
-            f"name='{_RPG_SEED['name']}' slug='{game.slug if game else '?'}'"
-        )
+        for seed in _CATALOG_SEEDS:
+            game = repo.upsert_by_bgg_id(**seed)
+            print(
+                f"seeded {seed['item_type']} bgg_id={seed['bgg_id']} "
+                f"name='{seed['name']}' slug='{game.slug}'"
+            )
     finally:
         conn.close()
 

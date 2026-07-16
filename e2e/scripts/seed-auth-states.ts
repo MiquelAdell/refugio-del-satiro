@@ -5,8 +5,8 @@
  * then writes three storageState fixtures (guest, member, admin) under
  * e2e/fixtures/. Spec files load them via `test.use({ storageState: ... })`.
  *
- * Also runs scripts/seed_test_rpg.py to ensure at least one rpgitem row
- * exists in the DB for the RPG catalog journey tests (ludo-4..ludo-6).
+ * Also runs scripts/seed_test_rpg.py to ensure the board-game and RPG catalog
+ * journeys each have one deterministic item.
  *
  * Auth mechanics (see backend/api/auth.py + frontend/src/context/AuthContext):
  *   - Backend sets an HttpOnly cookie `session_token` (JWT) on /api/login.
@@ -52,7 +52,10 @@ const users: ReadonlyArray<TestUser> = [
   },
 ];
 
-async function loginAndVerify(api: APIRequestContext, user: TestUser): Promise<void> {
+async function loginAndVerify(
+  api: APIRequestContext,
+  user: TestUser,
+): Promise<void> {
   const loginResponse = await api.post(`${API_BASE}/api/login`, {
     data: { email: user.email, password: user.password },
     headers: { "Content-Type": "application/json" },
@@ -77,7 +80,10 @@ async function loginAndVerify(api: APIRequestContext, user: TestUser): Promise<v
   }
 }
 
-async function writeAuthenticatedState(user: TestUser, outputPath: string): Promise<void> {
+async function writeAuthenticatedState(
+  user: TestUser,
+  outputPath: string,
+): Promise<void> {
   // Use a fresh APIRequestContext per user so cookies don't leak between roles.
   const api = await request.newContext();
   try {
@@ -110,8 +116,8 @@ async function writeGuestState(outputPath: string): Promise<void> {
   await writeFile(outputPath, JSON.stringify(emptyState, null, 2), "utf-8");
 }
 
-async function seedRpgItem(): Promise<void> {
-  // Seed one rpgitem row so RPG catalog e2e tests always find at least one card.
+async function seedCatalogItems(): Promise<void> {
+  // Seed one row per catalog so e2e tests always find a card.
   // Runs from the repo root (two levels up from e2e/scripts/).
   const repoRoot = resolve(__dirname, "..", "..");
   execSync("python -m scripts.seed_test_rpg", {
@@ -123,7 +129,7 @@ async function seedRpgItem(): Promise<void> {
 async function main(): Promise<void> {
   await mkdir(FIXTURES_DIR, { recursive: true });
 
-  await seedRpgItem();
+  await seedCatalogItems();
 
   const guestPath = resolve(FIXTURES_DIR, "guest.json");
   await writeGuestState(guestPath);

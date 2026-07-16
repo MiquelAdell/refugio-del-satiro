@@ -22,34 +22,14 @@ const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 const HOME = "/ludoteca/";
 const LOGIN_PATH = "/ludoteca/login";
 const PROFILE_PATH = "/ludoteca/profile";
-const LUDOTECA_LABEL = "Ludoteca";
 const MEMBER_DISPLAY_NAME = "E2E Member";
-const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL ?? "TEST_email@domain.com";
+const MEMBER_EMAIL =
+  process.env.TEST_MEMBER_EMAIL ?? "e2e-member@example.invalid";
 
 const isMobileProject = (projectName: string) =>
   projectName === "chromium-mobile";
 const isDesktopProject = (projectName: string) =>
   projectName === "chromium-desktop";
-
-async function openLudotecaSubmenuOnMobile(page: Page) {
-  await page.getByRole("button", { name: "Abrir menú" }).click();
-  await page
-    .locator("#mobile-drawer")
-    .getByRole("button", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
-    .click();
-}
-
-/**
- * On desktop the submenu is CSS-revealed via `:hover` / `:focus-within` on
- * the Ludoteca parent. Hovering the parent link makes the submenu visible
- * and reachable for accessibility-tree queries.
- */
-async function revealLudotecaSubmenuOnDesktop(page: Page) {
-  await page
-    .getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
-    .first()
-    .hover();
-}
 
 async function openUserSubmenu(page: Page, projectName: string) {
   if (isMobileProject(projectName)) {
@@ -76,10 +56,9 @@ test.describe("site-shell @ guest", () => {
       .getByRole("link", { name: /Refugio del Sátiro/i })
       .first();
     await expect(logo).toBeVisible();
-    // The shield img is decorative (alt=""); the accessible name comes from
-    // the link's aria-label plus the visible logo text.
-    await expect(logo.locator("img")).toHaveAttribute("alt", "");
-    await expect(logo.getByText("El Refugio del Sátiro")).toBeVisible();
+    const shield = logo.locator("img");
+    await expect(shield).toBeVisible();
+    await expect(shield).toHaveAttribute("alt", "");
   });
 
   test("nav-menu-guest-1: Iniciar sesión link points to /ludoteca/login", async ({
@@ -119,17 +98,11 @@ test.describe("site-shell @ member", () => {
   }, testInfo) => {
     await page.goto(HOME);
 
-    if (isMobileProject(testInfo.project.name)) {
-      await openLudotecaSubmenuOnMobile(page);
-    } else {
-      await revealLudotecaSubmenuOnDesktop(page);
-    }
+    await openUserSubmenu(page, testInfo.project.name);
 
     await expect(
       page.getByRole("menuitem", { name: "Mis préstamos" }).first(),
     ).toBeVisible();
-    // "Cerrar sesión" lives in the header actions slot (desktop) / drawer user row
-    // (mobile), not inside the Ludoteca submenu — so its ARIA role is "button".
     await expect(
       page.getByRole("button", { name: "Cerrar sesión" }).first(),
     ).toBeVisible();
@@ -191,8 +164,7 @@ test.describe("site-shell @ member", () => {
       )
       .toBe("1");
 
-    // "Cerrar sesión" is in the header actions slot — always visible on desktop,
-    // no need to hover the Ludoteca submenu first.
+    await openUserSubmenu(page, testInfo.project.name);
     await page.getByRole("button", { name: "Cerrar sesión" }).first().click();
 
     await expect
@@ -211,14 +183,14 @@ test.describe("site-shell @ admin", () => {
   }, testInfo) => {
     await page.goto(HOME);
 
+    await openUserSubmenu(page, testInfo.project.name);
+
     if (isMobileProject(testInfo.project.name)) {
-      await openLudotecaSubmenuOnMobile(page);
       await page
         .locator("#mobile-drawer")
         .getByRole("button", { name: /Administración/ })
         .click();
     } else {
-      await revealLudotecaSubmenuOnDesktop(page);
       // Hover the nested Administración trigger so its child list reveals.
       await page
         .getByRole("button", { name: /Administración/ })
@@ -242,7 +214,10 @@ test.describe("site-shell @ admin", () => {
 
 const STATIC_PAGE = "/calendario/";
 const HAS_STATIC_MIRROR = existsSync(
-  resolve(__dirname, "../../frontend/public/content-mirror/calendario/index.html"),
+  resolve(
+    __dirname,
+    "../../frontend/public/content-mirror/calendario/index.html",
+  ),
 );
 
 test.describe("site-shell @ static page (guest)", () => {
