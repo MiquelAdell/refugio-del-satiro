@@ -177,6 +177,10 @@ def enrich_games() -> None:
                     playing_time=d.playing_time,
                     bgg_rating=d.bgg_rating,
                     location=game.location,
+                    item_type=game.item_type,
+                    description=d.description,
+                    categories=d.categories,
+                    publication_types=game.publication_types,
                 )
                 updated += 1
 

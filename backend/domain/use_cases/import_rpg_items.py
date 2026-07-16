@@ -46,10 +46,33 @@ class ImportRpgItemsUseCase:
                 bgg_id=item.bgg_id,
                 name=item.name,
                 thumbnail_url=item.thumbnail_url,
-                image_url=item.image_url,
+                image_url=(
+                    item.image_url
+                    if item.details_loaded
+                    else existing.image_url if existing is not None else ""
+                ),
                 year_published=item.year_published,
-                bgg_rating=item.bgg_rating,
-                description=item.description,
+                bgg_rating=(
+                    item.bgg_rating
+                    if item.details_loaded
+                    else existing.bgg_rating if existing is not None else 0.0
+                ),
+                location=existing.location if existing is not None else "armari",
+                description=(
+                    item.description
+                    if item.details_loaded
+                    else existing.description if existing is not None else ""
+                ),
+                categories=(
+                    item.categories
+                    if item.details_loaded
+                    else existing.categories if existing is not None else ()
+                ),
+                publication_types=(
+                    item.publication_types
+                    if item.details_loaded
+                    else existing.publication_types if existing is not None else ()
+                ),
                 item_type=ITEM_TYPE,
             )
             if existing is None:
