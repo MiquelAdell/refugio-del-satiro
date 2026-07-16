@@ -59,8 +59,10 @@ class TestBorrowGameUseCase:
         loan_repo: SqliteLoanRepository,
         member_repo: SqliteMemberRepository,
     ) -> None:
-        game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
-        game_repo.deactivate_by_bgg_ids([1])
+        game, _ = game_repo.upsert_by_collection_id(
+            101, 1, "Catan", "https://c.jpg", 1995
+        )
+        game_repo.deactivate_by_collection_ids([101])
         member = member_repo.upsert_by_email(
             1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
@@ -74,13 +76,15 @@ class TestBorrowGameUseCase:
         loan_repo: SqliteLoanRepository,
         member_repo: SqliteMemberRepository,
     ) -> None:
-        game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
+        game, _ = game_repo.upsert_by_collection_id(
+            101, 1, "Catan", "https://c.jpg", 1995
+        )
         member = member_repo.upsert_by_email(
             1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         borrow_use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = borrow_use_case.execute(game.id, member.id)
-        game_repo.deactivate_by_bgg_ids([game.bgg_id])
+        game_repo.deactivate_by_collection_ids([101])
 
         return_use_case = ReturnGameUseCase(loan_repo)
         returned = return_use_case.execute(loan.id, member)

@@ -166,17 +166,21 @@ def enrich_games() -> None:
         for game in games:
             if game.bgg_id in details:
                 d = details[game.bgg_id]
-                game_repo.upsert_by_bgg_id(
-                    bgg_id=game.bgg_id,
-                    name=game.name,
-                    thumbnail_url=d.thumbnail_url or game.thumbnail_url,
-                    image_url=d.image_url or game.image_url or game.thumbnail_url,
-                    year_published=game.year_published,
+                # Player count, playing time, and rating are legitimately
+                # shared per BGG's thing API (one page per bgg_id). Image and
+                # thumbnail are NOT: BGG's collection can list several
+                # distinct owned items under one bgg_id (see
+                # BggGame.collection_id), each with its own picture, already
+                # captured at import time — only fall back to the shared
+                # thing-API image when this row doesn't have one yet.
+                game_repo.update_details(
+                    game.id,
+                    thumbnail_url=game.thumbnail_url or d.thumbnail_url,
+                    image_url=game.image_url or d.image_url or game.thumbnail_url,
                     min_players=d.min_players,
                     max_players=d.max_players,
                     playing_time=d.playing_time,
                     bgg_rating=d.bgg_rating,
-                    location=game.location,
                 )
                 updated += 1
 

@@ -193,6 +193,15 @@ than 50% of the current active catalog, that run skips removing
 newly-missing items (still applying updates and cleaning up already-hidden
 ones) and reports a warning instead.
 
+Catalog rows are identified by BGG's per-copy collection entry id
+(`bgg_collection_id`), not by BGG's `bgg_id` (objectid). BGG can list
+several distinct owned items — different names, images, editions — under
+one shared objectid (e.g. themed spin-offs BGG treats as versions of a
+single base game rather than giving each its own id); keying on the
+collection entry instead of the objectid keeps those as separate catalog
+rows instead of collapsing them into one. Rows imported before this
+existed adopt their collection id automatically on the next import.
+
 ## Tests
 
 ```bash
