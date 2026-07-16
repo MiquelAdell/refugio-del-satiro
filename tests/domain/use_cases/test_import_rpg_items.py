@@ -34,6 +34,10 @@ _DND_RPG_ITEM = BggRpgItem(
     year_published=2014,
     bgg_rating=8.5,
     description="A guide for adventurers.",
+    collection_id=2001,
+    categories=("Adventure", "Fantasy"),
+    publication_types=("Core Rules",),
+    details_loaded=True,
 )
 _PF_RPG_ITEM = BggRpgItem(
     bgg_id=1002,
@@ -43,6 +47,10 @@ _PF_RPG_ITEM = BggRpgItem(
     year_published=2019,
     bgg_rating=9.1,
     description="The complete Pathfinder rules.",
+    collection_id=2002,
+    categories=("Fantasy",),
+    publication_types=("Core Rules",),
+    details_loaded=True,
 )
 
 
@@ -68,7 +76,7 @@ class TestImportRpgItemsUseCase:
 
         use_case.execute()
 
-        game = fake_game_repo.get_by_bgg_id(1001)
+        game = fake_game_repo.get_by_collection_id(2001)
         assert game is not None
         assert game.item_type == "rpgitem"
 
@@ -80,15 +88,112 @@ class TestImportRpgItemsUseCase:
 
         use_case.execute()
 
-        game = fake_game_repo.get_by_bgg_id(1001)
+        game = fake_game_repo.get_by_collection_id(2001)
         assert game is not None
         assert game.description == "A guide for adventurers."
+        assert game.categories == ("Adventure", "Fantasy")
+        assert game.publication_types == ("Core Rules",)
+
+    def test_successful_details_overwrite_existing_metadata(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            1001,
+            "Old D&D",
+            "https://old-thumb.jpg",
+            image_url="https://old-full.jpg",
+            year_published=2000,
+            bgg_rating=5.0,
+            location="prestatge",
+            item_type="rpgitem",
+            description="Old description",
+            categories=("Old genre",),
+            publication_types=("Old type",),
+        )
+        changed = BggRpgItem(
+            bgg_id=1001,
+            name="New D&D",
+            thumbnail_url="https://new-thumb.jpg",
+            image_url="",
+            year_published=2014,
+            bgg_rating=8.5,
+            description="",
+            categories=(),
+            publication_types=(),
+            details_loaded=True,
+        )
+
+        ImportRpgItemsUseCase(
+            fake_game_repo, FakeBggClientRpg([changed]), fake_loan_repo
+        ).execute()
+
+        game = fake_game_repo.get_by_bgg_id(1001)
+        assert game is not None
+        assert game.name == "New D&D"
+        assert game.thumbnail_url == "https://new-thumb.jpg"
+        assert game.year_published == 2014
+        assert game.image_url == "https://old-full.jpg"
+        assert game.bgg_rating == 8.5
+        assert game.location == "prestatge"
+        assert game.description == ""
+        assert game.categories == ()
+        assert game.publication_types == ()
+
+    def test_missing_details_preserve_existing_detail_metadata(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            1001,
+            "Old D&D",
+            "https://old-thumb.jpg",
+            image_url="https://old-full.jpg",
+            year_published=2000,
+            bgg_rating=8.0,
+            location="prestatge",
+            item_type="rpgitem",
+            description="Stored description",
+            categories=("Stored genre",),
+            publication_types=("Stored type",),
+        )
+        missing_details = BggRpgItem(
+            bgg_id=1001,
+            name="New D&D",
+            thumbnail_url="https://new-thumb.jpg",
+            image_url="",
+            year_published=2014,
+            bgg_rating=0.0,
+            description="",
+            details_loaded=False,
+        )
+
+        ImportRpgItemsUseCase(
+            fake_game_repo,
+            FakeBggClientRpg([missing_details, _PF_RPG_ITEM]),
+            fake_loan_repo,
+        ).execute()
+
+        game = fake_game_repo.get_by_bgg_id(1001)
+        assert game is not None
+        assert game.name == "New D&D"
+        assert game.thumbnail_url == "https://new-thumb.jpg"
+        assert game.year_published == 2014
+        assert game.image_url == "https://old-full.jpg"
+        assert game.bgg_rating == 8.0
+        assert game.location == "prestatge"
+        assert game.description == "Stored description"
+        assert game.categories == ("Stored genre",)
+        assert game.publication_types == ("Stored type",)
+        successful_item = fake_game_repo.get_by_bgg_id(1002)
+        assert successful_item is not None
+        assert successful_item.description == "The complete Pathfinder rules."
+        assert successful_item.categories == ("Fantasy",)
+        assert successful_item.publication_types == ("Core Rules",)
 
     def test_updates_existing_rpg_item(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
-        fake_game_repo.upsert_by_bgg_id(
-            1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
+        fake_game_repo.upsert_by_collection_id(
+            2001, 1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
         )
         bgg_client = FakeBggClientRpg([_DND_RPG_ITEM])
         use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
@@ -97,7 +202,7 @@ class TestImportRpgItemsUseCase:
 
         assert result.created == 0
         assert result.updated == 1
-        game = fake_game_repo.get_by_bgg_id(1001)
+        game = fake_game_repo.get_by_collection_id(2001)
         assert game is not None
         assert game.name == "Dungeons & Dragons Player's Handbook"
 
@@ -118,11 +223,11 @@ class TestImportRpgItemsUseCase:
     def test_missing_and_not_lent_is_hard_deleted(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
-        fake_game_repo.upsert_by_bgg_id(
-            1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
+        fake_game_repo.upsert_by_collection_id(
+            2001, 1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
         )
-        fake_game_repo.upsert_by_bgg_id(
-            1002, "Pathfinder", "https://pf.jpg", item_type="rpgitem"
+        fake_game_repo.upsert_by_collection_id(
+            2002, 1002, "Pathfinder", "https://pf.jpg", item_type="rpgitem"
         )
         bgg_client = FakeBggClientRpg([_PF_RPG_ITEM])
 
@@ -130,16 +235,16 @@ class TestImportRpgItemsUseCase:
         result = use_case.execute()
 
         assert result.deleted == 1
-        assert fake_game_repo.get_by_bgg_id(1001) is None
+        assert fake_game_repo.get_by_collection_id(2001) is None
 
     def test_missing_and_currently_lent_is_soft_deleted(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
-        game = fake_game_repo.upsert_by_bgg_id(
-            1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
+        game, _ = fake_game_repo.upsert_by_collection_id(
+            2001, 1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
         )
-        fake_game_repo.upsert_by_bgg_id(
-            1002, "Pathfinder", "https://pf.jpg", item_type="rpgitem"
+        fake_game_repo.upsert_by_collection_id(
+            2002, 1002, "Pathfinder", "https://pf.jpg", item_type="rpgitem"
         )
         fake_loan_repo.set_active_loan(game.id, _loan(game.id))
         bgg_client = FakeBggClientRpg([_PF_RPG_ITEM])
@@ -149,7 +254,7 @@ class TestImportRpgItemsUseCase:
 
         assert result.deactivated == 1
         assert result.deleted == 0
-        stored = fake_game_repo.get_by_bgg_id(1001)
+        stored = fake_game_repo.get_by_collection_id(2001)
         assert stored is not None
         assert stored.is_active is False
 
@@ -157,14 +262,55 @@ class TestImportRpgItemsUseCase:
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
         """An RPG import must never delete/deactivate a boardgame."""
-        fake_game_repo.upsert_by_bgg_id(
-            13, "Catan", "https://c.jpg", item_type="boardgame"
+        fake_game_repo.upsert_by_collection_id(
+            1013, 13, "Catan", "https://c.jpg", item_type="boardgame"
         )
         bgg_client = FakeBggClientRpg([])
 
         use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
         use_case.execute()
 
-        catan = fake_game_repo.get_by_bgg_id(13)
+        catan = fake_game_repo.get_by_collection_id(1013)
         assert catan is not None
         assert catan.is_active is True
+
+    def test_bgg_id_shared_by_distinct_items_creates_separate_rows(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClientRpg(
+            [
+                BggRpgItem(
+                    bgg_id=5000,
+                    name="Variant A",
+                    thumbnail_url="a_t.jpg",
+                    image_url="a.jpg",
+                    year_published=2020,
+                    bgg_rating=7.0,
+                    description="",
+                    collection_id=9001,
+                    categories=("Fantasy",),
+                    publication_types=("Core Rules",),
+                ),
+                BggRpgItem(
+                    bgg_id=5000,
+                    name="Variant B",
+                    thumbnail_url="b_t.jpg",
+                    image_url="b.jpg",
+                    year_published=2020,
+                    bgg_rating=7.0,
+                    description="",
+                    collection_id=9002,
+                    categories=("Fantasy",),
+                    publication_types=("Core Rules",),
+                ),
+            ]
+        )
+        use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.created == 2
+        stored = fake_game_repo.list_all()
+        assert len(stored) == 2
+        assert {item.image_url for item in stored} == {"a.jpg", "b.jpg"}
+        assert {item.categories for item in stored} == {("Fantasy",)}
+        assert {item.publication_types for item in stored} == {("Core Rules",)}

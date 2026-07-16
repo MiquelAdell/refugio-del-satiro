@@ -43,3 +43,28 @@ The system SHALL use the new `Dialog` primitive (with focus trap and Escape-to-c
 - **THEN** a `Dialog` SHALL open asking for confirmation
 - **AND** the member SHALL be deactivated only after the admin confirms in the dialog
 
+### Requirement: CSV import reconciles the active membership list
+
+The system SHALL treat a valid members CSV upload as the source of truth for
+active membership without deleting member records or loan history.
+
+#### Scenario: Missing member is disabled
+- **GIVEN** an active member exists and the importing administrator is different
+- **WHEN** a valid CSV omits that member and no more than 50% of the other active members are missing
+- **THEN** the omitted member SHALL be disabled
+- **AND** the member record and loan history SHALL remain stored
+- **AND** the import result SHALL report the disabled count
+
+#### Scenario: Suspicious upload skips bulk deactivation
+- **WHEN** a CSV has no valid email addresses or omits more than 50% of the active members other than the importing administrator
+- **THEN** no missing member SHALL be disabled
+- **AND** the import result SHALL include a safety warning
+
+#### Scenario: Importing administrator remains active
+- **WHEN** the importing administrator is absent from the CSV
+- **THEN** that administrator SHALL remain active and retain administrator access
+
+#### Scenario: Malformed CSV is atomic
+- **WHEN** a CSV has malformed row structure or an invalid member number
+- **THEN** the request SHALL fail with HTTP 400
+- **AND** no member SHALL be created, updated, or disabled

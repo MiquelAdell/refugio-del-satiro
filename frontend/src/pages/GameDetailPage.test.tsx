@@ -44,6 +44,9 @@ const game: GameWithStatus = {
   playing_time: 90,
   bgg_rating: 7.2,
   location: "armario",
+  description:
+    "Trade and build across the island.\n\nEvery route changes the table.",
+  categories: ["Economic", "Negotiation"],
   status: "available",
   borrower_display_name: null,
   loan_id: null,
@@ -51,16 +54,30 @@ const game: GameWithStatus = {
 
 const member: CurrentMember = {
   id: 42,
+  member_number: 42,
+  first_name: "Alice",
+  last_name: "Smith",
+  nickname: "Ali",
+  phone: "600 111 222",
   display_name: "Alice Smith",
   email: "alice@example.com",
   is_admin: false,
+  is_active: true,
+  last_payment: "1/03/2026",
 };
 
 const admin: CurrentMember = {
   id: 99,
+  member_number: 99,
+  first_name: "Admin",
+  last_name: "User",
+  nickname: null,
+  phone: null,
   display_name: "Admin User",
   email: "admin@example.com",
   is_admin: true,
+  is_active: true,
+  last_payment: null,
 };
 
 const historyEntry: LoanHistoryEntry = {
@@ -116,13 +133,20 @@ describe("GameDetailPage borrow CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: BORROW_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: BORROW_CTA }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
   });
 
   it("shows the non-actionable 'Prestado' status instead of the CTA for a lent game", () => {
     setHook({
-      game: { ...game, status: "lent", borrower_display_name: null, loan_id: null },
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -190,7 +214,9 @@ describe("GameDetailPage anonymous mode (/ludoteca unauthenticated)", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 });
@@ -198,7 +224,12 @@ describe("GameDetailPage anonymous mode (/ludoteca unauthenticated)", () => {
 describe("GameDetailPage borrower visibility", () => {
   it("hides borrower name and shows the no-name 'Prestado' badge when payload omits the name (anonymous)", () => {
     setHook({
-      game: { ...game, status: "lent", borrower_display_name: null, loan_id: null },
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -238,7 +269,9 @@ describe("GameDetailPage return CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
   });
 
   it("shows the return CTA to an admin even when the loan is someone else's", () => {
@@ -254,7 +287,9 @@ describe("GameDetailPage return CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -281,13 +316,20 @@ describe("GameDetailPage history section", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 
   it("renders history entries for a lent game", () => {
     setHook({
-      game: { ...game, status: "lent", borrower_display_name: null, loan_id: 7 },
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: 7,
+      },
       history: [historyEntry],
     });
     setMember(null);
@@ -306,5 +348,32 @@ describe("GameDetailPage history section", () => {
     expect(
       screen.getByText("Este juego nunca ha sido prestado."),
     ).toBeInTheDocument();
+  });
+});
+
+describe("GameDetailPage catalog metadata", () => {
+  it("renders the exact categories and description paragraphs", () => {
+    setHook();
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.getByText("Categorías")).toBeInTheDocument();
+    expect(screen.getByText("Economic, Negotiation")).toBeInTheDocument();
+    const description = screen.getByRole("region", { name: "Descripción" });
+    expect(description).toHaveTextContent("Trade and build across the island.");
+    expect(description).toHaveTextContent("Every route changes the table.");
+  });
+
+  it("omits category and description groups when metadata is empty", () => {
+    setHook({
+      game: { ...game, description: "", categories: [] },
+    });
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.queryByText("Categorías")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Descripción" })).toBeNull();
   });
 });

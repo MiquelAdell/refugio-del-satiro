@@ -14,7 +14,9 @@ export function RpgDetailPage() {
   const { item, history, loading, error, refetch } = useRpgHistory(slug);
   const { member } = useAuth();
   const [confirmAction, setConfirmAction] = useState<
-    { readonly action: "borrow"; readonly itemId: number } | { readonly action: "return" } | null
+    | { readonly action: "borrow"; readonly itemId: number }
+    | { readonly action: "return" }
+    | null
   >(null);
   const [acting, setActing] = useState(false);
 
@@ -44,7 +46,8 @@ export function RpgDetailPage() {
     item.loan_id !== null &&
     (member.is_admin || item.borrower_display_name === member.display_name);
 
-  const onBorrow = (itemId: number) => setConfirmAction({ action: "borrow", itemId });
+  const onBorrow = (itemId: number) =>
+    setConfirmAction({ action: "borrow", itemId });
 
   const handleBorrow = async (itemId: number) => {
     setActing(true);
@@ -118,7 +121,28 @@ export function RpgDetailPage() {
             </div>
           )}
 
-          <Badge variant={item.status === "available" ? "available" : "lent"} className="rpg-detail-status">
+          {(item.categories.length > 0 ||
+            item.publication_types.length > 0) && (
+            <dl className="rpg-detail-classifications">
+              {item.categories.length > 0 && (
+                <div>
+                  <dt>Categorías</dt>
+                  <dd>{item.categories.join(", ")}</dd>
+                </div>
+              )}
+              {item.publication_types.length > 0 && (
+                <div>
+                  <dt>Tipo de publicación</dt>
+                  <dd>{item.publication_types.join(", ")}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          <Badge
+            variant={item.status === "available" ? "available" : "lent"}
+            className="rpg-detail-status"
+          >
             {statusLabel}
           </Badge>
 
@@ -162,17 +186,19 @@ export function RpgDetailPage() {
       </div>
 
       {descriptionParagraphs.length > 0 && (
-        <div className="rpg-detail-description">
+        <section className="rpg-detail-description" aria-label="Descripción">
           {descriptionParagraphs.map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
-        </div>
+        </section>
       )}
 
       <div className="rpg-detail-history">
         <h2>Historial de préstamos y comentarios</h2>
         {history.length === 0 ? (
-          <p className="rpg-detail-no-history">Este libro nunca ha sido prestado.</p>
+          <p className="rpg-detail-no-history">
+            Este libro nunca ha sido prestado.
+          </p>
         ) : (
           <div className="rpg-detail-history-list">
             {history.map((entry, i) => (

@@ -3,17 +3,21 @@
 Website for the **Refugio del Sátiro** RPG association.
 
 Current scope: the game-lending feature (mounted at `/ludoteca`). Members can
-browse the catalog, borrow games, and return them. The catalog is imported
-from [BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
-The catalog is publicly browsable read-only (no account needed; borrowing
-requires logging in). Legacy `/prestamos` URLs redirect permanently to
-`/ludoteca`.
+browse the catalog, borrow and return games, and review their own profile. The
+catalog is imported from
+[BoardGameGeek](https://boardgamegeek.com/collection/user/RefugioDelSatiro?subtype=boardgame&own=1&ff=1).
+The catalog is publicly browsable read-only (no account needed; borrowing and
+reviewing a member's own profile require logging in). Legacy `/prestamos` URLs
+redirect permanently to `/ludoteca`.
 
 A public membership-validation page lives at `/ludoteca/validacion`: anyone
 can enter a member number and see whether that person is a current member
 (name, ES/NO ES socio·a verdict, last paid fee). The legacy
 `/Validacion-Membresia` URL (printed on QR codes) 301-redirects there. The
 page also accepts `?id=<n>` for direct lookups.
+
+Authenticated members can review their read-only membership information at
+`/ludoteca/profile`, with links to their loans and password-change flow.
 
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
@@ -162,7 +166,7 @@ refugio migrate                          # Run migrations
 refugio import-games data/bgg_collection.json  # Import board games from JSON (no reconciliation)
 refugio import-games                     # Import board games from BGG API — BGG is the source of truth (requires BGG_BEARER_TOKEN)
 refugio import-rol                       # Import RPG items (libros de rol) from BGG API — same reconciliation
-refugio import-members members.csv       # Import members from CSV
+refugio import-members members.csv       # Sync members from CSV (missing active members are disabled with a >50% safety guard)
 refugio import-members --email x@y.com --name "First Last"  # Add a single member
 
 refugio content run                      # Scrape Google Sites → frontend/public/content-mirror/
@@ -192,6 +196,21 @@ safety guard, if the BGG fetch comes back empty or would newly remove more
 than 50% of the current active catalog, that run skips removing
 newly-missing items (still applying updates and cleaning up already-hidden
 ones) and reports a warning instead.
+
+Catalog rows are identified by BGG's per-copy collection entry id
+(`bgg_collection_id`), not by BGG's `bgg_id` (objectid). BGG can list
+several distinct owned items — different names, images, editions — under
+one shared objectid (e.g. themed spin-offs BGG treats as versions of a
+single base game rather than giving each its own id); keying on the
+collection entry instead of the objectid keeps those as separate catalog
+rows instead of collapsing them into one. Rows imported before this
+existed adopt their collection id automatically on the next import.
+
+Admins can upload the members CSV from `/ludoteca/admin/members`. The upload
+creates and updates members, disables active members that are absent from the
+file, and preserves the administrator running the import. Empty files and files
+that would disable more than 50% of the other active members skip deactivation
+and show a safety warning instead.
 
 ## Tests
 

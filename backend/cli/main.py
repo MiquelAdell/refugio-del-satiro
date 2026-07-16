@@ -166,17 +166,23 @@ def enrich_games() -> None:
         for game in games:
             if game.bgg_id in details:
                 d = details[game.bgg_id]
-                game_repo.upsert_by_bgg_id(
-                    bgg_id=game.bgg_id,
-                    name=game.name,
-                    thumbnail_url=d.thumbnail_url or game.thumbnail_url,
-                    image_url=d.image_url or game.image_url or game.thumbnail_url,
-                    year_published=game.year_published,
+                # Player count, playing time, and rating are legitimately
+                # shared per BGG's thing API (one page per bgg_id). Image and
+                # thumbnail are NOT: BGG's collection can list several
+                # distinct owned items under one bgg_id (see
+                # BggGame.collection_id), each with its own picture, already
+                # captured at import time — only fall back to the shared
+                # thing-API image when this row doesn't have one yet.
+                game_repo.update_details(
+                    game.id,
+                    thumbnail_url=game.thumbnail_url or d.thumbnail_url,
+                    image_url=game.image_url or d.image_url or game.thumbnail_url,
                     min_players=d.min_players,
                     max_players=d.max_players,
                     playing_time=d.playing_time,
                     bgg_rating=d.bgg_rating,
-                    location=game.location,
+                    description=d.description,
+                    categories=d.categories,
                 )
                 updated += 1
 
@@ -310,18 +316,27 @@ def import_members(
             )
             raise typer.Exit(code=1)
 
-        results = use_case.execute(raw_members)
+        batch_result = use_case.execute(raw_members)
 
-        for result in results:
+        for result in batch_result.created:
             typer.echo(
                 f"{result.member.display_name} ({result.member.email}): "
                 f"{result.token_url}"
             )
 
-        if not results:
+        if not batch_result.created:
             typer.echo("No new members added.")
-        else:
-            typer.echo(f"\n{len(results)} new member(s) imported.")
+
+        typer.echo(
+            "\nImport summary: "
+            f"{batch_result.created_count} created, "
+            f"{batch_result.updated_count} updated, "
+            f"{batch_result.skipped_count} skipped, "
+            f"{batch_result.disabled_count} disabled "
+            f"({batch_result.total_rows} total rows)."
+        )
+        if batch_result.deactivation_skip_reason is not None:
+            typer.echo(f"Warning: {batch_result.deactivation_skip_reason}", err=True)
     finally:
         conn.close()
 

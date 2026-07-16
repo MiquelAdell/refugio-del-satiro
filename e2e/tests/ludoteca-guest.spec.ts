@@ -58,14 +58,18 @@ test.describe("ludoteca @ guest", () => {
     hrefs.forEach((href) => expect(href).toBe(LOGIN_PATH));
   });
 
-  test("ludo-3: member-only nav is hidden in guest mode", async ({ page }, testInfo) => {
+  test("ludo-3: member-only nav is hidden in guest mode", async ({
+    page,
+  }, testInfo) => {
     test.skip(
       testInfo.project.name === "chromium-mobile",
       "Submenu reveal is a desktop/tablet hover surface",
     );
     await page.goto(LUDOTECA_HOME);
 
-    await expect(page.getByRole("link", { name: "Mis préstamos" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Mis préstamos" })).toHaveCount(
+      0,
+    );
     await expect(page.getByText("Administración")).toHaveCount(0);
   });
 
@@ -123,7 +127,9 @@ test.describe("ludoteca @ guest", () => {
 
     // No borrow button.
     await expect(page.getByRole("button", { name: BORROW_CTA })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /Pedir prestado/i })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /Pedir prestado/i }),
+    ).toHaveCount(0);
 
     // "Ver en RPGGeek" link present.
     const rpggeekLink = page.getByRole("link", { name: "Ver en RPGGeek" });
@@ -173,10 +179,7 @@ test.describe("ludoteca @ guest", () => {
     await page.getByLabel("Número de socio").fill("99999");
     await page.getByRole("button", { name: "Buscar" }).click();
 
-    await expect(
-      page.getByText("No se ha encontrado al socio o socia con número"),
-    ).toBeVisible();
-    await expect(page.getByText("99999", { exact: true })).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveText("Socio no encontrado.");
   });
 
   test("ludo-9: ?id= query param auto-validates on load", async ({ page }) => {

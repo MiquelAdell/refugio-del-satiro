@@ -63,9 +63,16 @@ function setMember() {
     ...mockAuthState,
     member: {
       id: 1,
+      member_number: 101,
+      first_name: "Test",
+      last_name: "User",
+      nickname: "Tester",
+      phone: "600 00 00 01",
       email: "user@test.com",
       display_name: "Test User",
       is_admin: false,
+      is_active: true,
+      last_payment: "24/01/2026",
     },
   };
 }
@@ -75,9 +82,16 @@ function setAdmin() {
     ...mockAuthState,
     member: {
       id: 2,
+      member_number: 102,
+      first_name: "Admin",
+      last_name: "User",
+      nickname: null,
+      phone: "600 00 00 02",
       email: "admin@test.com",
       display_name: "Admin User",
       is_admin: true,
+      is_active: true,
+      last_payment: "24/01/2026",
     },
   };
 }
@@ -168,10 +182,11 @@ describe("SiteHeader", () => {
       ).toEqual(0);
     });
 
-    it("does not show Mis préstamos, Cambiar contraseña, Cerrar sesión, or Administración for guest", () => {
+    it("does not show authenticated user-menu entries for guest", () => {
       setGuest();
       renderHeader();
 
+      expect(screen.queryByText("Mi perfil")).toBeNull();
       expect(screen.queryByText("Mis préstamos")).toBeNull();
       expect(screen.queryByText("Cambiar contraseña")).toBeNull();
       expect(screen.queryByText("Cerrar sesión")).toBeNull();
@@ -235,7 +250,7 @@ describe("SiteHeader", () => {
       expect(trigger!.querySelectorAll("svg").length).toEqual(1);
     });
 
-    it("renders exactly Mis préstamos, Cambiar contraseña and Cerrar sesión as menuitems for member", () => {
+    it("renders the exact member menu ordering", () => {
       setMember();
       renderHeader();
 
@@ -244,7 +259,24 @@ describe("SiteHeader", () => {
       const menuitems = screen
         .getAllByRole("menuitem")
         .map((el) => el.textContent?.trim());
-      expect(menuitems).toEqual(["Mis préstamos", "Cambiar contraseña", "Cerrar sesión"]);
+      expect(menuitems).toEqual([
+        "Mi perfil",
+        "Mis préstamos",
+        "Cambiar contraseña",
+        "Cerrar sesión",
+      ]);
+    });
+
+    it("links Mi perfil to /profile", () => {
+      setMember();
+      renderHeader();
+
+      const profileLinks = screen
+        .getAllByRole("menuitem")
+        .filter((el) => el.textContent?.trim() === "Mi perfil")
+        .map((el) => el.querySelector("a"));
+      expect(profileLinks).toEqual([expect.any(HTMLAnchorElement)]);
+      expect(profileLinks[0]).toHaveAttribute("href", "/profile");
     });
 
     it("links Mis préstamos to /my-loans", () => {
@@ -308,7 +340,7 @@ describe("SiteHeader", () => {
       expect(screen.getByText("Datos BGG").tagName).toEqual("A");
     });
 
-    it("orders the desktop menu Mis préstamos, Administración, Cerrar sesión", () => {
+    it("renders the exact admin top-level menu ordering", () => {
       setAdmin();
       const { container } = renderHeader();
 
@@ -319,11 +351,23 @@ describe("SiteHeader", () => {
         li.querySelector(":scope > a, :scope > button")?.textContent?.trim()
       );
       expect(topLevelLabels).toEqual([
+        "Mi perfil",
         "Mis préstamos",
         "Cambiar contraseña",
         "Administración",
         "Cerrar sesión",
       ]);
+    });
+
+    it("links Mi perfil to /profile for admin", () => {
+      setAdmin();
+      renderHeader();
+
+      const profileLink = screen
+        .getAllByRole("menuitem")
+        .find((el) => el.textContent?.trim() === "Mi perfil")
+        ?.querySelector("a");
+      expect(profileLink).toHaveAttribute("href", "/profile");
     });
 
     it("does not show nested admin items for guest", () => {
@@ -454,7 +498,32 @@ describe("SiteHeader", () => {
       expect(userTrigger!.getAttribute("aria-expanded")).toEqual("false");
       fireEvent.click(userTrigger!);
       expect(userTrigger!.getAttribute("aria-expanded")).toEqual("true");
+      expect(within(drawer).getByText("Mi perfil")).toHaveAttribute(
+        "href",
+        "/profile"
+      );
       expect(within(drawer).getByText("Mis préstamos").tagName).toEqual("A");
+    });
+
+    it("clicking Mi perfil in the drawer closes it", () => {
+      setMember();
+      const { container } = renderHeader();
+
+      const hamburger = screen.getByRole("button", { name: "Abrir menú" });
+      fireEvent.click(hamburger);
+
+      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
+      const userTrigger = within(drawer)
+        .getAllByRole("button")
+        .find(
+          (el) =>
+            el.textContent?.includes("Test User") &&
+            el.getAttribute("aria-haspopup") === "menu"
+        );
+      fireEvent.click(userTrigger!);
+      fireEvent.click(within(drawer).getByRole("link", { name: "Mi perfil" }));
+
+      expect(hamburger.getAttribute("aria-expanded")).toEqual("false");
     });
 
     // draw-6: nested Administración expands inside drawer

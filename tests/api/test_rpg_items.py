@@ -83,6 +83,8 @@ class TestListRpgItems:
             year_published=1974,
             bgg_rating=8.5,
             description="The original tabletop RPG.",
+            categories=("Fantasy", "Medieval"),
+            publication_types=("Core Rules", "Sourcebook"),
             item_type="rpgitem",
         )
 
@@ -100,7 +102,15 @@ class TestListRpgItems:
         assert item["image_url"] == "https://example.com/dnd.jpg"
         assert item["year_published"] == 1974
         assert item["bgg_rating"] == 8.5
-        assert item["description"] == "The original tabletop RPG."
+        assert {
+            "description": item["description"],
+            "categories": item["categories"],
+            "publication_types": item["publication_types"],
+        } == {
+            "description": "The original tabletop RPG.",
+            "categories": ["Fantasy", "Medieval"],
+            "publication_types": ["Core Rules", "Sourcebook"],
+        }
         assert item["status"] == "available"
         assert item["borrower_display_name"] is None
         assert item["loan_id"] is None
@@ -189,14 +199,14 @@ class TestListRpgItems:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="TEST_email@domain.com",
+            email="alice-rpg-list@example.invalid",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="TEST_email@domain.com",
+            email="bob-rpg-list@example.invalid",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
 
@@ -250,6 +260,8 @@ class TestGetRpgItem:
             year_published=1989,
             bgg_rating=7.8,
             description="Cyberpunk meets fantasy.",
+            categories=("Cyberpunk", "Fantasy"),
+            publication_types=("Core Rules", "Setting"),
             item_type="rpgitem",
         )
 
@@ -260,7 +272,15 @@ class TestGetRpgItem:
         assert data["id"] == rpg.id
         assert data["name"] == "Shadowrun"
         assert data["slug"] == rpg.slug
-        assert data["description"] == "Cyberpunk meets fantasy."
+        assert {
+            "description": data["description"],
+            "categories": data["categories"],
+            "publication_types": data["publication_types"],
+        } == {
+            "description": "Cyberpunk meets fantasy.",
+            "categories": ["Cyberpunk", "Fantasy"],
+            "publication_types": ["Core Rules", "Setting"],
+        }
         assert data["status"] == "available"
         assert data["borrower_display_name"] is None
         assert data["loan_id"] is None
@@ -313,14 +333,14 @@ class TestGetRpgItem:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="TEST_email@domain.com",
+            email="alice-rpg-detail@example.invalid",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="TEST_email@domain.com",
+            email="bob-rpg-detail@example.invalid",
         )
         loan = loan_repo.create(game_id=rpg.id, member_id=alice.id)
 

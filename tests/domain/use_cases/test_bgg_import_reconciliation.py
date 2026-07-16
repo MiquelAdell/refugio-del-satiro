@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from backend.data.bgg_client import BggGame
+from backend.data.bgg_client import BggGame, BggGameDetails
 from backend.domain.use_cases.import_games import ImportGamesUseCase
 from backend.domain.use_cases.import_rpg_items import ImportRpgItemsUseCase
 from tests.domain.use_cases.conftest import FakeGameRepository, FakeLoanRepository
@@ -16,6 +16,11 @@ class BggGamesClient:
 
     def fetch_owned_games(self) -> list[BggGame]:
         return self._games
+
+    def fetch_details(
+        self, bgg_ids: list[int], batch_size: int = 20
+    ) -> dict[int, BggGameDetails]:
+        return {}
 
 
 class TestItemTypeScoping:

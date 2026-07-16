@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+from collections.abc import Collection
 from datetime import UTC, datetime
 
 import pytest
@@ -12,15 +14,16 @@ from backend.domain.slug import ensure_unique, slugify
 class FakeGameRepository:
     """Shared fake for import-reconciliation tests.
 
-    ``blocked_bgg_ids`` is a test-only escape hatch: populate it directly to
-    simulate a game that has loan history and is therefore FK-blocked from
-    hard deletion, without reimplementing real SQLite FK semantics here.
+    ``blocked_collection_ids`` is a test-only escape hatch: populate it
+    directly to simulate a game that has loan history and is therefore
+    FK-blocked from hard deletion, without reimplementing real SQLite FK
+    semantics here.
     """
 
     def __init__(self) -> None:
         self._games: dict[int, Game] = {}
         self._next_id = 1
-        self.blocked_bgg_ids: set[int] = set()
+        self.blocked_collection_ids: set[int] = set()
 
     def get_by_id(self, game_id: int) -> Game | None:
         return self._games.get(game_id)
@@ -30,6 +33,16 @@ class FakeGameRepository:
 
     def get_by_bgg_id(self, bgg_id: int) -> Game | None:
         return next((g for g in self._games.values() if g.bgg_id == bgg_id), None)
+
+    def get_by_collection_id(self, bgg_collection_id: int) -> Game | None:
+        return next(
+            (
+                g
+                for g in self._games.values()
+                if g.bgg_collection_id == bgg_collection_id
+            ),
+            None,
+        )
 
     def list_all(self) -> list[Game]:
         return sorted(self._games.values(), key=lambda g: g.name)
@@ -50,29 +63,41 @@ class FakeGameRepository:
             key=lambda g: g.name,
         )
 
-    def deactivate_by_bgg_ids(self, bgg_ids: object) -> int:
+    def deactivate_by_collection_ids(self, collection_ids: Collection[int]) -> int:
         count = 0
-        for bgg_id in bgg_ids:
-            game = self.get_by_bgg_id(bgg_id)
+        for collection_id in collection_ids:
+            game = self.get_by_collection_id(collection_id)
             if game is not None and game.is_active:
-                self._games[game.id] = _replace_is_active(game, is_active=False)
+                self._games[game.id] = dataclasses.replace(game, is_active=False)
                 count += 1
         return count
 
-    def delete_by_bgg_ids(
-        self, bgg_ids: object
+    def delete_by_collection_ids(
+        self, collection_ids: Collection[int]
     ) -> tuple[frozenset[int], frozenset[int]]:
         deleted: set[int] = set()
         blocked: set[int] = set()
-        for bgg_id in bgg_ids:
-            if bgg_id in self.blocked_bgg_ids:
-                blocked.add(bgg_id)
+        for collection_id in collection_ids:
+            if collection_id in self.blocked_collection_ids:
+                blocked.add(collection_id)
                 continue
-            game = self.get_by_bgg_id(bgg_id)
+            game = self.get_by_collection_id(collection_id)
             if game is not None:
                 del self._games[game.id]
-                deleted.add(bgg_id)
+                deleted.add(collection_id)
         return frozenset(deleted), frozenset(blocked)
+
+    def _slug_for(self, existing: Game | None, name: str) -> str:
+        if existing is not None and slugify(existing.name) == slugify(name):
+            return existing.slug
+        return ensure_unique(
+            slugify(name),
+            (
+                g.slug
+                for g in self._games.values()
+                if existing is None or g.id != existing.id
+            ),
+        )
 
     def upsert_by_bgg_id(
         self,
@@ -88,17 +113,13 @@ class FakeGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game:
+        """Legacy path: no collection_id concept."""
         now = datetime.now(UTC)
         existing = self.get_by_bgg_id(bgg_id)
-        slug = (
-            existing.slug
-            if existing and slugify(existing.name) == slugify(name)
-            else ensure_unique(
-                slugify(name),
-                (g.slug for g in self._games.values() if g.bgg_id != bgg_id),
-            )
-        )
+        slug = self._slug_for(existing, name)
         game = Game(
             id=existing.id if existing else self._next_id,
             bgg_id=bgg_id,
@@ -116,34 +137,102 @@ class FakeGameRepository:
             updated_at=now,
             item_type=item_type,
             description=description,
+            categories=categories,
+            publication_types=publication_types,
             is_active=True,
+            bgg_collection_id=existing.bgg_collection_id if existing else None,
         )
         self._games[game.id] = game
         if existing is None:
             self._next_id += 1
         return game
 
+    def upsert_by_collection_id(
+        self,
+        bgg_collection_id: int,
+        bgg_id: int,
+        name: str,
+        thumbnail_url: str,
+        image_url: str = "",
+        year_published: int = 0,
+        min_players: int = 0,
+        max_players: int = 0,
+        playing_time: int = 0,
+        bgg_rating: float = 0.0,
+        location: str = "armari",
+        item_type: str = "boardgame",
+        description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
+    ) -> tuple[Game, bool]:
+        now = datetime.now(UTC)
+        existing = self.get_by_collection_id(bgg_collection_id)
+        if existing is None:
+            existing = next(
+                (
+                    g
+                    for g in self._games.values()
+                    if g.bgg_collection_id is None and g.bgg_id == bgg_id
+                ),
+                None,
+            )
+        was_created = existing is None
 
-def _replace_is_active(game: Game, *, is_active: bool) -> Game:
-    return Game(
-        id=game.id,
-        bgg_id=game.bgg_id,
-        name=game.name,
-        slug=game.slug,
-        thumbnail_url=game.thumbnail_url,
-        image_url=game.image_url,
-        year_published=game.year_published,
-        min_players=game.min_players,
-        max_players=game.max_players,
-        playing_time=game.playing_time,
-        bgg_rating=game.bgg_rating,
-        location=game.location,
-        created_at=game.created_at,
-        updated_at=game.updated_at,
-        item_type=game.item_type,
-        description=game.description,
-        is_active=is_active,
-    )
+        slug = self._slug_for(existing, name)
+        game = Game(
+            id=existing.id if existing else self._next_id,
+            bgg_id=bgg_id,
+            bgg_collection_id=bgg_collection_id,
+            name=name,
+            slug=slug,
+            thumbnail_url=thumbnail_url,
+            image_url=image_url,
+            year_published=year_published,
+            min_players=min_players,
+            max_players=max_players,
+            playing_time=playing_time,
+            bgg_rating=bgg_rating,
+            location=location,
+            created_at=existing.created_at if existing else now,
+            updated_at=now,
+            item_type=item_type,
+            description=description,
+            categories=categories,
+            publication_types=publication_types,
+            is_active=True,
+        )
+        self._games[game.id] = game
+        if was_created:
+            self._next_id += 1
+        return game, was_created
+
+    def update_details(
+        self,
+        game_id: int,
+        thumbnail_url: str,
+        image_url: str,
+        min_players: int,
+        max_players: int,
+        playing_time: int,
+        bgg_rating: float,
+        description: str = "",
+        categories: tuple[str, ...] = (),
+    ) -> Game:
+        game = self._games[game_id]
+        updated = dataclasses.replace(
+            game,
+            thumbnail_url=thumbnail_url,
+            image_url=image_url,
+            min_players=min_players,
+            max_players=max_players,
+            playing_time=playing_time,
+            bgg_rating=bgg_rating,
+            description=description,
+            categories=categories,
+            updated_at=datetime.now(UTC),
+        )
+        self._games[game_id] = updated
+        return updated
 
 
 class FakeLoanRepository:

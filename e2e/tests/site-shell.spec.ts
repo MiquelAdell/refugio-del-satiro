@@ -11,6 +11,7 @@
  */
 
 import { test, expect, type Page } from "@playwright/test";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const FIXTURES_DIR = resolve(__dirname, "..", "fixtures");
@@ -20,28 +21,34 @@ const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 
 const HOME = "/ludoteca/";
 const LOGIN_PATH = "/ludoteca/login";
-const LUDOTECA_LABEL = "Ludoteca";
+const PROFILE_PATH = "/ludoteca/profile";
+const MEMBER_DISPLAY_NAME = "E2E Member";
+const ADMIN_DISPLAY_NAME = "E2E Admin";
+const MEMBER_EMAIL =
+  process.env.TEST_MEMBER_EMAIL ?? "e2e-member@example.invalid";
 
-const isMobileProject = (projectName: string) => projectName === "chromium-mobile";
-const isDesktopProject = (projectName: string) => projectName === "chromium-desktop";
+const isMobileProject = (projectName: string) =>
+  projectName === "chromium-mobile";
+const isDesktopProject = (projectName: string) =>
+  projectName === "chromium-desktop";
 
-async function openLudotecaSubmenuOnMobile(page: Page) {
-  await page.getByRole("button", { name: "Abrir menú" }).click();
+async function openUserSubmenu(
+  page: Page,
+  projectName: string,
+  displayName = MEMBER_DISPLAY_NAME,
+) {
+  if (isMobileProject(projectName)) {
+    await page.getByRole("button", { name: "Abrir menú" }).click();
+    await page
+      .getByRole("button", { name: displayName, exact: true })
+      .filter({ visible: true })
+      .click();
+    return;
+  }
+
   await page
-    .locator("#mobile-drawer")
-    .getByRole("button", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
-    .click();
-}
-
-/**
- * On desktop the submenu is CSS-revealed via `:hover` / `:focus-within` on
- * the Ludoteca parent. Hovering the parent link makes the submenu visible
- * and reachable for accessibility-tree queries.
- */
-async function revealLudotecaSubmenuOnDesktop(page: Page) {
-  await page
-    .getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
-    .first()
+    .getByRole("button", { name: displayName, exact: true })
+    .filter({ visible: true })
     .hover();
 }
 
@@ -50,12 +57,13 @@ test.describe("site-shell @ guest", () => {
 
   test("nav-logo-1: logo visible on home", async ({ page }) => {
     await page.goto(HOME);
-    const logo = page.getByRole("link", { name: /Refugio del Sátiro/i }).first();
+    const logo = page
+      .getByRole("link", { name: /Refugio del Sátiro/i })
+      .first();
     await expect(logo).toBeVisible();
-    // The shield img is decorative (alt=""); the accessible name comes from
-    // the link's aria-label plus the visible logo text.
-    await expect(logo.locator("img")).toHaveAttribute("alt", "");
-    await expect(logo.getByText("El Refugio del Sátiro")).toBeVisible();
+    const shield = logo.locator("img");
+    await expect(shield).toBeVisible();
+    await expect(shield).toHaveAttribute("alt", "");
   });
 
   test("nav-menu-guest-1: Iniciar sesión link points to /ludoteca/login", async ({
@@ -67,9 +75,23 @@ test.describe("site-shell @ guest", () => {
       await page.getByRole("button", { name: "Abrir menú" }).click();
     }
 
-    const loginLink = page.getByRole("link", { name: "Iniciar sesión" }).first();
+    const loginLink = page
+      .getByRole("link", { name: "Iniciar sesión" })
+      .first();
     await expect(loginLink).toBeVisible();
     await expect(loginLink).toHaveAttribute("href", LOGIN_PATH);
+  });
+
+  test("profile-guest-1: direct profile navigation redirects to login", async ({
+    page,
+  }) => {
+    await page.goto(PROFILE_PATH);
+
+    await expect(page).toHaveURL(new RegExp(`${LOGIN_PATH}$`));
+    await expect(page.getByRole("heading", { name: "Mi perfil" })).toHaveCount(
+      0,
+    );
+    await expect(page.getByText(MEMBER_EMAIL)).toHaveCount(0);
   });
 });
 
@@ -81,23 +103,53 @@ test.describe("site-shell @ member", () => {
   }, testInfo) => {
     await page.goto(HOME);
 
-    if (isMobileProject(testInfo.project.name)) {
-      await openLudotecaSubmenuOnMobile(page);
-    } else {
-      await revealLudotecaSubmenuOnDesktop(page);
-    }
+    await openUserSubmenu(page, testInfo.project.name);
 
     await expect(
       page.getByRole("menuitem", { name: "Mis préstamos" }).first(),
     ).toBeVisible();
-    // "Cerrar sesión" lives in the header actions slot (desktop) / drawer user row
-    // (mobile), not inside the Ludoteca submenu — so its ARIA role is "button".
     await expect(
       page.getByRole("button", { name: "Cerrar sesión" }).first(),
     ).toBeVisible();
+    await expect(page.locator("text=Administración")).toHaveCount(0);
+  });
+
+  test("profile-member-1: member opens the read-only profile from the user menu", async ({
+    page,
+  }, testInfo) => {
+    const meRequests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname.endsWith("/api/me")) {
+        meRequests.push(request.url());
+      }
+    });
+
+    await page.goto(HOME);
+    await openUserSubmenu(page, testInfo.project.name);
+
+    const profileLink = page
+      .getByRole("link", { name: "Mi perfil", exact: true })
+      .filter({ visible: true });
+    await expect(profileLink).toHaveAttribute("href", PROFILE_PATH);
+    await profileLink.click();
+
+    await expect(page).toHaveURL(new RegExp(`${PROFILE_PATH}$`));
     await expect(
-      page.locator("text=Administración"),
-    ).toHaveCount(0);
+      page.getByRole("heading", { name: "Mi perfil" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: MEMBER_EMAIL })).toBeVisible();
+    await expect(page.getByText("Estado de membresía")).toBeVisible();
+    await expect(page.getByText("Activo").first()).toBeVisible();
+    const profileActions = page.getByRole("navigation", {
+      name: "Acciones del perfil",
+    });
+    await expect(
+      profileActions.getByRole("link", { name: "Mis préstamos" }),
+    ).toBeVisible();
+    await expect(
+      profileActions.getByRole("link", { name: "Cambiar contraseña" }),
+    ).toBeVisible();
+    expect(meRequests).toHaveLength(1);
   });
 
   test("auth-1: Cerrar sesión clears prestamos_session sentinel", async ({
@@ -117,12 +169,8 @@ test.describe("site-shell @ member", () => {
       )
       .toBe("1");
 
-    // "Cerrar sesión" is in the header actions slot — always visible on desktop,
-    // no need to hover the Ludoteca submenu first.
-    await page
-      .getByRole("button", { name: "Cerrar sesión" })
-      .first()
-      .click();
+    await openUserSubmenu(page, testInfo.project.name);
+    await page.getByRole("button", { name: "Cerrar sesión" }).first().click();
 
     await expect
       .poll(async () =>
@@ -140,14 +188,14 @@ test.describe("site-shell @ admin", () => {
   }, testInfo) => {
     await page.goto(HOME);
 
+    await openUserSubmenu(page, testInfo.project.name, ADMIN_DISPLAY_NAME);
+
     if (isMobileProject(testInfo.project.name)) {
-      await openLudotecaSubmenuOnMobile(page);
       await page
         .locator("#mobile-drawer")
         .getByRole("button", { name: /Administración/ })
         .click();
     } else {
-      await revealLudotecaSubmenuOnDesktop(page);
       // Hover the nested Administración trigger so its child list reveals.
       await page
         .getByRole("button", { name: /Administración/ })
@@ -170,8 +218,15 @@ test.describe("site-shell @ admin", () => {
 // and that the Google Sites original header is hidden.
 
 const STATIC_PAGE = "/calendario/";
+const HAS_STATIC_MIRROR = existsSync(
+  resolve(
+    __dirname,
+    "../../frontend/public/content-mirror/calendario/index.html",
+  ),
+);
 
 test.describe("site-shell @ static page (guest)", () => {
+  test.skip(!HAS_STATIC_MIRROR, "local content mirror is not available");
   test.use({ storageState: GUEST_STATE });
 
   test("static-shell-1: site-shell-root exists and is visible", async ({
@@ -194,7 +249,9 @@ test.describe("site-shell @ static page (guest)", () => {
     } else {
       await page.getByRole("link", { name: "Socios" }).first().hover();
     }
-    const link = page.getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) }).first();
+    const link = page
+      .getByRole("link", { name: new RegExp(`^${LUDOTECA_LABEL}`) })
+      .first();
     await expect(link).toBeVisible();
     // Scraped from the Socios submenu on the Google Site; the Caddyfile
     // 301-redirects /socios/ludoteca → /ludoteca at the network layer.
@@ -222,6 +279,7 @@ test.describe("site-shell @ static page (guest)", () => {
 });
 
 test.describe("site-shell @ static page (member)", () => {
+  test.skip(!HAS_STATIC_MIRROR, "local content mirror is not available");
   test.use({ storageState: MEMBER_STATE });
 
   test("static-shell-5: Cerrar sesión visible for member", async ({

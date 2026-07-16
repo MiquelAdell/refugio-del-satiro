@@ -23,7 +23,14 @@ class TestSqliteMemberRepository:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member_repo.upsert_by_email(
-            66, "Miquel", "Adell", None, None, "TEST_email@domain.com", "Miquel Adell", False
+            66,
+            "Miquel",
+            "Adell",
+            None,
+            None,
+            "TEST_email@domain.com",
+            "Miquel Adell",
+            False,
         )
         updated = member_repo.upsert_by_email(
             66,
@@ -108,10 +115,24 @@ class TestSqliteMemberRepository:
         self, member_repo: SqliteMemberRepository
     ) -> None:
         member_repo.upsert_by_email(
-            50, "B", "User", None, None, "TEST_email@domain.com", "B User", False
+            50,
+            "B",
+            "User",
+            None,
+            None,
+            "member-50@example.invalid",
+            "B User",
+            False,
         )
         member_repo.upsert_by_email(
-            10, "A", "User", None, None, "TEST_email@domain.com", "A User", False
+            10,
+            "A",
+            "User",
+            None,
+            None,
+            "member-10@example.invalid",
+            "A User",
+            False,
         )
         members = member_repo.list_all()
         numbers = [m.member_number for m in members]
@@ -119,7 +140,14 @@ class TestSqliteMemberRepository:
 
     def test_nullable_member_number(self, member_repo: SqliteMemberRepository) -> None:
         member = member_repo.upsert_by_email(
-            None, "No", "Number", None, None, "TEST_email@domain.com", "No Number", False
+            None,
+            "No",
+            "Number",
+            None,
+            None,
+            "TEST_email@domain.com",
+            "No Number",
+            False,
         )
         assert member.member_number is None
 

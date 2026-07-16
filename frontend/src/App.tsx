@@ -16,6 +16,7 @@ import { AdminBggPage } from "./pages/AdminBggPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
 import { ValidacionPage } from "./pages/ValidacionPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -24,7 +25,10 @@ export default function App() {
         <CatalogModeProvider>
           <SiteNavProvider>
             <Routes>
-              <Route path="/" element={<Navigate to="/juegos-de-mesa" replace />} />
+              <Route
+                path="/"
+                element={<Navigate to="/juegos-de-mesa" replace />}
+              />
               <Route
                 path="/juegos-de-mesa"
                 element={
@@ -62,6 +66,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <MyLoansPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PageLayout>
+                    <ProfilePage />
                   </PageLayout>
                 }
               />

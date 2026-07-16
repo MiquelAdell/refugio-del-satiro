@@ -58,8 +58,12 @@ export interface ImportedMember {
 
 export interface ImportMembersResponse {
   readonly created: readonly ImportedMember[];
+  readonly created_count: number;
+  readonly updated_count: number;
+  readonly disabled_count: number;
   readonly total_rows: number;
   readonly skipped_rows: number;
+  readonly deactivation_skip_reason: string | null;
 }
 
 export interface OkResponse {
