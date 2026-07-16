@@ -9,10 +9,12 @@ export interface Game {
   readonly min_players: number;
   readonly max_players: number;
   readonly playing_time: number;
+  readonly min_age: number;
   readonly bgg_rating: number;
   readonly location: string;
   readonly description: string;
   readonly categories: readonly string[];
+  readonly primary_tag: string;
 }
 
 export interface GameWithStatus extends Game {

@@ -7,6 +7,7 @@ import { GameCard } from "../components/GameCard";
 import { PoweredByBgg } from "../components/PoweredByBgg";
 import { SearchBar } from "../components/SearchBar";
 import { SearchFiltersBox } from "../components/SearchFiltersBox";
+import { computeCategoryFrequency, mostCommonOwnCategory } from "../lib/gameTags";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
 import {
@@ -107,6 +108,13 @@ export function CatalogPage() {
     [games, query],
   );
 
+  // Fallback tag for cards without a `primary_tag`: the game's own most
+  // frequent BGG category, ranked across the whole loaded catalog.
+  const categoryFrequency = useMemo(
+    () => computeCategoryFrequency(games),
+    [games],
+  );
+
   if (loading) {
     return (
       <div className="catalog-page">
@@ -168,7 +176,16 @@ export function CatalogPage() {
       ) : (
         <div className={view === "grid" ? "catalog-grid" : "catalog-list"}>
           {filteredGames.map((game) => (
-            <GameCard key={game.id} game={game} view={view} />
+            <GameCard
+              key={game.id}
+              game={game}
+              view={view}
+              fallbackCategory={
+                game.primary_tag
+                  ? undefined
+                  : mostCommonOwnCategory(game.categories, categoryFrequency)
+              }
+            />
           ))}
         </div>
       )}

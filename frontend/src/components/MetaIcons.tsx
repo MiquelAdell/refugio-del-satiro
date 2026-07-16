@@ -24,6 +24,23 @@ export function PlayersIcon({ className }: MetaIconProps) {
   );
 }
 
+export function AgeIcon({ className }: MetaIconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="12" cy="7" r="3.2" />
+      <path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" />
+    </svg>
+  );
+}
+
 export function ClockIcon({ className }: MetaIconProps) {
   return (
     <svg

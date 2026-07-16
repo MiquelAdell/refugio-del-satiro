@@ -23,10 +23,12 @@ const AVAILABLE_GAME: GameWithStatus = {
   min_players: 3,
   max_players: 4,
   playing_time: 90,
+  min_age: 10,
   bgg_rating: 7.2,
   location: "armari",
   description: "",
   categories: [],
+  primary_tag: "familygames",
   status: "available",
   borrower_display_name: null,
   loan_id: null,
@@ -266,5 +268,19 @@ describe("CatalogPage view toggle (DQ-2)", () => {
     unmount();
     const { container: remounted } = renderPage();
     expect(remounted.querySelector(".catalog-list")).not.toBeNull();
+  });
+});
+
+describe("CatalogPage tag pill fallback", () => {
+  it("shows the game's most common own category when primary_tag is empty", () => {
+    setGames([
+      { ...AVAILABLE_GAME, primary_tag: "", categories: ["Economic"] },
+      { ...LENT_GAME, primary_tag: "", categories: ["Economic", "Fantasy"] },
+    ]);
+
+    renderPage();
+
+    // "Economic" wins the frequency tie-break (appears on both games).
+    expect(screen.getAllByText("Economic")).toHaveLength(2);
   });
 });
