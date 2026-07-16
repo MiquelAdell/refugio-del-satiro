@@ -13,6 +13,8 @@ export interface RpgItem {
   readonly year_published: number;
   readonly bgg_rating: number;
   readonly description: string;
+  readonly categories: readonly string[];
+  readonly publication_types: readonly string[];
   readonly status: RpgLendingStatus;
   readonly loan_id: number | null;
   readonly borrower_display_name: string | null;

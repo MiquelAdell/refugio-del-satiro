@@ -19,6 +19,8 @@ const baseGame: GameWithStatus = {
   playing_time: 90,
   bgg_rating: 7.2,
   location: "armario",
+  description: "",
+  categories: [],
   status: "available",
   borrower_display_name: null,
   loan_id: null,

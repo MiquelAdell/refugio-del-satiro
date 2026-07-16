@@ -11,6 +11,8 @@ export interface Game {
   readonly playing_time: number;
   readonly bgg_rating: number;
   readonly location: string;
+  readonly description: string;
+  readonly categories: readonly string[];
 }
 
 export interface GameWithStatus extends Game {

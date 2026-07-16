@@ -15,7 +15,9 @@ export function GameDetailPage() {
   const { game, history, loading, error, refetch } = useGameHistory(slug);
   const { member } = useAuth();
   const [confirmAction, setConfirmAction] = useState<
-    { readonly action: "borrow"; readonly gameId: number } | { readonly action: "return" } | null
+    | { readonly action: "borrow"; readonly gameId: number }
+    | { readonly action: "return" }
+    | null
   >(null);
   const [acting, setActing] = useState(false);
 
@@ -49,7 +51,8 @@ export function GameDetailPage() {
   // `lending-borrow-with-return-date` replaces the ConfirmDialog this opens
   // with the return-date dialog; until then it keeps the live direct-borrow
   // behaviour (confirm → POST /loans).
-  const onBorrow = (gameId: number) => setConfirmAction({ action: "borrow", gameId });
+  const onBorrow = (gameId: number) =>
+    setConfirmAction({ action: "borrow", gameId });
 
   const handleBorrow = async (gameId: number) => {
     setActing(true);
@@ -89,6 +92,11 @@ export function GameDetailPage() {
         ? `Prestado a ${game.borrower_display_name}`
         : "Prestado";
 
+  const descriptionParagraphs = game.description
+    .split(/\n\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0);
+
   return (
     <div className="game-detail-page">
       <Link to="/" className="game-detail-back">
@@ -124,6 +132,15 @@ export function GameDetailPage() {
               </span>
             )}
           </div>
+
+          {game.categories.length > 0 && (
+            <dl className="game-detail-classifications">
+              <div>
+                <dt>Categorías</dt>
+                <dd>{game.categories.join(", ")}</dd>
+              </div>
+            </dl>
+          )}
 
           <Badge variant={game.status} className="game-detail-status">
             {statusLabel}
@@ -168,10 +185,20 @@ export function GameDetailPage() {
         </div>
       </div>
 
+      {descriptionParagraphs.length > 0 && (
+        <section className="game-detail-description" aria-label="Descripción">
+          {descriptionParagraphs.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
+        </section>
+      )}
+
       <div className="game-detail-history">
         <h2>Historial de préstamos y comentarios</h2>
         {history.length === 0 ? (
-          <p className="game-detail-no-history">Este juego nunca ha sido prestado.</p>
+          <p className="game-detail-no-history">
+            Este juego nunca ha sido prestado.
+          </p>
         ) : (
           <div className="game-detail-history-list">
             {history.map((entry, i) => (
