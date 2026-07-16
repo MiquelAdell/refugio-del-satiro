@@ -11,6 +11,7 @@
  */
 
 import { test, expect, type Page } from "@playwright/test";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const FIXTURES_DIR = resolve(__dirname, "..", "fixtures");
@@ -240,8 +241,12 @@ test.describe("site-shell @ admin", () => {
 // and that the Google Sites original header is hidden.
 
 const STATIC_PAGE = "/calendario/";
+const HAS_STATIC_MIRROR = existsSync(
+  resolve(__dirname, "../../frontend/public/content-mirror/calendario/index.html"),
+);
 
 test.describe("site-shell @ static page (guest)", () => {
+  test.skip(!HAS_STATIC_MIRROR, "local content mirror is not available");
   test.use({ storageState: GUEST_STATE });
 
   test("static-shell-1: site-shell-root exists and is visible", async ({
@@ -294,6 +299,7 @@ test.describe("site-shell @ static page (guest)", () => {
 });
 
 test.describe("site-shell @ static page (member)", () => {
+  test.skip(!HAS_STATIC_MIRROR, "local content mirror is not available");
   test.use({ storageState: MEMBER_STATE });
 
   test("static-shell-5: Cerrar sesión visible for member", async ({

@@ -51,7 +51,7 @@ export default defineConfig({
     {
       command: "caddy run --config Caddyfile.e2e --adapter caddyfile",
       cwd: "..",
-      url: "http://localhost:8090/",
+      url: "http://localhost:8090/ludoteca/api/health",
       reuseExistingServer: true,
     },
   ],
