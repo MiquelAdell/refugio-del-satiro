@@ -297,7 +297,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="TEST_email@domain.com",
+            email="admin-conflict@example.invalid",
             is_admin=True,
         )
         target = _make_member(
@@ -305,7 +305,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="TEST_email@domain.com",
+            email="target-conflict@example.invalid",
         )
 
         response = client.patch(
@@ -313,7 +313,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "TEST_email@domain.com",
+                "email": "admin-conflict@example.invalid",
             },
             headers=_auth_cookie(admin),
         )
@@ -329,7 +329,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="TEST_email@domain.com",
+            email="admin-number@example.invalid",
             is_admin=True,
         )
         target = _make_member(
@@ -337,7 +337,7 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="TEST_email@domain.com",
+            email="target-number@example.invalid",
         )
 
         response = client.patch(
@@ -345,7 +345,7 @@ class TestAdminPatchMember:
             json={
                 "first_name": "Target",
                 "last_name": "Member",
-                "email": "TEST_email@domain.com",
+                "email": "target-number@example.invalid",
                 "member_number": 1,
             },
             headers=_auth_cookie(admin),
@@ -471,7 +471,7 @@ class TestAdminImportMembers:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="TEST_email@domain.com",
+            email="import-admin@example.invalid",
             is_admin=True,
         )
 
@@ -482,25 +482,33 @@ class TestAdminImportMembers:
 
         csv_bytes = self._csv_bytes(
             [
-                "10,García,Ana,Anita,600111222,TEST_email@domain.com,,5/02/2022,Femenino",
-                "11,López,Carlos,,600333444,TEST_email@domain.com,,1/01/2023,Masculino",
+                "10,García,Ana,Anita,600111222,ana@example.invalid,,5/02/2022,Femenino",
+                "11,López,Carlos,,600333444,carlos@example.invalid,,1/01/2023,Masculino",
             ]
         )
         response = self._post_import(client, admin, csv_bytes)
 
         assert response.status_code == 200
         body = response.json()
-        assert body["total_rows"] == 2
-        assert body["skipped_rows"] == 0
+        assert body == {
+            "created": body["created"],
+            "created_count": 2,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 2,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert body["created_count"] == len(body["created"])
         assert len(body["created"]) == 2
 
         by_email = {c["email"]: c for c in body["created"]}
-        assert by_email["TEST_email@domain.com"]["display_name"] == "Anita"
-        assert by_email["TEST_email@domain.com"]["display_name"] == "Carlos López"
+        assert by_email["ana@example.invalid"]["display_name"] == "Anita"
+        assert by_email["carlos@example.invalid"]["display_name"] == "Carlos López"
         for created in body["created"]:
             assert "/set-password?token=" in created["token_url"]
 
-        ana = member_repo.get_by_email("TEST_email@domain.com")
+        ana = member_repo.get_by_email("ana@example.invalid")
         assert ana is not None
         assert ana.member_number == 10
         conn.close()
@@ -511,7 +519,7 @@ class TestAdminImportMembers:
         admin = self._make_admin(member_repo)
 
         csv_bytes = self._csv_bytes(
-            ["10,García,Ana,,600111222,TEST_email@domain.com,,5/02/2022,Femenino"]
+            ["10,García,Ana,,600111222,ana@example.invalid,,5/02/2022,Femenino"]
         )
         first = self._post_import(client, admin, csv_bytes)
         assert first.status_code == 200
@@ -520,7 +528,16 @@ class TestAdminImportMembers:
         second = self._post_import(client, admin, csv_bytes)
 
         assert second.status_code == 200
-        assert second.json() == {"created": [], "total_rows": 1, "skipped_rows": 0}
+        assert second.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 0,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert second.json()["created_count"] == len(second.json()["created"])
         # Upsert: no duplicate member created (admin + Ana only)
         assert len(member_repo.list_all()) == 2
         conn.close()
@@ -532,7 +549,7 @@ class TestAdminImportMembers:
 
         csv_bytes = self._csv_bytes(
             [
-                "10,García,Ana,,600111222,TEST_email@domain.com,,,",
+                "10,García,Ana,,600111222,ana@example.invalid,,,",
                 "11,Sin,Email,,600333444,,,,",
             ]
         )
@@ -540,10 +557,248 @@ class TestAdminImportMembers:
 
         assert response.status_code == 200
         body = response.json()
-        assert body["total_rows"] == 2
-        assert body["skipped_rows"] == 1
-        assert len(body["created"]) == 1
-        assert body["created"][0]["email"] == "TEST_email@domain.com"
+        assert body == {
+            "created": body["created"],
+            "created_count": 1,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 2,
+            "skipped_rows": 1,
+            "deactivation_skip_reason": None,
+        }
+        assert body["created_count"] == len(body["created"])
+        assert body["created"][0]["email"] == "ana@example.invalid"
+        conn.close()
+
+    def test_import_disables_missing_member_at_safety_threshold(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        retained = _make_member(
+            member_repo,
+            number=2,
+            first_name="Retained",
+            last_name="Member",
+            email="retained@example.invalid",
+        )
+        removed = _make_member(
+            member_repo,
+            number=3,
+            first_name="Removed",
+            last_name="Member",
+            email="removed@example.invalid",
+        )
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(
+                ["2,Member,Retained,,,retained@example.invalid,,,"]
+            ),
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 1,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert response.json()["created_count"] == len(response.json()["created"])
+        assert member_repo.get_by_id(retained.id).is_active is True  # type: ignore[union-attr]
+        assert member_repo.get_by_id(removed.id).is_active is False  # type: ignore[union-attr]
+        conn.close()
+
+    def test_import_keeps_acting_admin_active_when_absent_from_csv(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(
+                ["2,Member,New,,,new-member@example.invalid,,,"]
+            ),
+        )
+
+        assert response.status_code == 200
+        stored_admin = member_repo.get_by_id(admin.id)
+        assert stored_admin is not None
+        assert stored_admin.is_admin is True
+        assert stored_admin.is_active is True
+        conn.close()
+
+    def test_header_only_import_skips_deactivation(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+
+        response = self._post_import(client, admin, self._csv_bytes([]))
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 0,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": (
+                "The member import contains no valid email addresses; "
+                "skipping deactivation of missing members"
+            ),
+        }
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_import_over_safety_threshold_skips_deactivation(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        members = [
+            _make_member(
+                member_repo,
+                number=number,
+                first_name=name,
+                last_name="Member",
+                email=f"{name.lower()}@example.invalid",
+            )
+            for number, name in [(2, "Alpha"), (3, "Beta"), (4, "Gamma")]
+        ]
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(["2,Member,Alpha,,,alpha@example.invalid,,,"]),
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 0,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": (
+                "2 of 3 active members are missing from the import (> 50%); "
+                "skipping deactivation of missing members"
+            ),
+        }
+        assert all(
+            member_repo.get_by_id(member.id).is_active is True  # type: ignore[union-attr]
+            for member in members
+        )
+        conn.close()
+
+    def test_malformed_row_shape_returns_400_before_any_upsert(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+        csv_bytes = self._csv_bytes(
+            [
+                "10,Member,Valid,,,valid@example.invalid,,,",
+                "11,Member,Missing,,,missing@example.invalid,,",
+            ]
+        )
+
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "Todas las filas del CSV deben tener el mismo número de columnas."
+        }
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    @pytest.mark.parametrize(
+        ("rows", "expected_detail"),
+        [
+            (
+                [
+                    "10,Member,Valid,,,valid@example.invalid,,,,extra",
+                ],
+                "Todas las filas del CSV deben tener el mismo número de columnas.",
+            ),
+            (
+                [
+                    "10,Member,Valid,,,valid@example.invalid,,,",
+                    '11,Member,"Unclosed,,,bad@example.invalid,,,',
+                ],
+                "El archivo CSV no tiene un formato válido.",
+            ),
+        ],
+    )
+    def test_malformed_csv_returns_400_before_any_upsert(
+        self, rows: list[str], expected_detail: str
+    ) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+
+        response = self._post_import(client, admin, self._csv_bytes(rows))
+
+        assert response.status_code == 400
+        assert response.json() == {"detail": expected_detail}
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_invalid_member_number_returns_400_before_any_upsert(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+        csv_bytes = self._csv_bytes(
+            [
+                "10,Member,Valid,,,valid@example.invalid,,,",
+                "invalid,Member,Bad,,,bad@example.invalid,,,",
+            ]
+        )
+
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": (
+                "El archivo CSV contiene datos no válidos. "
+                "Revisa los números de socio y vuelve a intentarlo."
+            )
+        }
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
         conn.close()
 
     def test_missing_email_header_returns_400(self) -> None:
@@ -558,6 +813,7 @@ class TestAdminImportMembers:
         assert response.json() == {
             "detail": "El archivo CSV debe tener una columna 'Email'."
         }
+        assert member_repo.get_by_id(admin.id).is_active is True  # type: ignore[union-attr]
         conn.close()
 
     def test_import_requires_admin(self) -> None:
