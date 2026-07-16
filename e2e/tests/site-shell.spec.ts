@@ -23,6 +23,7 @@ const HOME = "/ludoteca/";
 const LOGIN_PATH = "/ludoteca/login";
 const PROFILE_PATH = "/ludoteca/profile";
 const MEMBER_DISPLAY_NAME = "E2E Member";
+const ADMIN_DISPLAY_NAME = "E2E Admin";
 const MEMBER_EMAIL =
   process.env.TEST_MEMBER_EMAIL ?? "e2e-member@example.invalid";
 
@@ -31,18 +32,22 @@ const isMobileProject = (projectName: string) =>
 const isDesktopProject = (projectName: string) =>
   projectName === "chromium-desktop";
 
-async function openUserSubmenu(page: Page, projectName: string) {
+async function openUserSubmenu(
+  page: Page,
+  projectName: string,
+  displayName = MEMBER_DISPLAY_NAME,
+) {
   if (isMobileProject(projectName)) {
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await page
-      .getByRole("button", { name: MEMBER_DISPLAY_NAME, exact: true })
+      .getByRole("button", { name: displayName, exact: true })
       .filter({ visible: true })
       .click();
     return;
   }
 
   await page
-    .getByRole("button", { name: MEMBER_DISPLAY_NAME, exact: true })
+    .getByRole("button", { name: displayName, exact: true })
     .filter({ visible: true })
     .hover();
 }
@@ -183,7 +188,7 @@ test.describe("site-shell @ admin", () => {
   }, testInfo) => {
     await page.goto(HOME);
 
-    await openUserSubmenu(page, testInfo.project.name);
+    await openUserSubmenu(page, testInfo.project.name, ADMIN_DISPLAY_NAME);
 
     if (isMobileProject(testInfo.project.name)) {
       await page
