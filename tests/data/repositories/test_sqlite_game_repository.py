@@ -1,3 +1,5 @@
+import sqlite3
+
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
@@ -99,6 +101,43 @@ class TestSqliteGameRepository:
         )
         assert game.item_type == "rpgitem"
         assert game.description == "A guide for adventurers."
+
+    def test_upsert_normalizes_boardgame_categories(
+        self, game_repo: SqliteGameRepository, db_conn: sqlite3.Connection
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(
+            13,
+            "Catan",
+            "https://c.jpg",
+            categories=(" Strategy ", "", "Family", "strategy", "  ", "Economic"),
+        )
+
+        assert game.categories == ("Economic", "Family", "Strategy")
+        row = db_conn.execute(
+            "SELECT categories_json FROM games WHERE bgg_id = 13"
+        ).fetchone()
+        assert row["categories_json"] == '["Economic", "Family", "Strategy"]'
+
+    def test_upsert_normalizes_rpg_publication_types(
+        self, game_repo: SqliteGameRepository
+    ) -> None:
+        game = game_repo.upsert_by_bgg_id(
+            1001,
+            "D&D Player's Handbook",
+            "https://dnd.jpg",
+            item_type="rpgitem",
+            publication_types=(
+                " Scenario / Adventure / Module ",
+                "Core Rules",
+                "core rules",
+                "",
+            ),
+        )
+
+        assert game.publication_types == (
+            "Core Rules",
+            "Scenario / Adventure / Module",
+        )
 
     def test_list_by_type_excludes_other_types(
         self, game_repo: SqliteGameRepository

@@ -15,6 +15,8 @@ const BASE_ITEM: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original RPG.",
+  categories: [],
+  publication_types: [],
   status: "available",
   loan_id: null,
   borrower_display_name: null,

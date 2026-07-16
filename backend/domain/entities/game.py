@@ -22,4 +22,6 @@ class Game:
     updated_at: datetime
     item_type: str = field(default="boardgame")
     description: str = field(default="")
+    categories: tuple[str, ...] = field(default=())
+    publication_types: tuple[str, ...] = field(default=())
     is_active: bool = field(default=True)

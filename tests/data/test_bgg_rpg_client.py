@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import httpx
+
 from backend.data.bgg_client import BggClient, BggRpgItem
 
 RPG_COLLECTION_XML = """<?xml version="1.0" encoding="utf-8"?>
@@ -32,6 +34,11 @@ RPG_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
         <image>https://cf.geekdo-images.com/dnd_phb.png</image>
         <yearpublished value="2014"/>
         <description>A guide for adventurers &amp; heroes.</description>
+        <link type="rpggenre" value=" Fantasy "/>
+        <link type="rpggenre" value="Adventure"/>
+        <link type="rpggenre" value="fantasy"/>
+        <link type="rpgcategory" value="Core Rules"/>
+        <link type="rpgpublisher" value="Ignored Publisher"/>
         <statistics page="1">
             <ratings>
                 <average value="8.50"/>
@@ -43,6 +50,8 @@ RPG_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
         <image>https://cf.geekdo-images.com/pf_core.png</image>
         <yearpublished value="2019"/>
         <description>The complete Pathfinder rules.</description>
+        <link type="rpggenre" value="Fantasy"/>
+        <link type="rpgcategory" value=" Scenario / Adventure / Module "/>
         <statistics page="1">
             <ratings>
                 <average value="9.10"/>
@@ -54,6 +63,15 @@ RPG_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
 RPG_THING_XML_MISSING_FIELDS = """<?xml version="1.0" encoding="utf-8"?>
 <items>
     <item type="rpgitem" id="1003">
+    </item>
+</items>"""
+
+RPG_THING_XML_PATHFINDER = """<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="rpgitem" id="1002">
+        <description>The complete Pathfinder rules.</description>
+        <link type="rpggenre" value="Fantasy"/>
+        <link type="rpgcategory" value="Core Rules"/>
     </item>
 </items>"""
 
@@ -80,8 +98,6 @@ class TestBggClientRpgParsing:
     def test_fetch_rpg_details_parses_image_and_description(
         self, monkeypatch: object
     ) -> None:
-        import httpx
-
         class _FakeResponse:
             status_code = 200
             text = RPG_THING_XML
@@ -95,13 +111,15 @@ class TestBggClientRpgParsing:
         assert details[1001].image_url == "https://cf.geekdo-images.com/dnd_phb.png"
         assert details[1001].description == "A guide for adventurers & heroes."
         assert details[1001].bgg_rating == 8.5
+        assert details[1001].categories == ("Adventure", "Fantasy")
+        assert details[1001].publication_types == ("Core Rules",)
+        assert "Ignored Publisher" not in details[1001].categories
+        assert "Ignored Publisher" not in details[1001].publication_types
         assert details[1002].bgg_rating == 9.1
 
     def test_fetch_rpg_details_missing_optional_fields(
         self, monkeypatch: object
     ) -> None:
-        import httpx
-
         class _FakeResponse:
             status_code = 200
             text = RPG_THING_XML_MISSING_FIELDS
@@ -117,12 +135,37 @@ class TestBggClientRpgParsing:
         assert details[1003].year_published == 0
         assert details[1003].bgg_rating == 0.0
         assert details[1003].description == ""
+        assert details[1003].categories == ()
+        assert details[1003].publication_types == ()
+
+    def test_fetch_rpg_details_skips_failed_batch_and_keeps_successes(
+        self, monkeypatch: object
+    ) -> None:
+        responses = iter(
+            [
+                (503, ""),
+                (200, RPG_THING_XML_PATHFINDER),
+            ]
+        )
+
+        class _FakeResponse:
+            def __init__(self, status_code: int, text: str) -> None:
+                self.status_code = status_code
+                self.text = text
+
+        monkeypatch.setattr(
+            httpx, "get", lambda *_a, **_kw: _FakeResponse(*next(responses))
+        )
+        monkeypatch.setattr("backend.data.bgg_client.time.sleep", lambda *_a: None)
+
+        details = BggClient("test")._fetch_rpg_details([1001, 1002], batch_size=1)
+
+        assert set(details) == {1002}
+        assert details[1002].description == "The complete Pathfinder rules."
 
     def test_fetch_owned_rpg_items_combines_collection_and_details(
         self, monkeypatch: object
     ) -> None:
-        import httpx
-
         responses = iter([RPG_COLLECTION_XML, RPG_THING_XML])
 
         class _FakeResponse:
@@ -146,10 +189,33 @@ class TestBggClientRpgParsing:
         assert dnd.description == "A guide for adventurers & heroes."
         assert dnd.bgg_rating == 8.5
         assert dnd.year_published == 2014
+        assert dnd.categories == ("Adventure", "Fantasy")
+        assert dnd.publication_types == ("Core Rules",)
+        assert dnd.details_loaded is True
+
+    def test_fetch_owned_rpg_items_marks_missing_details(
+        self, monkeypatch: object
+    ) -> None:
+        responses = iter([RPG_COLLECTION_XML, "<items></items>"])
+
+        class _FakeResponse:
+            status_code = 200
+
+            def __init__(self, text: str) -> None:
+                self.text = text
+
+        monkeypatch.setattr(
+            httpx, "get", lambda *_a, **_kw: _FakeResponse(next(responses))
+        )
+
+        items = BggClient("test").fetch_owned_rpg_items()
+
+        assert len(items) == 2
+        assert all(item.details_loaded is False for item in items)
+        assert all(item.categories == () for item in items)
+        assert all(item.publication_types == () for item in items)
 
     def test_fetch_owned_rpg_items_empty_collection(self, monkeypatch: object) -> None:
-        import httpx
-
         class _FakeResponse:
             status_code = 200
             text = '<?xml version="1.0"?><items totalitems="0"></items>'

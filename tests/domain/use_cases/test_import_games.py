@@ -2,18 +2,46 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from backend.data.bgg_client import BggGame
+from backend.data.bgg_client import BggGame, BggGameDetails
 from backend.domain.entities.loan import Loan
 from backend.domain.use_cases.import_games import ImportGamesUseCase
 from tests.domain.use_cases.conftest import FakeGameRepository, FakeLoanRepository
 
 
 class FakeBggClient:
-    def __init__(self, games: list[BggGame]) -> None:
+    def __init__(
+        self,
+        games: list[BggGame],
+        details: dict[int, BggGameDetails] | None = None,
+    ) -> None:
         self._games = games
+        self._details = details or {}
 
     def fetch_owned_games(self) -> list[BggGame]:
         return self._games
+
+    def fetch_details(self, bgg_ids: list[int]) -> dict[int, BggGameDetails]:
+        assert bgg_ids == [game.bgg_id for game in self._games]
+        return self._details
+
+
+def _details(
+    *,
+    bgg_id: int = 13,
+    description: str = "Trade and build.",
+    categories: tuple[str, ...] = ("Economic", "Strategy"),
+) -> BggGameDetails:
+    return BggGameDetails(
+        bgg_id=bgg_id,
+        image_url="https://full.jpg",
+        thumbnail_url="https://detail-thumb.jpg",
+        min_players=3,
+        max_players=4,
+        playing_time=90,
+        bgg_rating=7.15,
+        description=description,
+        categories=categories,
+    )
 
 
 def _loan(game_id: int) -> Loan:
@@ -27,6 +55,116 @@ def _loan(game_id: int) -> Loan:
 
 
 class TestImportGamesUseCase:
+    def test_imports_complete_boardgame_details(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://collection-thumb.jpg", 1995)],
+            {13: _details()},
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.thumbnail_url == "https://collection-thumb.jpg"
+        assert game.image_url == "https://full.jpg"
+        assert game.min_players == 3
+        assert game.max_players == 4
+        assert game.playing_time == 90
+        assert game.bgg_rating == 7.15
+        assert game.description == "Trade and build."
+        assert game.categories == ("Economic", "Strategy")
+
+    def test_successful_details_overwrite_existing_metadata(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            13,
+            "Old Catan",
+            "https://old-thumb.jpg",
+            image_url="https://old-full.jpg",
+            year_published=1994,
+            min_players=2,
+            max_players=3,
+            playing_time=60,
+            bgg_rating=6.0,
+            location="prestatge",
+            description="Old description",
+            categories=("Old category",),
+        )
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://new-thumb.jpg", 1995)],
+            {13: _details(description="", categories=())},
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.name == "Catan"
+        assert game.thumbnail_url == "https://new-thumb.jpg"
+        assert game.year_published == 1995
+        assert game.image_url == "https://full.jpg"
+        assert game.min_players == 3
+        assert game.max_players == 4
+        assert game.playing_time == 90
+        assert game.bgg_rating == 7.15
+        assert game.location == "prestatge"
+        assert game.description == ""
+        assert game.categories == ()
+
+    def test_missing_details_preserve_existing_detail_metadata(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            13,
+            "Old Catan",
+            "https://old-thumb.jpg",
+            image_url="https://old-full.jpg",
+            year_published=1994,
+            min_players=2,
+            max_players=5,
+            playing_time=75,
+            bgg_rating=7.0,
+            location="prestatge",
+            description="Stored description",
+            categories=("Stored category",),
+        )
+        bgg_client = FakeBggClient(
+            [
+                BggGame(13, "Catan", "https://new-thumb.jpg", 1995),
+                BggGame(14, "Azul", "https://azul-thumb.jpg", 2017),
+            ],
+            {
+                14: _details(
+                    bgg_id=14,
+                    description="Successful detail",
+                    categories=("Abstract",),
+                )
+            },
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.name == "Catan"
+        assert game.thumbnail_url == "https://new-thumb.jpg"
+        assert game.year_published == 1995
+        assert game.image_url == "https://old-full.jpg"
+        assert game.min_players == 2
+        assert game.max_players == 5
+        assert game.playing_time == 75
+        assert game.bgg_rating == 7.0
+        assert game.location == "prestatge"
+        assert game.description == "Stored description"
+        assert game.categories == ("Stored category",)
+        successful_game = fake_game_repo.get_by_bgg_id(14)
+        assert successful_game is not None
+        assert successful_game.description == "Successful detail"
+        assert successful_game.categories == ("Abstract",)
+
     def test_imports_new_games(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:

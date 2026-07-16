@@ -45,4 +45,6 @@ class GameRepository(Protocol):
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game: ...
