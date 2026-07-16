@@ -28,6 +28,8 @@ class TestGame:
         assert game.thumbnail_url == "https://example.com/catan.jpg"
         assert game.image_url == "https://example.com/catan_full.jpg"
         assert game.year_published == 1995
+        assert game.categories == ()
+        assert game.publication_types == ()
 
     def test_game_is_frozen(self) -> None:
         now = datetime(2026, 1, 1, 12, 0, 0)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from datetime import UTC, datetime
 
 import pytest
@@ -50,7 +51,7 @@ class FakeGameRepository:
             key=lambda g: g.name,
         )
 
-    def deactivate_by_bgg_ids(self, bgg_ids: object) -> int:
+    def deactivate_by_bgg_ids(self, bgg_ids: Collection[int]) -> int:
         count = 0
         for bgg_id in bgg_ids:
             game = self.get_by_bgg_id(bgg_id)
@@ -60,7 +61,7 @@ class FakeGameRepository:
         return count
 
     def delete_by_bgg_ids(
-        self, bgg_ids: object
+        self, bgg_ids: Collection[int]
     ) -> tuple[frozenset[int], frozenset[int]]:
         deleted: set[int] = set()
         blocked: set[int] = set()
@@ -88,6 +89,8 @@ class FakeGameRepository:
         location: str = "armari",
         item_type: str = "boardgame",
         description: str = "",
+        categories: tuple[str, ...] = (),
+        publication_types: tuple[str, ...] = (),
     ) -> Game:
         now = datetime.now(UTC)
         existing = self.get_by_bgg_id(bgg_id)
@@ -116,6 +119,8 @@ class FakeGameRepository:
             updated_at=now,
             item_type=item_type,
             description=description,
+            categories=categories,
+            publication_types=publication_types,
             is_active=True,
         )
         self._games[game.id] = game
@@ -142,6 +147,8 @@ def _replace_is_active(game: Game, *, is_active: bool) -> Game:
         updated_at=game.updated_at,
         item_type=game.item_type,
         description=game.description,
+        categories=game.categories,
+        publication_types=game.publication_types,
         is_active=is_active,
     )
 
