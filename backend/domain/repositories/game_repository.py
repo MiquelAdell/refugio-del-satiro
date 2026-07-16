@@ -35,6 +35,15 @@ class GameRepository(Protocol):
         self, collection_ids: Collection[int]
     ) -> tuple[frozenset[int], frozenset[int]]: ...  # (deleted, blocked_by_history)
 
+    # id-based equivalents — needed for legacy rows (bgg_collection_id IS
+    # NULL), which have no collection_id to match on.
+
+    def deactivate_by_ids(self, game_ids: Collection[int]) -> int: ...
+
+    def delete_by_ids(
+        self, game_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]: ...  # (deleted, blocked_by_history)
+
     def get_last_updated_at(self) -> datetime | None: ...
 
     def upsert_by_bgg_id(

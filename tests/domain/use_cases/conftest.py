@@ -24,6 +24,7 @@ class FakeGameRepository:
         self._games: dict[int, Game] = {}
         self._next_id = 1
         self.blocked_collection_ids: set[int] = set()
+        self.blocked_ids: set[int] = set()
 
     def get_by_id(self, game_id: int) -> Game | None:
         return self._games.get(game_id)
@@ -85,6 +86,29 @@ class FakeGameRepository:
             if game is not None:
                 del self._games[game.id]
                 deleted.add(collection_id)
+        return frozenset(deleted), frozenset(blocked)
+
+    def deactivate_by_ids(self, game_ids: Collection[int]) -> int:
+        count = 0
+        for game_id in game_ids:
+            game = self._games.get(game_id)
+            if game is not None and game.is_active:
+                self._games[game_id] = dataclasses.replace(game, is_active=False)
+                count += 1
+        return count
+
+    def delete_by_ids(
+        self, game_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]:
+        deleted: set[int] = set()
+        blocked: set[int] = set()
+        for game_id in game_ids:
+            if game_id in self.blocked_ids:
+                blocked.add(game_id)
+                continue
+            if game_id in self._games:
+                del self._games[game_id]
+                deleted.add(game_id)
         return frozenset(deleted), frozenset(blocked)
 
     def _slug_for(self, existing: Game | None, name: str) -> str:

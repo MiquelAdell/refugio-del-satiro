@@ -143,6 +143,36 @@ class SqliteGameRepository:
                 blocked.add(collection_id)
         return frozenset(deleted), frozenset(blocked)
 
+    def deactivate_by_ids(self, game_ids: Collection[int]) -> int:
+        if not game_ids:
+            return 0
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        placeholders = ",".join("?" for _ in game_ids)
+        cursor = self._conn.execute(
+            f"UPDATE games SET is_active = 0, updated_at = ? "
+            f"WHERE id IN ({placeholders}) AND is_active = 1",
+            (now, *game_ids),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
+    def delete_by_ids(
+        self, game_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]:
+        deleted: set[int] = set()
+        blocked: set[int] = set()
+        for game_id in game_ids:
+            try:
+                cursor = self._conn.execute(
+                    "DELETE FROM games WHERE id = ?", (game_id,)
+                )
+                self._conn.commit()
+                if cursor.rowcount:
+                    deleted.add(game_id)
+            except sqlite3.IntegrityError:
+                blocked.add(game_id)
+        return frozenset(deleted), frozenset(blocked)
+
     def get_last_updated_at(self) -> datetime | None:
         row = self._conn.execute("SELECT MAX(updated_at) AS last FROM games").fetchone()
         return datetime.fromisoformat(row["last"]) if row and row["last"] else None

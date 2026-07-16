@@ -314,3 +314,123 @@ class TestImportRpgItemsUseCase:
         assert {item.image_url for item in stored} == {"a.jpg", "b.jpg"}
         assert {item.categories for item in stored} == {("Fantasy",)}
         assert {item.publication_types for item in stored} == {("Core Rules",)}
+
+
+class TestLegacyRowRemoval:
+    """Legacy rows (bgg_collection_id IS NULL) that fall out of the BGG
+    collection must be reconciled the same way collection-id rows are —
+    they must not be silently kept forever. Each test keeps enough
+    surviving collection-id items in the fetch so the combined (collection
+    + legacy) missing ratio stays under the 50% guard."""
+
+    def _surviving_items(self) -> list[BggRpgItem]:
+        return [_DND_RPG_ITEM, _PF_RPG_ITEM]
+
+    def _seed_surviving_items(self, fake_game_repo: FakeGameRepository) -> None:
+        fake_game_repo.upsert_by_collection_id(
+            2001, 1001, "D&D PHB", "https://old.jpg", item_type="rpgitem"
+        )
+        fake_game_repo.upsert_by_collection_id(
+            2002, 1002, "Pathfinder", "https://pf.jpg", item_type="rpgitem"
+        )
+
+    def test_active_legacy_row_absent_from_fetch_is_deleted(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_items(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            2005,
+            "Call of Cthulhu Keeper Rulebook",
+            "https://coc.jpg",
+            item_type="rpgitem",
+        )
+        assert legacy.bgg_collection_id is None
+        bgg_client = FakeBggClientRpg(self._surviving_items())
+
+        use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 1
+        assert result.deactivated == 0
+        assert result.skip_reason is None
+        assert fake_game_repo.get_by_bgg_id(2005) is None
+        assert {g.bgg_id for g in fake_game_repo.list_all()} == {1001, 1002}
+
+    def test_active_legacy_row_absent_from_fetch_but_lent_is_deactivated(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_items(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            2005,
+            "Call of Cthulhu Keeper Rulebook",
+            "https://coc.jpg",
+            item_type="rpgitem",
+        )
+        fake_loan_repo.set_active_loan(legacy.id, _loan(legacy.id))
+        bgg_client = FakeBggClientRpg(self._surviving_items())
+
+        use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 1
+        assert result.skip_reason is None
+        stored = fake_game_repo.get_by_bgg_id(2005)
+        assert stored is not None
+        assert stored.is_active is False
+
+    def test_legacy_row_still_in_fetch_is_adopted_not_removed(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_items(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            2005,
+            "Call of Cthulhu Keeper Rulebook",
+            "https://coc.jpg",
+            item_type="rpgitem",
+        )
+        adopted_item = BggRpgItem(
+            bgg_id=2005,
+            name="Call of Cthulhu Keeper Rulebook",
+            thumbnail_url="https://coc.jpg",
+            image_url="",
+            year_published=2019,
+            bgg_rating=8.0,
+            description="",
+            collection_id=2905,
+        )
+        bgg_client = FakeBggClientRpg([*self._surviving_items(), adopted_item])
+
+        use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 0
+        assert result.updated == 3
+        assert result.skip_reason is None
+        adopted = fake_game_repo.get_by_collection_id(2905)
+        assert adopted is not None
+        assert adopted.id == legacy.id
+        assert adopted.is_active is True
+
+    def test_empty_fetch_leaves_legacy_rows_untouched(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            2005,
+            "Call of Cthulhu Keeper Rulebook",
+            "https://coc.jpg",
+            item_type="rpgitem",
+        )
+        bgg_client = FakeBggClientRpg([])
+
+        use_case = ImportRpgItemsUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 0
+        assert result.skip_reason is not None
+        stored = fake_game_repo.get_by_bgg_id(2005)
+        assert stored is not None
+        assert stored.id == legacy.id
+        assert stored.is_active is True

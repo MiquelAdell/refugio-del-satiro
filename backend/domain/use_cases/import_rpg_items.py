@@ -5,7 +5,10 @@ from dataclasses import dataclass
 from backend.data.bgg_client import BggClient, BggRpgItem
 from backend.domain.repositories.game_repository import GameRepository
 from backend.domain.repositories.loan_repository import LoanRepository
-from backend.domain.use_cases.bgg_reconciliation import compute_reconciliation
+from backend.domain.use_cases.bgg_reconciliation import (
+    compute_reconciliation,
+    resolve_legacy_removals,
+)
 
 ITEM_TYPE = "rpgitem"
 
@@ -48,6 +51,9 @@ class ImportRpgItemsUseCase:
             for game in all_local_items
             if game.bgg_collection_id is None
         }
+        legacy_active_count = sum(
+            1 for game in legacy_by_bgg_id.values() if game.is_active
+        )
 
         rpg_items = self._bgg_client.fetch_owned_rpg_items()
         fetched_ids = frozenset(_resolve_collection_id(item) for item in rpg_items)
@@ -97,7 +103,27 @@ class ImportRpgItemsUseCase:
             else:
                 updated += 1
 
-        outcome = compute_reconciliation(active_ids, fetched_ids, ITEM_TYPE)
+        # Any bgg_id remaining in legacy_by_bgg_id after the upsert loop was
+        # not adopted by any fetched item, i.e. it's no longer owned on BGG
+        # (the loop pops every bgg_id it encounters). Guarded against the
+        # rare case of a shared bgg_id already claimed by another row's
+        # collection_id by also checking fetched_bgg_ids directly.
+        fetched_bgg_ids = frozenset(item.bgg_id for item in rpg_items)
+        stale_legacy_games = [
+            game
+            for game in legacy_by_bgg_id.values()
+            if game.is_active and game.bgg_id not in fetched_bgg_ids
+        ]
+
+        outcome = compute_reconciliation(
+            active_ids,
+            fetched_ids,
+            ITEM_TYPE,
+            extra_active_count=legacy_active_count,
+            extra_missing_count=len(stale_legacy_games),
+        )
+        if outcome.skip_reason is not None:
+            stale_legacy_games = []
 
         # Previously soft-deleted items are re-evaluated every run, independent
         # of the guard above — they're already hidden, so there's no new risk.
@@ -125,11 +151,15 @@ class ImportRpgItemsUseCase:
             # hidden since it can't be physically removed.
             self._game_repo.deactivate_by_collection_ids(blocked_ids)
 
+        legacy_deactivated, legacy_deleted = resolve_legacy_removals(
+            stale_legacy_games, self._game_repo, self._loan_repo
+        )
+
         return ImportRpgResult(
             created=created,
             updated=updated,
             total=len(rpg_items),
-            deactivated=newly_deactivated + len(blocked_ids),
-            deleted=len(deleted_ids),
+            deactivated=newly_deactivated + len(blocked_ids) + legacy_deactivated,
+            deleted=len(deleted_ids) + legacy_deleted,
             skip_reason=outcome.skip_reason,
         )
