@@ -629,8 +629,8 @@ class TestMemberBatchReconciliation:
         assert result.disabled_count == 0
         assert result.skipped_count == 1
         assert result.deactivation_skip_reason == (
-            "The member import contains no valid email addresses; "
-            "skipping deactivation of missing members"
+            "No se desactivaron socios ausentes porque la importación "
+            "no contiene ninguna dirección de email válida."
         )
         assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
 
@@ -648,8 +648,8 @@ class TestMemberBatchReconciliation:
 
         assert result.disabled_count == 0
         assert result.deactivation_skip_reason == (
-            "2 of 3 active members are missing from the import (> 50%); "
-            "skipping deactivation of missing members"
+            "Faltan 2 de 3 socios activos en la importación (> 50%); "
+            "no se desactivaron los socios ausentes."
         )
         assert [member_repo.get_by_id(member.id).is_active for member in existing_members] == [  # type: ignore[union-attr]
             True,

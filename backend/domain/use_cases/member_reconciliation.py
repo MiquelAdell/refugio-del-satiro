@@ -22,8 +22,8 @@ def compute_member_reconciliation(
         return MemberReconciliationOutcome(
             missing_member_ids=frozenset(),
             skip_reason=(
-                "The member import contains no valid email addresses; "
-                "skipping deactivation of missing members"
+                "No se desactivaron socios ausentes porque la importación "
+                "no contiene ninguna dirección de email válida."
             ),
         )
 
@@ -45,10 +45,10 @@ def compute_member_reconciliation(
         return MemberReconciliationOutcome(
             missing_member_ids=frozenset(),
             skip_reason=(
-                f"{len(missing_member_ids)} of "
-                f"{len(existing_active_non_actor)} active members are missing "
-                f"from the import (> {DEACTIVATION_GUARD_RATIO:.0%}); "
-                "skipping deactivation of missing members"
+                f"Faltan {len(missing_member_ids)} de "
+                f"{len(existing_active_non_actor)} socios activos en la importación "
+                f"(> {DEACTIVATION_GUARD_RATIO:.0%}); no se desactivaron los "
+                "socios ausentes."
             ),
         )
 
