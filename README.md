@@ -204,7 +204,9 @@ one shared objectid (e.g. themed spin-offs BGG treats as versions of a
 single base game rather than giving each its own id); keying on the
 collection entry instead of the objectid keeps those as separate catalog
 rows instead of collapsing them into one. Rows imported before this
-existed adopt their collection id automatically on the next import.
+existed adopt their collection id automatically on the next import; legacy
+rows that are no longer in the BGG collection at all go through the same
+removal flow (and safety guard) as collection-id rows.
 
 Admins can upload the members CSV from `/ludoteca/admin/members`. The upload
 creates and updates members, disables active members that are absent from the
