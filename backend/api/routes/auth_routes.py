@@ -47,9 +47,16 @@ class ChangePasswordRequest(BaseModel):
 
 class MemberResponse(BaseModel):
     id: int
-    display_name: str
+    member_number: int | None
+    first_name: str
+    last_name: str
+    nickname: str | None
+    phone: str | None
     email: str
+    display_name: str
     is_admin: bool
+    is_active: bool
+    last_payment: str | None
 
 
 class OkResponse(BaseModel):
@@ -59,9 +66,16 @@ class OkResponse(BaseModel):
 def _member_to_response(member: Member) -> MemberResponse:
     return MemberResponse(
         id=member.id,
-        display_name=member.display_name,
+        member_number=member.member_number,
+        first_name=member.first_name,
+        last_name=member.last_name,
+        nickname=member.nickname,
+        phone=member.phone,
         email=member.email,
+        display_name=member.display_name,
         is_admin=member.is_admin,
+        is_active=member.is_active,
+        last_payment=member.last_payment,
     )
 
 
