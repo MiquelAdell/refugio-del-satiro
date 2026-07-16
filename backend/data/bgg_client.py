@@ -15,6 +15,14 @@ class BggGame:
     name: str
     thumbnail_url: str
     year_published: int
+    collection_id: int | None = None
+    # BGG's per-copy collection entry id ("collid") — unique per owned item,
+    # unlike bgg_id/objectid, which BGG can share across distinct products
+    # (e.g. reskinned variants). None when scraped from HTML (no collid
+    # available there); the importer falls back to bgg_id-keyed matching.
+    image_url: str = ""
+    # Full-size image captured from this entry's own collection XML <image>,
+    # distinct per copy even when several copies share one objectid.
 
 
 @dataclass(frozen=True)
@@ -37,6 +45,7 @@ class BggRpgItem:
     year_published: int
     bgg_rating: float
     description: str
+    collection_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -133,7 +142,13 @@ class BggClient:
         return games
 
     def _parse_html_collection(self, html: str) -> list[BggGame]:
-        """Parse games from the BGG collection HTML table."""
+        """Parse games from the BGG collection HTML table.
+
+        No per-copy collection entry id is available from this page, so
+        ``collection_id`` stays ``None`` — the importer degrades to
+        bgg_id-keyed matching for this fallback path, same as before
+        collection-id-based identity was introduced.
+        """
         games: list[BggGame] = []
 
         # Find all rows with game links: /boardgame/12345/game-name
@@ -248,23 +263,22 @@ class BggClient:
     def _parse_xml_collection(self, xml_text: str) -> list[BggGame]:
         root = ET.fromstring(xml_text)
 
+        def _text(item: ET.Element, tag: str) -> str:
+            el = item.find(tag)
+            return el.text if el is not None and el.text else ""
+
         return [
             BggGame(
                 bgg_id=int(item.get("objectid", "0")),
-                name=(
-                    item.find("name").text  # type: ignore[union-attr]
-                    if item.find("name") is not None and item.find("name").text  # type: ignore[union-attr]
-                    else "Unknown"
+                collection_id=(
+                    int(item.get("collid")) if item.get("collid") is not None else None
                 ),
-                thumbnail_url=(
-                    item.find("thumbnail").text  # type: ignore[union-attr]
-                    if item.find("thumbnail") is not None and item.find("thumbnail").text  # type: ignore[union-attr]
-                    else ""
-                ),
+                name=_text(item, "name") or "Unknown",
+                thumbnail_url=_text(item, "thumbnail"),
+                image_url=_text(item, "image"),
                 year_published=(
-                    int(item.find("yearpublished").text)  # type: ignore[arg-type, union-attr]
-                    if item.find("yearpublished") is not None
-                    and item.find("yearpublished").text  # type: ignore[union-attr]
+                    int(_text(item, "yearpublished"))
+                    if _text(item, "yearpublished")
                     else 0
                 ),
             )
@@ -283,14 +297,25 @@ class BggClient:
         return [
             BggRpgItem(
                 bgg_id=item.bgg_id,
+                collection_id=item.collection_id,
                 name=item.name,
+                # Prefer this entry's own image/thumbnail (per copy, from the
+                # collection XML) over the shared thing-API details, which
+                # BGG can pool across several distinct owned items sharing
+                # one bgg_id (see BggGame.collection_id).
                 thumbnail_url=(
-                    details[item.bgg_id].thumbnail_url
-                    if item.bgg_id in details
-                    else item.thumbnail_url
+                    item.thumbnail_url
+                    or (
+                        details[item.bgg_id].thumbnail_url
+                        if item.bgg_id in details
+                        else ""
+                    )
                 ),
                 image_url=(
-                    details[item.bgg_id].image_url if item.bgg_id in details else ""
+                    item.image_url
+                    or (
+                        details[item.bgg_id].image_url if item.bgg_id in details else ""
+                    )
                 ),
                 year_published=(
                     details[item.bgg_id].year_published

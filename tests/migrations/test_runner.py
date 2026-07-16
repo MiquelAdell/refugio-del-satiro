@@ -49,7 +49,7 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 8
+        assert len(first_run) == 9
         assert len(second_run) == 0
         conn.close()
 
@@ -84,7 +84,82 @@ class TestMigrationRunner:
             "item_type",
             "description",
             "is_active",
+            "bgg_collection_id",
         }
+        conn.close()
+
+    def test_bgg_id_is_no_longer_unique(self) -> None:
+        """Migration 009 drops UNIQUE(bgg_id): BGG can list several distinct
+        owned items under one bgg_id/objectid."""
+        conn = get_memory_connection()
+        run_migrations(conn)
+        conn.execute(
+            "INSERT INTO games (bgg_id, name, thumbnail_url, year_published) "
+            "VALUES (268620, 'Similo: Mitos', 't1.jpg', 2020)"
+        )
+        conn.execute(
+            "INSERT INTO games (bgg_id, name, thumbnail_url, year_published) "
+            "VALUES (268620, 'Similo: Historia', 't2.jpg', 2020)"
+        )
+        conn.commit()
+        count = conn.execute(
+            "SELECT COUNT(*) FROM games WHERE bgg_id = 268620"
+        ).fetchone()[0]
+        assert count == 2
+        conn.close()
+
+    def test_bgg_collection_id_is_unique_when_set(self) -> None:
+        import sqlite3
+
+        conn = get_memory_connection()
+        run_migrations(conn)
+        conn.execute(
+            "INSERT INTO games "
+            "(bgg_id, bgg_collection_id, name, thumbnail_url, year_published) "
+            "VALUES (1, 100, 'Catan', 't.jpg', 1995)"
+        )
+        conn.commit()
+        try:
+            conn.execute(
+                "INSERT INTO games "
+                "(bgg_id, bgg_collection_id, name, thumbnail_url, year_published) "
+                "VALUES (2, 100, 'Other', 't.jpg', 2000)"
+            )
+            conn.commit()
+            raise AssertionError("duplicate bgg_collection_id should be rejected")
+        except sqlite3.IntegrityError:
+            pass
+        conn.close()
+
+    def test_loans_fk_preserved_after_migration_009_rebuild(self) -> None:
+        """The games table rebuild (dropping UNIQUE(bgg_id)) must not lose
+        loans.game_id's ON DELETE RESTRICT foreign key."""
+        import sqlite3
+
+        conn = get_memory_connection()
+        run_migrations(conn)
+        conn.execute(
+            "INSERT INTO games (bgg_id, name, thumbnail_url, year_published) "
+            "VALUES (1, 'Catan', 't.jpg', 1995)"
+        )
+        conn.execute(
+            "INSERT INTO members (email, display_name, first_name, last_name) "
+            "VALUES ('a@b.com', 'A', 'A', 'B')"
+        )
+        conn.commit()
+        game_id = conn.execute("SELECT id FROM games").fetchone()[0]
+        member_id = conn.execute("SELECT id FROM members").fetchone()[0]
+        conn.execute(
+            "INSERT INTO loans (game_id, member_id) VALUES (?, ?)",
+            (game_id, member_id),
+        )
+        conn.commit()
+        try:
+            conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
+            conn.commit()
+            raise AssertionError("FK should have blocked this delete")
+        except sqlite3.IntegrityError:
+            pass
         conn.close()
 
     def test_games_item_type_index_created(self) -> None:
