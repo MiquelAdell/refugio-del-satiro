@@ -36,6 +36,8 @@ class TestGetGameUseCase:
         assert result is not None
         assert result.id == 1
         assert result.name == "Catan"
+        assert result.description == "Trade and build across the island."
+        assert result.categories == ("Economic", "Negotiation")
         assert result.status == "available"
         assert result.borrower_display_name is None
         assert result.loan_id is None
@@ -55,6 +57,8 @@ class TestGetGameUseCase:
 
         assert result is not None
         assert result.status == "lent"
+        assert result.description == "Trade and build across the island."
+        assert result.categories == ("Economic", "Negotiation")
         assert result.borrower_display_name == "Bob"
         assert result.loan_id == 100
 
