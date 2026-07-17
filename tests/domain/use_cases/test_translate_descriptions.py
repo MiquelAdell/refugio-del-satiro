@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
+import pytest
+
 from backend.domain.entities.game import Game
 from backend.domain.use_cases.translate_descriptions import (
     TranslateDescriptionsResult,
@@ -138,6 +140,30 @@ class TestTranslateDescriptionsUseCase:
                 description_source_hash(changed_description),
             )
         ]
+
+    def test_persists_completed_batches_when_a_later_batch_fails(self) -> None:
+        games = [make_game(i, description=f"Description {i}.") for i in range(1, 61)]
+        repo = FakeGameRepository(games)
+
+        class FailingSecondBatchTranslator:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def translate(self, texts: Sequence[str]) -> list[str]:
+                self.calls += 1
+                if self.calls > 1:
+                    raise RuntimeError("quota exhausted")
+                return [f"ES: {text}" for text in texts]
+
+        with pytest.raises(RuntimeError):
+            TranslateDescriptionsUseCase(repo, FailingSecondBatchTranslator()).execute()
+
+        assert len(repo.translation_updates) == 50
+        assert repo.translation_updates[0] == (
+            1,
+            "ES: Description 1.",
+            description_source_hash("Description 1."),
+        )
 
     def test_ignores_empty_descriptions_and_inactive_games(self) -> None:
         repo = FakeGameRepository(

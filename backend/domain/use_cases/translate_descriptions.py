@@ -18,6 +18,12 @@ class TranslateDescriptionsResult:
     without_source: int
 
 
+# Translations are persisted after every batch this size, so a mid-run failure
+# (quota, network) keeps everything translated so far — retrying only spends
+# quota on what's still missing.
+_PERSIST_BATCH_SIZE = 50
+
+
 class TranslateDescriptionsUseCase:
     """Translate English BGG descriptions to Spanish for every active item
     whose stored translation is missing or stale (source hash mismatch).
@@ -41,17 +47,18 @@ class TranslateDescriptionsUseCase:
             if description_source_hash(g.description) != g.description_es_source_hash
         ]
 
-        translations = (
-            self._translator.translate([g.description for g in pending])
-            if pending
-            else []
-        )
-        for game, translation in zip(pending, translations, strict=True):
-            self._game_repo.update_translation(
-                game.id,
-                description_es=translation,
-                source_hash=description_source_hash(game.description),
-            )
+        batches = [
+            pending[start : start + _PERSIST_BATCH_SIZE]
+            for start in range(0, len(pending), _PERSIST_BATCH_SIZE)
+        ]
+        for batch in batches:
+            translations = self._translator.translate([g.description for g in batch])
+            for game, translation in zip(batch, translations, strict=True):
+                self._game_repo.update_translation(
+                    game.id,
+                    description_es=translation,
+                    source_hash=description_source_hash(game.description),
+                )
 
         return TranslateDescriptionsResult(
             translated=len(pending),
