@@ -26,3 +26,5 @@ class Game:
     publication_types: tuple[str, ...] = field(default=())
     is_active: bool = field(default=True)
     bgg_collection_id: int | None = field(default=None)
+    min_age: int = field(default=0)
+    primary_tag: str = field(default="")

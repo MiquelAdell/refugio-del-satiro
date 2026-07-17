@@ -42,11 +42,13 @@ const game: GameWithStatus = {
   min_players: 3,
   max_players: 4,
   playing_time: 90,
+  min_age: 10,
   bgg_rating: 7.2,
   location: "armario",
   description:
     "Trade and build across the island.\n\nEvery route changes the table.",
   categories: ["Economic", "Negotiation"],
+  primary_tag: "familygames",
   status: "available",
   borrower_display_name: null,
   loan_id: null,

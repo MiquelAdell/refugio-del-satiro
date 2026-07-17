@@ -47,9 +47,13 @@
   --color-available: #dcfce7;
   --color-lent: #fef3c7;
 
+  /* Diagonal cover ribbons (style-guide §2.4) */
+  --color-ribbon-prestamo: #e95a7a; /* EN PRÉSTAMO */
+  --color-ribbon-reservado: var(--color-brand); /* RESERVADO — not used yet */
+
   /* ─── Category pill pastels ─────────────────────────────────────── */
   /* Pair each with dark family text for AA contrast. */
-  --pill-mint: #98fb98; /* Nature / Familiar / Estrategia */
+  --pill-mint: #98fb98; /* Nature / Familiar */
   --pill-pink: #ffb6c1; /* Party / Horror */
   --pill-sky: #87ceeb; /* Mystery / Investigación */
   --pill-turquoise: #bbffff; /* Aventura */

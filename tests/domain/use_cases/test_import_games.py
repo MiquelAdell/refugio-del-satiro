@@ -30,6 +30,8 @@ def _details(
     bgg_id: int = 13,
     description: str = "Trade and build.",
     categories: tuple[str, ...] = ("Economic", "Strategy"),
+    min_age: int = 10,
+    primary_tag: str = "familygames",
 ) -> BggGameDetails:
     return BggGameDetails(
         bgg_id=bgg_id,
@@ -41,6 +43,8 @@ def _details(
         bgg_rating=7.15,
         description=description,
         categories=categories,
+        min_age=min_age,
+        primary_tag=primary_tag,
     )
 
 
@@ -75,6 +79,43 @@ class TestImportGamesUseCase:
         assert game.bgg_rating == 7.15
         assert game.description == "Trade and build."
         assert game.categories == ("Economic", "Strategy")
+        assert game.min_age == 10
+        assert game.primary_tag == "familygames"
+
+    def test_missing_details_fall_back_to_existing_min_age_and_primary_tag(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            13,
+            "Old Catan",
+            "https://old-thumb.jpg",
+            min_age=8,
+            primary_tag="strategygames",
+        )
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://new-thumb.jpg", 1995)]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.min_age == 8
+        assert game.primary_tag == "strategygames"
+
+    def test_missing_details_and_no_existing_row_defaults_min_age_and_primary_tag(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClient(
+            [BggGame(13, "Catan", "https://new-thumb.jpg", 1995)]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.min_age == 0
+        assert game.primary_tag == ""
 
     def test_missing_collection_thumbnail_uses_detail_then_stored_fallback(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
@@ -533,7 +574,12 @@ class TestImportGamesUseCase:
         assert second is not None
         assert (first.name, first.thumbnail_url) == ("New A", "new-a-thumb.jpg")
         assert (second.name, second.thumbnail_url) == ("New B", "new-b-thumb.jpg")
-        assert (first.image_url, first.playing_time, first.description, first.categories) == (
+        assert (
+            first.image_url,
+            first.playing_time,
+            first.description,
+            first.categories,
+        ) == (
             "stored-a.jpg",
             30,
             "Stored A",
@@ -545,3 +591,113 @@ class TestImportGamesUseCase:
             second.description,
             second.categories,
         ) == ("stored-b.jpg", 45, "Stored B", ("Category B",))
+
+
+class TestLegacyRowRemoval:
+    """Legacy rows (bgg_collection_id IS NULL) that fall out of the BGG
+    collection must be reconciled the same way collection-id rows are —
+    they must not be silently kept forever. Each test keeps enough
+    surviving collection-id games in the fetch so the combined (collection
+    + legacy) missing ratio stays under the 50% guard."""
+
+    def _surviving_games(self) -> list[BggGame]:
+        return [
+            BggGame(101, "Catan", "https://c.jpg", 1995, collection_id=2101),
+            BggGame(102, "Azul", "https://a.jpg", 2017, collection_id=2102),
+            BggGame(103, "Pandemic", "https://p.jpg", 2008, collection_id=2103),
+        ]
+
+    def _seed_surviving_games(self, fake_game_repo: FakeGameRepository) -> None:
+        fake_game_repo.upsert_by_collection_id(
+            2101, 101, "Catan", "https://c.jpg", 1995
+        )
+        fake_game_repo.upsert_by_collection_id(2102, 102, "Azul", "https://a.jpg", 2017)
+        fake_game_repo.upsert_by_collection_id(
+            2103, 103, "Pandemic", "https://p.jpg", 2008
+        )
+
+    def test_active_legacy_row_absent_from_fetch_is_deleted(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_games(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            715, "Fuga de Colditz", "https://f.jpg"
+        )
+        assert legacy.bgg_collection_id is None
+        bgg_client = FakeBggClient(self._surviving_games())
+
+        use_case = ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 1
+        assert result.deactivated == 0
+        assert result.skip_reason is None
+        assert fake_game_repo.get_by_bgg_id(715) is None
+        assert {g.bgg_id for g in fake_game_repo.list_all()} == {101, 102, 103}
+
+    def test_active_legacy_row_absent_from_fetch_but_lent_is_deactivated(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_games(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            715, "Fuga de Colditz", "https://f.jpg"
+        )
+        fake_loan_repo.set_active_loan(legacy.id, _loan(legacy.id))
+        bgg_client = FakeBggClient(self._surviving_games())
+
+        use_case = ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 1
+        assert result.skip_reason is None
+        stored = fake_game_repo.get_by_bgg_id(715)
+        assert stored is not None
+        assert stored.is_active is False
+
+    def test_legacy_row_still_in_fetch_is_adopted_not_removed(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        self._seed_surviving_games(fake_game_repo)
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            715, "Fuga de Colditz", "https://f.jpg"
+        )
+        bgg_client = FakeBggClient(
+            [
+                *self._surviving_games(),
+                BggGame(
+                    715, "Fuga de Colditz", "https://f.jpg", 1955, collection_id=2715
+                ),
+            ]
+        )
+
+        use_case = ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 0
+        assert result.updated == 4
+        assert result.skip_reason is None
+        adopted = fake_game_repo.get_by_collection_id(2715)
+        assert adopted is not None
+        assert adopted.id == legacy.id
+        assert adopted.is_active is True
+
+    def test_empty_fetch_leaves_legacy_rows_untouched(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        legacy = fake_game_repo.upsert_by_bgg_id(
+            715, "Fuga de Colditz", "https://f.jpg"
+        )
+        bgg_client = FakeBggClient([])
+
+        use_case = ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo)
+        result = use_case.execute()
+
+        assert result.deleted == 0
+        assert result.deactivated == 0
+        assert result.skip_reason is not None
+        stored = fake_game_repo.get_by_bgg_id(715)
+        assert stored is not None
+        assert stored.id == legacy.id
+        assert stored.is_active is True

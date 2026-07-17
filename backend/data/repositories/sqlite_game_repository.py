@@ -65,6 +65,8 @@ def _row_to_game(row: sqlite3.Row) -> Game:
             if "bgg_collection_id" in keys and row["bgg_collection_id"] is not None
             else None
         ),
+        min_age=row["min_age"] if "min_age" in keys else 0,
+        primary_tag=row["primary_tag"] if "primary_tag" in keys else "",
     )
 
 
@@ -143,6 +145,36 @@ class SqliteGameRepository:
                 blocked.add(collection_id)
         return frozenset(deleted), frozenset(blocked)
 
+    def deactivate_by_ids(self, game_ids: Collection[int]) -> int:
+        if not game_ids:
+            return 0
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        placeholders = ",".join("?" for _ in game_ids)
+        cursor = self._conn.execute(
+            f"UPDATE games SET is_active = 0, updated_at = ? "
+            f"WHERE id IN ({placeholders}) AND is_active = 1",
+            (now, *game_ids),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
+    def delete_by_ids(
+        self, game_ids: Collection[int]
+    ) -> tuple[frozenset[int], frozenset[int]]:
+        deleted: set[int] = set()
+        blocked: set[int] = set()
+        for game_id in game_ids:
+            try:
+                cursor = self._conn.execute(
+                    "DELETE FROM games WHERE id = ?", (game_id,)
+                )
+                self._conn.commit()
+                if cursor.rowcount:
+                    deleted.add(game_id)
+            except sqlite3.IntegrityError:
+                blocked.add(game_id)
+        return frozenset(deleted), frozenset(blocked)
+
     def get_last_updated_at(self) -> datetime | None:
         row = self._conn.execute("SELECT MAX(updated_at) AS last FROM games").fetchone()
         return datetime.fromisoformat(row["last"]) if row and row["last"] else None
@@ -182,6 +214,8 @@ class SqliteGameRepository:
         description: str = "",
         categories: tuple[str, ...] = (),
         publication_types: tuple[str, ...] = (),
+        min_age: int = 0,
+        primary_tag: str = "",
     ) -> Game:
         """Legacy path for the JSON-seed import, which has no collection_id."""
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -208,6 +242,8 @@ class SqliteGameRepository:
             description,
             categories_json,
             publication_types_json,
+            min_age,
+            primary_tag,
             now,
         )
         if existing is not None:
@@ -218,7 +254,8 @@ class SqliteGameRepository:
                     year_published = ?, min_players = ?, max_players = ?,
                     playing_time = ?, bgg_rating = ?, location = ?,
                     item_type = ?, description = ?, categories_json = ?,
-                    publication_types_json = ?, is_active = 1, updated_at = ?
+                    publication_types_json = ?, min_age = ?, primary_tag = ?,
+                    is_active = 1, updated_at = ?
                 WHERE id = ?
                 """,
                 (*values, existing.id),
@@ -230,9 +267,10 @@ class SqliteGameRepository:
                     bgg_id, name, slug, thumbnail_url, image_url, year_published,
                     min_players, max_players, playing_time, bgg_rating, location,
                     item_type, description, categories_json,
-                    publication_types_json, is_active, created_at, updated_at
+                    publication_types_json, min_age, primary_tag,
+                    is_active, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 """,
                 (bgg_id, *values, now),
             )
@@ -258,6 +296,8 @@ class SqliteGameRepository:
         description: str = "",
         categories: tuple[str, ...] = (),
         publication_types: tuple[str, ...] = (),
+        min_age: int = 0,
+        primary_tag: str = "",
     ) -> tuple[Game, bool]:
         now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         existing = self.get_by_collection_id(bgg_collection_id)
@@ -293,6 +333,8 @@ class SqliteGameRepository:
             description,
             categories_json,
             publication_types_json,
+            min_age,
+            primary_tag,
             now,
         )
         if existing is not None:
@@ -304,6 +346,7 @@ class SqliteGameRepository:
                     min_players = ?, max_players = ?, playing_time = ?,
                     bgg_rating = ?, location = ?, item_type = ?, description = ?,
                     categories_json = ?, publication_types_json = ?,
+                    min_age = ?, primary_tag = ?,
                     is_active = 1, updated_at = ?
                 WHERE id = ?
                 """,
@@ -316,9 +359,10 @@ class SqliteGameRepository:
                     bgg_id, bgg_collection_id, name, slug, thumbnail_url, image_url,
                     year_published, min_players, max_players, playing_time,
                     bgg_rating, location, item_type, description, categories_json,
-                    publication_types_json, is_active, created_at, updated_at
+                    publication_types_json, min_age, primary_tag,
+                    is_active, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 """,
                 (*values, now),
             )

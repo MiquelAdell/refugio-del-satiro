@@ -51,66 +51,82 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* ─── Overlay badges ──────────────────────────────────────────────── */
+/* ─── Status ribbon (style-guide §2.4) ───────────────────────────────
+ * Diagonal ribbon across the cover's bottom-right corner. Clipped by
+ * .game-card-cover's overflow:hidden. */
 
-.game-card-status {
+.game-card-ribbon {
   position: absolute;
-  top: var(--space-sm);
-  left: var(--space-sm);
-}
-
-/* DQ-1: BGG rating as a solid red square, cover lower-left, on a scrim */
-.game-card-rating-scrim {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  display: inline-flex;
-  padding: var(--space-xs);
-  background-color: var(--color-scrim);
-  border-top-right-radius: var(--radius-sm);
-}
-
-/* Figma "Rate" chip: red rounded pill, Oswald regular */
-.game-card-rating {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  background-color: var(--color-brand);
+  bottom: 14px;
+  right: -34px;
+  width: 140px;
+  transform: rotate(-45deg);
   color: var(--color-brand-contrast);
-  border-radius: var(--radius-full);
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+  padding: var(--space-xs) 0;
+}
+
+.game-card-ribbon-lent {
+  background-color: var(--color-ribbon-prestamo);
 }
 
 /* ─── Body ────────────────────────────────────────────────────────── */
 
 .game-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  column-gap: var(--space-sm);
+  row-gap: var(--space-xs);
   padding: var(--space-md);
   flex: 1;
 }
 
+/* DQ-1: BGG rating as a solid red square, hanging over the cover boundary. */
+.game-card-rating {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  margin-top: calc(-1 * var(--space-lg));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-brand);
+  color: var(--color-brand-contrast);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
 .game-card-name {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  margin: 0;
   font-size: var(--font-size-lg); /* Figma titles are prominent Open Sans Bold */
   font-weight: var(--font-weight-bold);
   color: var(--color-text-heading);
   line-height: var(--line-height-tight);
-}
-
-.game-card-year {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  text-align: center;
 }
 
 .game-card-meta {
+  grid-column: 1;
+  grid-row: 2 / span 2;
   display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
@@ -128,6 +144,65 @@
   flex-shrink: 0;
 }
 
+.game-card-description {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.game-card-tag {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  align-self: end;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-heading);
+  white-space: nowrap;
+}
+
+/* Pastel pill colours, one per BGG subdomain family (task DQ: 8 tags). */
+.game-card-tag--mint {
+  background-color: var(--pill-mint);
+}
+
+.game-card-tag--pearl {
+  background-color: var(--pill-pearl);
+}
+
+.game-card-tag--pink {
+  background-color: var(--pill-pink);
+}
+
+.game-card-tag--sky {
+  background-color: var(--pill-sky);
+}
+
+.game-card-tag--lavender {
+  background-color: var(--pill-lavender);
+}
+
+.game-card-tag--yellow {
+  background-color: var(--pill-yellow);
+}
+
+.game-card-tag--peach {
+  background-color: var(--pill-peach);
+}
+
+.game-card-tag--turquoise {
+  background-color: var(--pill-turquoise);
+}
+
 /* ─── List view (style-guide §5.7) ────────────────────────────────── */
 
 .game-card-list .game-card-link {
@@ -140,16 +215,43 @@
   width: 110px;
 }
 
-.game-card-list .game-card-rating-scrim {
-  padding: 2px;
+.game-card-list .game-card-ribbon {
+  bottom: 8px;
+  right: -30px;
+  width: 100px;
+  font-size: 0.625rem;
+}
+
+.game-card-list .game-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
 }
 
 .game-card-list .game-card-rating {
+  margin-top: 0;
   width: 1.75rem;
   height: 1.75rem;
   font-size: var(--font-size-sm);
 }
 
-.game-card-list .game-card-body {
-  justify-content: center;
+.game-card-list .game-card-name {
+  text-align: left;
+}
+
+.game-card-list .game-card-description {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.game-card-list .game-card-meta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.game-card-list .game-card-tag {
+  justify-self: start;
+  align-self: start;
 }

@@ -5,22 +5,23 @@ TBD - created by archiving change plan-lending-redesign. Update Purpose after ar
 ## Requirements
 ### Requirement: Cover-first GameCard
 
-The system SHALL render each game in the catalog as a card where the game cover image is the dominant visual element, with availability and rating shown as overlay badges and the game title and core stats below.
+The system SHALL render each game in the catalog as a card where the game cover image is the dominant visual element, with a rating block, description excerpt, meta column (age/time/players), and a single tag pill below.
 
 #### Scenario: Card visual hierarchy
 - **WHEN** a `GameCard` renders for a game
 - **THEN** the cover image SHALL occupy the top portion of the card
-- **AND** an availability badge SHALL be overlaid on the cover (e.g. top-left)
-- **AND** a BGG rating badge SHALL be overlaid on the cover (e.g. top-right)
-- **AND** the game title, year, player range, and playing time SHALL render below the cover
+- **AND** a red square block with the BGG rating (one decimal) SHALL hang over the cover/body boundary on the left
+- **AND** the game title SHALL render as the card heading with the game description below it, clamped to five lines
+- **AND** a vertical meta column SHALL show minimum age ("8+"), playing time ("30min"), and player range ("3-8"), hiding any item whose value is missing
+- **AND** a single tag pill SHALL render bottom-right: the game's primary BGG subdomain mapped to a Spanish label (Familiar, Estrategia, Fiesta, Temático, …), falling back to the game's most common own category, or no pill when neither exists
 
 #### Scenario: Available game card
 - **WHEN** a game is currently available
-- **THEN** the availability badge SHALL display "Disponible" with the success state styling
+- **THEN** no status overlay SHALL render on the cover
 
 #### Scenario: Lent game card
 - **WHEN** a game is currently lent
-- **THEN** the availability badge SHALL display "Prestado" with the warning/lent state styling
+- **THEN** a diagonal ribbon reading "EN PRÉSTAMO" SHALL be overlaid on the cover's bottom-right corner
 
 ### Requirement: Catalog filters in a tabbed search-and-filters box
 

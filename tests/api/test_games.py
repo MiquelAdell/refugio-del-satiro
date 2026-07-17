@@ -85,6 +85,8 @@ class TestListGames:
             year_published=1995,
             description="Trade and build across the island.",
             categories=("Economic", "Negotiation"),
+            min_age=10,
+            primary_tag="familygames",
         )
         game2 = game_repo.upsert_by_bgg_id(
             bgg_id=200,
@@ -111,10 +113,16 @@ class TestListGames:
         assert {
             "description": by_name["Catan"]["description"],
             "categories": by_name["Catan"]["categories"],
+            "min_age": by_name["Catan"]["min_age"],
+            "primary_tag": by_name["Catan"]["primary_tag"],
         } == {
             "description": "Trade and build across the island.",
             "categories": ["Economic", "Negotiation"],
+            "min_age": 10,
+            "primary_tag": "familygames",
         }
+        assert by_name["Pandemic"]["min_age"] == 0
+        assert by_name["Pandemic"]["primary_tag"] == ""
         assert by_name["Catan"]["borrower_display_name"] is None
         assert by_name["Catan"]["loan_id"] is None
 
@@ -198,6 +206,8 @@ class TestGetGame:
             year_published=1995,
             description="Trade and build across the island.",
             categories=("Economic", "Negotiation"),
+            min_age=10,
+            primary_tag="familygames",
         )
 
         response = client.get(f"/api/juegos/{game.slug}")
@@ -210,9 +220,13 @@ class TestGetGame:
         assert {
             "description": data["description"],
             "categories": data["categories"],
+            "min_age": data["min_age"],
+            "primary_tag": data["primary_tag"],
         } == {
             "description": "Trade and build across the island.",
             "categories": ["Economic", "Negotiation"],
+            "min_age": 10,
+            "primary_tag": "familygames",
         }
         assert data["status"] == "available"
         assert data["borrower_display_name"] is None

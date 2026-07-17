@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Badge } from "../ui/Badge";
-import { ClockIcon, PlayersIcon } from "./MetaIcons";
+import { AgeIcon, ClockIcon, PlayersIcon } from "./MetaIcons";
+import { resolveTagPill } from "../lib/gameTags";
 import type { GameWithStatus } from "../types/game";
 import type { CatalogView } from "../types/catalog";
 import "./GameCard.css";
@@ -8,10 +8,27 @@ import "./GameCard.css";
 interface GameCardProps {
   readonly game: GameWithStatus;
   readonly view?: CatalogView;
+  /**
+   * Fallback tag label to show when the game has no `primary_tag` — the
+   * game's own most-common BGG category, ranked across the loaded catalog.
+   * Computed by the caller (CatalogPage), not by this component.
+   */
+  readonly fallbackCategory?: string;
 }
 
-export function GameCard({ game, view = "grid" }: GameCardProps) {
+// Structured so a second ribbon variant (e.g. "reservado") is a one-liner.
+const RIBBON_LABELS: Partial<Record<GameWithStatus["status"], string>> = {
+  lent: "EN PRÉSTAMO",
+};
+
+const RIBBON_CLASSES: Partial<Record<GameWithStatus["status"], string>> = {
+  lent: "game-card-ribbon-lent",
+};
+
+export function GameCard({ game, view = "grid", fallbackCategory }: GameCardProps) {
   const statusLabel = game.status === "available" ? "Disponible" : "Prestado";
+  const ribbonLabel = RIBBON_LABELS[game.status];
+  const tagPill = resolveTagPill(game.primary_tag, fallbackCategory);
 
   return (
     <article className={`game-card game-card-${view}`}>
@@ -33,36 +50,49 @@ export function GameCard({ game, view = "grid" }: GameCardProps) {
               <span aria-hidden="true">{game.name.charAt(0)}</span>
             </div>
           )}
-          <Badge variant={game.status} className="game-card-status">
-            {statusLabel}
-          </Badge>
-          {game.bgg_rating > 0 && (
-            <span className="game-card-rating-scrim">
-              <span className="game-card-rating">
-                {game.bgg_rating.toFixed(1)}
-              </span>
+          {ribbonLabel && (
+            <span
+              className={`game-card-ribbon ${RIBBON_CLASSES[game.status]}`}
+            >
+              {ribbonLabel}
             </span>
           )}
         </div>
         <div className="game-card-body">
-          <div className="game-card-name">{game.name}</div>
-          {game.year_published > 0 && (
-            <div className="game-card-year">{game.year_published}</div>
+          {game.bgg_rating > 0 && (
+            <span className="game-card-rating">
+              {game.bgg_rating.toFixed(1)}
+            </span>
           )}
-          <div className="game-card-meta">
-            {game.min_players > 0 && game.max_players > 0 && (
-              <span className="game-card-meta-item">
-                <PlayersIcon className="game-card-meta-icon" />
-                {`${game.min_players}-${game.max_players} jugadores`}
-              </span>
+          <h3 className="game-card-name">{game.name}</h3>
+          {game.description && (
+            <p className="game-card-description">{game.description}</p>
+          )}
+          <ul className="game-card-meta">
+            {game.min_age > 0 && (
+              <li className="game-card-meta-item">
+                <AgeIcon className="game-card-meta-icon" />
+                {`${game.min_age}+`}
+              </li>
             )}
             {game.playing_time > 0 && (
-              <span className="game-card-meta-item">
+              <li className="game-card-meta-item">
                 <ClockIcon className="game-card-meta-icon" />
-                {`${game.playing_time} min`}
-              </span>
+                {`${game.playing_time}min`}
+              </li>
             )}
-          </div>
+            {game.min_players > 0 && game.max_players > 0 && (
+              <li className="game-card-meta-item">
+                <PlayersIcon className="game-card-meta-icon" />
+                {`${game.min_players}-${game.max_players}`}
+              </li>
+            )}
+          </ul>
+          {tagPill && (
+            <span className={`game-card-tag ${tagPill.colorClass}`}>
+              {tagPill.label}
+            </span>
+          )}
         </div>
       </Link>
     </article>
