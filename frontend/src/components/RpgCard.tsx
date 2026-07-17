@@ -1,56 +1,43 @@
-import { Link } from "react-router-dom";
-import { Badge } from "../ui/Badge";
+import { BookIcon, CalendarIcon, QuillIcon } from "./MetaIcons";
+import { CatalogCard, type CatalogCardMetaItem } from "./CatalogCard";
+import { displayDescription } from "../lib/description";
+import { resolveRpgTagPill, rpgPublicationKinds } from "../lib/rpgTags";
 import type { RpgItem } from "../types/rpg";
+import type { CatalogView } from "../types/catalog";
 import "./RpgCard.css";
 
 interface RpgCardProps {
   readonly item: RpgItem;
+  readonly view?: CatalogView;
+  /**
+   * Fallback tag label: the item's own most-common RPGGeek category, ranked
+   * across the loaded catalog. Computed by the caller (RpgCatalogPage).
+   */
+  readonly fallbackCategory?: string;
 }
 
-export function RpgCard({ item }: RpgCardProps) {
-  const statusLabel = item.status === "available" ? "Disponible" : "Prestado";
+export function RpgCard({ item, view = "grid", fallbackCategory }: RpgCardProps) {
+  const kinds = rpgPublicationKinds(item.publication_types);
+  const meta: readonly CatalogCardMetaItem[] = [
+    ...(kinds.rulebook ? [{ icon: BookIcon, label: "Manual" }] : []),
+    ...(kinds.adventure ? [{ icon: QuillIcon, label: "Aventura" }] : []),
+    ...(item.year_published > 0
+      ? [{ icon: CalendarIcon, label: String(item.year_published) }]
+      : []),
+  ];
 
   return (
-    <article className="rpg-card">
-      <Link
-        to={`/rol/${item.slug}`}
-        className="rpg-card-link"
-        aria-label={`${item.name} — ${statusLabel}`}
-      >
-        <div className="rpg-card-cover">
-          {item.image_url || item.thumbnail_url ? (
-            <img
-              className="rpg-card-cover-img"
-              src={item.image_url || item.thumbnail_url}
-              alt=""
-              loading="lazy"
-            />
-          ) : (
-            <div className="rpg-card-cover-img rpg-card-placeholder">
-              <span aria-hidden="true">{item.name.charAt(0)}</span>
-            </div>
-          )}
-          <Badge
-            variant={item.status === "available" ? "available" : "lent"}
-            className="rpg-card-status"
-          >
-            {statusLabel}
-          </Badge>
-          {item.bgg_rating > 0 && (
-            <span className="rpg-card-rating-scrim">
-              <span className="rpg-card-rating">
-                {item.bgg_rating.toFixed(1)}
-              </span>
-            </span>
-          )}
-        </div>
-        <div className="rpg-card-body">
-          <div className="rpg-card-name">{item.name}</div>
-          {item.year_published > 0 && (
-            <div className="rpg-card-year">{item.year_published}</div>
-          )}
-        </div>
-      </Link>
-    </article>
+    <CatalogCard
+      className="rpg-card"
+      to={`/rol/${item.slug}`}
+      name={item.name}
+      status={item.status}
+      imageUrl={item.image_url || item.thumbnail_url}
+      rating={item.bgg_rating}
+      description={displayDescription(item)}
+      meta={meta}
+      tagPill={resolveRpgTagPill(fallbackCategory)}
+      view={view}
+    />
   );
 }
