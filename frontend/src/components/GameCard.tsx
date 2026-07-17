@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom";
 import { AgeIcon, ClockIcon, PlayersIcon } from "./MetaIcons";
+import { CatalogCard, type CatalogCardMetaItem } from "./CatalogCard";
 import { displayDescription } from "../lib/description";
 import { resolveTagPill } from "../lib/gameTags";
 import type { GameWithStatus } from "../types/game";
 import type { CatalogView } from "../types/catalog";
-import "./GameCard.css";
 
 interface GameCardProps {
   readonly game: GameWithStatus;
@@ -17,86 +16,28 @@ interface GameCardProps {
   readonly fallbackCategory?: string;
 }
 
-// Structured so a second ribbon variant (e.g. "reservado") is a one-liner.
-const RIBBON_LABELS: Partial<Record<GameWithStatus["status"], string>> = {
-  lent: "EN PRÉSTAMO",
-};
-
-const RIBBON_CLASSES: Partial<Record<GameWithStatus["status"], string>> = {
-  lent: "game-card-ribbon-lent",
-};
-
 export function GameCard({ game, view = "grid", fallbackCategory }: GameCardProps) {
-  const statusLabel = game.status === "available" ? "Disponible" : "Prestado";
-  const ribbonLabel = RIBBON_LABELS[game.status];
-  const tagPill = resolveTagPill(game.primary_tag, fallbackCategory);
-  const description = displayDescription(game);
+  const meta: readonly CatalogCardMetaItem[] = [
+    ...(game.min_age > 0 ? [{ icon: AgeIcon, label: `${game.min_age}+` }] : []),
+    ...(game.playing_time > 0
+      ? [{ icon: ClockIcon, label: `${game.playing_time}min` }]
+      : []),
+    ...(game.min_players > 0 && game.max_players > 0
+      ? [{ icon: PlayersIcon, label: `${game.min_players}-${game.max_players}` }]
+      : []),
+  ];
 
   return (
-    <article className={`game-card game-card-${view}`}>
-      <Link
-        to={`/juegos/${game.slug}`}
-        className="game-card-link"
-        aria-label={`${game.name} — ${statusLabel}`}
-      >
-        <div className="game-card-cover">
-          {game.image_url || game.thumbnail_url ? (
-            <img
-              className="game-card-cover-img"
-              src={game.image_url || game.thumbnail_url}
-              alt=""
-              loading="lazy"
-            />
-          ) : (
-            <div className="game-card-cover-img game-card-placeholder">
-              <span aria-hidden="true">{game.name.charAt(0)}</span>
-            </div>
-          )}
-          {ribbonLabel && (
-            <span
-              className={`game-card-ribbon ${RIBBON_CLASSES[game.status]}`}
-            >
-              {ribbonLabel}
-            </span>
-          )}
-        </div>
-        <div className="game-card-body">
-          {game.bgg_rating > 0 && (
-            <span className="game-card-rating">
-              {game.bgg_rating.toFixed(1)}
-            </span>
-          )}
-          <h3 className="game-card-name">{game.name}</h3>
-          {description && (
-            <p className="game-card-description">{description}</p>
-          )}
-          <ul className="game-card-meta">
-            {game.min_age > 0 && (
-              <li className="game-card-meta-item">
-                <AgeIcon className="game-card-meta-icon" />
-                {`${game.min_age}+`}
-              </li>
-            )}
-            {game.playing_time > 0 && (
-              <li className="game-card-meta-item">
-                <ClockIcon className="game-card-meta-icon" />
-                {`${game.playing_time}min`}
-              </li>
-            )}
-            {game.min_players > 0 && game.max_players > 0 && (
-              <li className="game-card-meta-item">
-                <PlayersIcon className="game-card-meta-icon" />
-                {`${game.min_players}-${game.max_players}`}
-              </li>
-            )}
-          </ul>
-          {tagPill && (
-            <span className={`game-card-tag ${tagPill.colorClass}`}>
-              {tagPill.label}
-            </span>
-          )}
-        </div>
-      </Link>
-    </article>
+    <CatalogCard
+      to={`/juegos/${game.slug}`}
+      name={game.name}
+      status={game.status}
+      imageUrl={game.image_url || game.thumbnail_url}
+      rating={game.bgg_rating}
+      description={displayDescription(game)}
+      meta={meta}
+      tagPill={resolveTagPill(game.primary_tag, fallbackCategory)}
+      view={view}
+    />
   );
 }

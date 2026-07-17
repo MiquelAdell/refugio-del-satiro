@@ -96,6 +96,7 @@ function getItemNames(): string[] {
 }
 
 beforeEach(() => {
+  localStorage.clear();
   setItems();
 });
 
@@ -222,6 +223,28 @@ describe("RpgCatalogPage results count", () => {
     renderPage();
 
     expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
+  });
+});
+
+describe("RpgCatalogPage shared catalog layout", () => {
+  it("shows the shared 'Catálogo' heading", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("heading", { name: "Catálogo" }),
+    ).toBeInTheDocument();
+  });
+
+  it("switches between grid and list views", async () => {
+    const { container } = renderPage();
+    const user = userEvent.setup();
+
+    expect(container.querySelector(".catalog-grid")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Vista de lista" }));
+
+    expect(container.querySelector(".catalog-grid")).toBeNull();
+    expect(container.querySelector(".catalog-list")).not.toBeNull();
   });
 });
 

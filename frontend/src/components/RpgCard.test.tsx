@@ -5,6 +5,14 @@ import { describe, expect, it } from "vitest";
 import { RpgCard } from "./RpgCard";
 import type { RpgItem } from "../types/rpg";
 
+const RATING_CLASS = "game-card-rating";
+const RIBBON_CLASS = "game-card-ribbon";
+const RIBBON_LENT_CLASS = "game-card-ribbon-lent";
+const TAG_CLASS = "game-card-tag";
+
+const CORE_RULES_TYPE = "Core Rules (min needed to play)";
+const ADVENTURE_TYPE = "Scenario / Adventure / Module";
+
 const BASE_ITEM: RpgItem = {
   id: 1,
   bgg_id: 999,
@@ -23,10 +31,22 @@ const BASE_ITEM: RpgItem = {
   borrower_display_name: null,
 };
 
-function renderCard(overrides: Partial<RpgItem> = {}) {
+interface RenderOptions {
+  readonly view?: "grid" | "list";
+  readonly fallbackCategory?: string;
+}
+
+function renderCard(
+  overrides: Partial<RpgItem> = {},
+  { view, fallbackCategory }: RenderOptions = {},
+) {
   return render(
     <MemoryRouter>
-      <RpgCard item={{ ...BASE_ITEM, ...overrides }} />
+      <RpgCard
+        item={{ ...BASE_ITEM, ...overrides }}
+        view={view}
+        fallbackCategory={fallbackCategory}
+      />
     </MemoryRouter>,
   );
 }
@@ -38,7 +58,19 @@ describe("RpgCard content", () => {
     expect(screen.getByText("Dungeons & Dragons")).toBeInTheDocument();
   });
 
-  it("renders the year when present", () => {
+  it("renders the Spanish description when available", () => {
+    renderCard({ description_es: "El juego de rol original." });
+
+    expect(screen.getByText("El juego de rol original.")).toBeInTheDocument();
+  });
+
+  it("falls back to the English description", () => {
+    renderCard();
+
+    expect(screen.getByText("The original RPG.")).toBeInTheDocument();
+  });
+
+  it("renders the year as a meta item", () => {
     renderCard();
 
     expect(screen.getByText("1974")).toBeInTheDocument();
@@ -50,33 +82,113 @@ describe("RpgCard content", () => {
     expect(screen.queryByText("1974")).toBeNull();
   });
 
-  it("renders the rating badge with one decimal", () => {
+  it("renders the rating block with one decimal", () => {
     const { container } = renderCard({ bgg_rating: 8.5 });
 
     expect(screen.getByText("8.5")).toBeInTheDocument();
-    expect(container.querySelector(".rpg-card-rating-scrim")).not.toBeNull();
+    expect(container.querySelector(`.${RATING_CLASS}`)).not.toBeNull();
   });
 
-  it("omits the rating badge when bgg_rating is 0", () => {
+  it("omits the rating block when bgg_rating is 0", () => {
     const { container } = renderCard({ bgg_rating: 0 });
 
-    expect(container.querySelector(".rpg-card-rating")).toBeNull();
+    expect(container.querySelector(`.${RATING_CLASS}`)).toBeNull();
   });
 });
 
-describe("RpgCard availability badge", () => {
-  it("renders 'Disponible' badge when status is available", () => {
-    renderCard({ status: "available" });
+describe("RpgCard publication-type meta icons", () => {
+  it("shows 'Manual' for rulebook-style publication types", () => {
+    renderCard({ publication_types: [CORE_RULES_TYPE] });
 
-    expect(screen.getByText("Disponible")).toBeInTheDocument();
-    expect(screen.queryByText("Prestado")).toBeNull();
+    expect(screen.getByText("Manual")).toBeInTheDocument();
+    expect(screen.queryByText("Aventura")).toBeNull();
   });
 
-  it("renders 'Prestado' badge when status is lent", () => {
-    renderCard({ status: "lent" });
+  it("shows 'Aventura' for scenario/adventure publication types", () => {
+    renderCard({ publication_types: [ADVENTURE_TYPE] });
 
-    expect(screen.getByText("Prestado")).toBeInTheDocument();
-    expect(screen.queryByText("Disponible")).toBeNull();
+    expect(screen.getByText("Aventura")).toBeInTheDocument();
+    expect(screen.queryByText("Manual")).toBeNull();
+  });
+
+  it("shows both when the item mixes rules and adventure content", () => {
+    renderCard({ publication_types: [CORE_RULES_TYPE, ADVENTURE_TYPE] });
+
+    expect(screen.getByText("Manual")).toBeInTheDocument();
+    expect(screen.getByText("Aventura")).toBeInTheDocument();
+  });
+
+  it("shows neither for publication types outside both groups", () => {
+    renderCard({
+      publication_types: ["Accessory (dice, maps, screens, cards)"],
+    });
+
+    expect(screen.queryByText("Manual")).toBeNull();
+    expect(screen.queryByText("Aventura")).toBeNull();
+  });
+});
+
+describe("RpgCard status ribbon", () => {
+  it("shows no ribbon when the item is available", () => {
+    const { container } = renderCard({ status: "available" });
+
+    expect(container.querySelector(`.${RIBBON_CLASS}`)).toBeNull();
+  });
+
+  it("shows the EN PRÉSTAMO ribbon when the item is lent", () => {
+    const { container } = renderCard({ status: "lent" });
+
+    const ribbon = container.querySelector(`.${RIBBON_CLASS}`);
+    expect(ribbon?.textContent).toBe("EN PRÉSTAMO");
+    expect(ribbon?.className).toBe(`${RIBBON_CLASS} ${RIBBON_LENT_CLASS}`);
+  });
+});
+
+describe("RpgCard category tag pill", () => {
+  it("translates a known category family to its Spanish pill", () => {
+    const { container } = renderCard(
+      {},
+      { fallbackCategory: "Horror (Supernatural)" },
+    );
+
+    const tag = container.querySelector(`.${TAG_CLASS}`);
+    expect(tag?.textContent).toBe("Horror");
+    expect(tag?.className).toBe(`${TAG_CLASS} game-card-tag--pink`);
+  });
+
+  it("falls back to the raw category with the neutral colour", () => {
+    const { container } = renderCard(
+      {},
+      { fallbackCategory: "Espionage" },
+    );
+
+    const tag = container.querySelector(`.${TAG_CLASS}`);
+    expect(tag?.textContent).toBe("Espionage");
+    expect(tag?.className).toBe(`${TAG_CLASS} game-card-tag--pearl`);
+  });
+
+  it("renders no pill without a fallback category", () => {
+    const { container } = renderCard();
+
+    expect(container.querySelector(`.${TAG_CLASS}`)).toBeNull();
+  });
+});
+
+describe("RpgCard view variants", () => {
+  it("renders grid variant with the rpg-card hook class by default", () => {
+    const { container } = renderCard();
+
+    expect(container.querySelector("article")?.className).toBe(
+      "game-card game-card-grid rpg-card",
+    );
+  });
+
+  it("renders the list variant when view is list", () => {
+    const { container } = renderCard({}, { view: "list" });
+
+    expect(container.querySelector("article")?.className).toBe(
+      "game-card game-card-list rpg-card",
+    );
   });
 });
 

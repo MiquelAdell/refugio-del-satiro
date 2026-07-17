@@ -1,7 +1,8 @@
 /*
- * Catalog layout (style-guide §4, §5.5–§5.7):
- * Buscador/Filtros box above the results (see SearchFiltersBox.css), chip
- * row below the box, results bar (count + view toggle), grid/list toggle.
+ * Catalog layout (style-guide §4, §5.5–§5.7), shared by CatalogPage and
+ * RpgCatalogPage: Buscador/Filtros box above the results (see
+ * SearchFiltersBox.css), chip row below the box, results bar (count + view
+ * toggle), grid/list toggle.
  */
 
 .catalog-page {

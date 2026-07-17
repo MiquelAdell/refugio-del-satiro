@@ -97,7 +97,7 @@ test.describe("ludoteca @ guest", () => {
     await page.goto(CATALOG_RPG);
 
     await expect(
-      page.getByRole("heading", { name: /Catálogo de libros de rol/i }),
+      page.getByRole("heading", { name: /Catálogo/i }),
     ).toBeVisible();
 
     // At least one RPG card must be present (seeded rpgitem).
