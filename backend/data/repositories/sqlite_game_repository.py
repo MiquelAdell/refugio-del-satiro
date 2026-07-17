@@ -67,6 +67,12 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         ),
         min_age=row["min_age"] if "min_age" in keys else 0,
         primary_tag=row["primary_tag"] if "primary_tag" in keys else "",
+        description_es=row["description_es"] if "description_es" in keys else "",
+        description_es_source_hash=(
+            row["description_es_source_hash"]
+            if "description_es_source_hash" in keys
+            else ""
+        ),
     )
 
 
@@ -370,6 +376,20 @@ class SqliteGameRepository:
         game = self.get_by_collection_id(bgg_collection_id)
         assert game is not None
         return game, existing is None
+
+    def update_translation(
+        self, game_id: int, description_es: str, source_hash: str
+    ) -> None:
+        now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self._conn.execute(
+            """
+            UPDATE games SET
+                description_es = ?, description_es_source_hash = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (description_es, source_hash, now, game_id),
+        )
+        self._conn.commit()
 
     def update_details(
         self,

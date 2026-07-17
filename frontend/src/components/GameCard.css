@@ -8,11 +8,16 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm); /* Figma cards: 4px */
   overflow: hidden;
-  transition: box-shadow 0.15s;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .game-card:hover {
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--color-brand) 36%, var(--color-border));
+  box-shadow: 0 8px 20px rgb(0 0 0 / 10%);
+  transform: translateY(-2px);
 }
 
 .game-card-link {
@@ -23,13 +28,24 @@
   text-decoration: none;
 }
 
+/* The global anchor hover underline must never bleed through the card. */
+.game-card-link:hover,
+.game-card-link:hover * {
+  text-decoration: none;
+}
+
+.game-card-link:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: -3px;
+}
+
 /* ─── Cover ───────────────────────────────────────────────────────── */
 
 .game-card-cover {
   position: relative;
   container-type: inline-size;
   background-color: var(--color-surface-alt);
-  aspect-ratio: 1;
+  aspect-ratio: 364 / 330;
   overflow: hidden;
 }
 
@@ -44,7 +60,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1;
   background-color: var(--color-brand);
   color: var(--color-brand-contrast);
   font-size: var(--font-size-2xl);
@@ -57,18 +72,18 @@
 
 .game-card-ribbon {
   position: absolute;
-  bottom: 14px;
-  right: -34px;
-  width: 140px;
-  transform: rotate(-45deg);
+  right: -37px;
+  bottom: 17px;
+  width: 150px;
+  transform: rotate(-42deg);
   color: var(--color-brand-contrast);
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-sm);
+  font-size: 0.75rem;
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-align: center;
   text-transform: uppercase;
-  padding: var(--space-xs) 0;
+  padding: 5px 0;
 }
 
 .game-card-ribbon-lent {
@@ -80,29 +95,30 @@
 .game-card-body {
   position: relative;
   display: grid;
-  grid-template-columns: 56px 1fr;
-  column-gap: var(--space-sm);
-  row-gap: var(--space-xs);
-  padding: var(--space-md);
+  grid-template-columns: 80px minmax(0, 1fr);
+  grid-template-rows: 43px minmax(85px, 1fr) auto;
+  column-gap: var(--space-md);
+  row-gap: var(--space-sm);
+  min-height: 200px;
+  padding: 0 var(--space-md) var(--space-md) 0;
   flex: 1;
 }
 
-/* DQ-1: BGG rating as a solid red square, hanging over the cover boundary. */
+/* The Figma score is a deliberately non-square block, flush with the body. */
 .game-card-rating {
   grid-column: 1;
   grid-row: 1;
   align-self: start;
-  margin-top: calc(-1 * var(--space-lg));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 71px;
   background-color: var(--color-brand);
   color: var(--color-brand-contrast);
-  border-radius: var(--radius-sm);
+  border-radius: 0 0 24px 0;
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
 }
 
@@ -111,7 +127,9 @@
   grid-row: 1;
   align-self: center;
   margin: 0;
-  font-size: var(--font-size-lg); /* Figma titles are prominent Open Sans Bold */
+  padding-top: 2px;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xl); /* Figma titles are prominent Open Sans Bold */
   font-weight: var(--font-weight-bold);
   color: var(--color-text-heading);
   line-height: var(--line-height-tight);
@@ -120,12 +138,12 @@
 
 .game-card-meta {
   grid-column: 1;
-  grid-row: 2 / span 2;
+  grid-row: 2 / 4;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   margin: 0;
-  padding: 0;
+  padding: var(--space-xl) 0 0 var(--space-sm);
   list-style: none;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -152,8 +170,8 @@
   color: var(--color-text-muted);
   line-height: var(--line-height-normal);
   display: -webkit-box;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -163,9 +181,13 @@
   grid-row: 3;
   justify-self: end;
   align-self: end;
-  padding: 2px var(--space-sm);
+  margin-top: var(--space-xs);
+  min-width: 110px;
+  padding: var(--space-xs) var(--space-md);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  text-align: center;
   color: var(--color-text-heading);
   white-space: nowrap;
 }
@@ -227,6 +249,7 @@
   flex-direction: column;
   justify-content: center;
   padding: var(--space-sm) var(--space-md);
+  min-height: 0;
 }
 
 .game-card-list .game-card-rating {
@@ -234,6 +257,7 @@
   width: 1.75rem;
   height: 1.75rem;
   font-size: var(--font-size-sm);
+  border-radius: 0 0 10px 0;
 }
 
 .game-card-list .game-card-name {
@@ -254,4 +278,27 @@
 .game-card-list .game-card-tag {
   justify-self: start;
   align-self: start;
+}
+
+@media (max-width: 600px) {
+  .game-card-body {
+    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-rows: 64px minmax(64px, 1fr) auto;
+    min-height: 198px;
+  }
+
+  .game-card-rating {
+    width: 72px;
+    height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card {
+    transition: none;
+  }
+
+  .game-card:hover {
+    transform: none;
+  }
 }

@@ -47,6 +47,7 @@ const game: GameWithStatus = {
   location: "armario",
   description:
     "Trade and build across the island.\n\nEvery route changes the table.",
+  description_es: "",
   categories: ["Economic", "Negotiation"],
   primary_tag: "familygames",
   status: "available",

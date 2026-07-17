@@ -27,6 +27,7 @@ const AVAILABLE_GAME: GameWithStatus = {
   bgg_rating: 7.2,
   location: "armari",
   description: "",
+  description_es: "",
   categories: [],
   primary_tag: "familygames",
   status: "available",
@@ -125,7 +126,9 @@ describe("CatalogPage search-and-filters box", () => {
   it("shows the search input on the default Buscador tab and no filter controls", () => {
     renderPage();
 
-    expect(screen.getByLabelText("Buscar juegos...")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Buscar juego por nombre..."),
+    ).toBeInTheDocument();
     expect(screen.queryByLabelText(AVAILABILITY_SELECT)).not.toBeVisible();
   });
 
@@ -152,7 +155,7 @@ describe("CatalogPage search-and-filters box", () => {
     vi.useFakeTimers();
     renderPage();
 
-    const searchInput = screen.getByLabelText("Buscar juegos...");
+    const searchInput = screen.getByLabelText("Buscar juego por nombre...");
     fireEvent.change(searchInput, { target: { value: "azul" } });
     act(() => {
       vi.advanceTimersByTime(350);
@@ -228,6 +231,14 @@ describe("CatalogPage player-range slider", () => {
 });
 
 describe("CatalogPage catalog type toggle and banner", () => {
+  it("uses the concise catalog heading from the reference design", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Catálogo" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the catalog type toggle with both links", () => {
     renderPage();
 

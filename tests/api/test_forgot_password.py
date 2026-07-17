@@ -34,7 +34,9 @@ class TestForgotPassword:
             1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
 
-        response = client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
+        response = client.post(
+            "/api/forgot-password", json={"email": "TEST_email@domain.com"}
+        )
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}
@@ -57,7 +59,9 @@ class TestForgotPassword:
         )
         member_repo.set_active(member.id, False)
 
-        response = client.post("/api/forgot-password", json={"email": "TEST_email@domain.com"})
+        response = client.post(
+            "/api/forgot-password", json={"email": "TEST_email@domain.com"}
+        )
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}

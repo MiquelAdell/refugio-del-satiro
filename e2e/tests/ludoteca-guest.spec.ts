@@ -30,7 +30,7 @@ test.describe("ludoteca @ guest", () => {
     await expect(page).toHaveURL(new RegExp(CATALOG_BOARDGAMES));
 
     await expect(
-      page.getByRole("heading", { name: /Catálogo de juegos/i }),
+      page.getByRole("heading", { name: /^Catálogo$/i }),
     ).toBeVisible();
     await expect(page.locator(".game-card").first()).toBeVisible();
     await expect(page.getByRole("button", { name: BORROW_CTA })).toHaveCount(0);

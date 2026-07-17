@@ -27,6 +27,7 @@ const baseGame: GameWithStatus = {
   bgg_rating: 7.2,
   location: "armario",
   description: "Trade and build across the island.",
+  description_es: "",
   categories: [],
   primary_tag: "familygames",
   status: "available",
@@ -55,7 +56,7 @@ function renderCard(
 }
 
 describe("GameCard rating block (DQ-1)", () => {
-  it("shows the BGG rating as a red square, one decimal", () => {
+  it("shows the BGG rating as the styled score block, one decimal", () => {
     const { container } = renderCard({ bgg_rating: 8.4 });
 
     const rating = screen.getByText("8.4");
@@ -108,8 +109,18 @@ describe("GameCard description excerpt", () => {
     expect(description).toHaveTextContent("A trading game.");
   });
 
+  it("prefers the Spanish translation when present", () => {
+    const { container } = renderCard({
+      description: "A trading game.",
+      description_es: "Un juego de comercio.",
+    });
+
+    const description = container.querySelector(`.${DESCRIPTION_CLASS}`);
+    expect(description).toHaveTextContent("Un juego de comercio.");
+  });
+
   it("renders nothing when the game has no description", () => {
-    const { container } = renderCard({ description: "" });
+    const { container } = renderCard({ description: "", description_es: "" });
 
     expect(container.querySelector(`.${DESCRIPTION_CLASS}`)).toBeNull();
   });

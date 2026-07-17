@@ -15,6 +15,7 @@ const BASE_ITEM: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original RPG.",
+  description_es: "",
   categories: [],
   publication_types: [],
   status: "available",

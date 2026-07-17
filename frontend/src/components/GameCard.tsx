@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { AgeIcon, ClockIcon, PlayersIcon } from "./MetaIcons";
+import { displayDescription } from "../lib/description";
 import { resolveTagPill } from "../lib/gameTags";
 import type { GameWithStatus } from "../types/game";
 import type { CatalogView } from "../types/catalog";
@@ -29,6 +30,7 @@ export function GameCard({ game, view = "grid", fallbackCategory }: GameCardProp
   const statusLabel = game.status === "available" ? "Disponible" : "Prestado";
   const ribbonLabel = RIBBON_LABELS[game.status];
   const tagPill = resolveTagPill(game.primary_tag, fallbackCategory);
+  const description = displayDescription(game);
 
   return (
     <article className={`game-card game-card-${view}`}>
@@ -65,8 +67,8 @@ export function GameCard({ game, view = "grid", fallbackCategory }: GameCardProp
             </span>
           )}
           <h3 className="game-card-name">{game.name}</h3>
-          {game.description && (
-            <p className="game-card-description">{game.description}</p>
+          {description && (
+            <p className="game-card-description">{description}</p>
           )}
           <ul className="game-card-meta">
             {game.min_age > 0 && (

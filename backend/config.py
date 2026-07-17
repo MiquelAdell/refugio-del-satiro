@@ -16,6 +16,7 @@ class Settings:
     )
     base_url: str = os.environ.get("REFUGIO_BASE_URL", "http://localhost:5173/ludoteca")
     bgg_bearer_token: str | None = os.environ.get("BGG_BEARER_TOKEN")
+    deepl_api_key: str | None = os.environ.get("DEEPL_API_KEY")
     smtp_host: str | None = os.environ.get("SMTP_HOST")
     smtp_port: int = int(os.environ.get("SMTP_PORT", "587"))
     smtp_user: str | None = os.environ.get("SMTP_USER")
