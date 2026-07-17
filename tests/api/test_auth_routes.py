@@ -30,6 +30,10 @@ def _setup_test_client() -> tuple[TestClient, sqlite3.Connection]:
     return client, conn
 
 
+def test_application_title_uses_refugio_del_satiro_brand() -> None:
+    assert create_app().title == "Refugio del Sátiro"
+
+
 class TestLogin:
     def test_login_success(self) -> None:
         client, conn = _setup_test_client()

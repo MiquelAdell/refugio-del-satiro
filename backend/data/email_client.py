@@ -20,7 +20,7 @@ class EmailClient:
 <html>
 <body style="font-family: system-ui, sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto;">
     <h2>¡Hola {display_name}!</h2>
-    <p>Bienvenido/a a <strong>Préstamos Sátiros</strong>, la aplicación de préstamo de juegos del Refugio del Sátiro.</p>
+    <p>Bienvenido/a a <strong>Refugio del Sátiro</strong>, la aplicación de préstamo de juegos del Refugio del Sátiro.</p>
     <p>Para acceder, haz clic en el siguiente enlace para establecer tu contraseña:</p>
     <p style="margin: 24px 0;">
         <a href="{url}"
@@ -39,7 +39,7 @@ class EmailClient:
 </html>"""
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Préstamos Sátiros — Acceso a tu cuenta"
+        msg["Subject"] = "Refugio del Sátiro — Acceso a tu cuenta"
         msg["From"] = self._settings.smtp_from  # type: ignore[assignment]
         msg["To"] = to_email
         msg.attach(MIMEText(html, "html"))
