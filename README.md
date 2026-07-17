@@ -10,6 +10,9 @@ The catalog is publicly browsable read-only (no account needed; borrowing and
 reviewing a member's own profile require logging in). Legacy `/prestamos` URLs
 redirect permanently to `/ludoteca`.
 
+Board-game and RPG catalog cards share a fixed hierarchy: titles are truncated
+after two lines and descriptions after three, keeping every card aligned.
+
 A public membership-validation page lives at `/ludoteca/validacion`: anyone
 can enter a member number and see whether that person is a current member
 (name, ES/NO ES socio·a verdict, last paid fee). The legacy

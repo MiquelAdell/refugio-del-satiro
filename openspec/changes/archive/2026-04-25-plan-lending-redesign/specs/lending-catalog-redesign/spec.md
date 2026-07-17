@@ -10,7 +10,7 @@ The system SHALL render each game in the catalog as a card where the game cover 
 - **WHEN** a `GameCard` renders for a game
 - **THEN** the cover image SHALL occupy the top portion of the card
 - **AND** a red square block with the BGG rating (one decimal) SHALL hang over the cover/body boundary on the left
-- **AND** the game title SHALL render as the card heading with the game description below it, clamped to five lines
+- **AND** the game title SHALL render as the card heading, clamped to two lines with an ellipsis when needed, with the game description below it clamped to three lines
 - **AND** a vertical meta column SHALL show minimum age ("8+"), playing time ("30min"), and player range ("3-8"), hiding any item whose value is missing
 - **AND** a single tag pill SHALL render bottom-right: the game's primary BGG subdomain mapped to a Spanish label (Familiar, Estrategia, Fiesta, Temático, …), falling back to the game's most common own category, or no pill when neither exists
 

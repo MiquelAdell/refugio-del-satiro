@@ -97,7 +97,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 80px minmax(0, 1fr);
-  grid-template-rows: 43px minmax(85px, 1fr) auto;
+  grid-template-rows: 64px minmax(64px, 1fr) auto;
   column-gap: var(--space-md);
   row-gap: var(--space-sm);
   min-height: 200px;
@@ -135,6 +135,11 @@
   color: var(--color-text-heading);
   line-height: var(--line-height-tight);
   text-align: center;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .game-card-meta {
@@ -171,8 +176,8 @@
   color: var(--color-text-muted);
   line-height: var(--line-height-normal);
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
