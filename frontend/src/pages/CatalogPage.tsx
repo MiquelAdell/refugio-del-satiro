@@ -63,16 +63,6 @@ function ViewToggle({ view, onChange }: ViewToggleProps) {
     <div className="catalog-view-toggle" role="group" aria-label="Modo de vista">
       <button
         type="button"
-        className={view === "grid" ? "active" : ""}
-        aria-pressed={view === "grid"}
-        aria-label="Vista de cuadrícula"
-        title="Vista de cuadrícula"
-        onClick={() => onChange("grid")}
-      >
-        <GridIcon />
-      </button>
-      <button
-        type="button"
         className={view === "list" ? "active" : ""}
         aria-pressed={view === "list"}
         aria-label="Vista de lista"
@@ -80,6 +70,16 @@ function ViewToggle({ view, onChange }: ViewToggleProps) {
         onClick={() => onChange("list")}
       >
         <ListIcon />
+      </button>
+      <button
+        type="button"
+        className={view === "grid" ? "active" : ""}
+        aria-pressed={view === "grid"}
+        aria-label="Vista de cuadrícula"
+        title="Vista de cuadrícula"
+        onClick={() => onChange("grid")}
+      >
+        <GridIcon />
       </button>
     </div>
   );
@@ -142,7 +142,7 @@ export function CatalogPage() {
 
   return (
     <div className="catalog-page">
-      <PageTitle>Catálogo de juegos</PageTitle>
+      <PageTitle>Catálogo</PageTitle>
 
       <CatalogTypeToggle />
 
@@ -155,8 +155,11 @@ export function CatalogPage() {
             <SearchBar
               value={query.search}
               onChange={(search) => setQuery((q) => ({ ...q, search }))}
+              placeholder="Buscar juego por nombre..."
             />
-            <Button type="submit">Buscar</Button>
+            <Button type="submit" disabled={!query.search.trim()}>
+              Buscar
+            </Button>
           </form>
         }
         filters={filterPanel}
