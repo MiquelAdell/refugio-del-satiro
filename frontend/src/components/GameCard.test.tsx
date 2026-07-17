@@ -56,7 +56,7 @@ function renderCard(
 }
 
 describe("GameCard rating block (DQ-1)", () => {
-  it("shows the BGG rating as a red square, one decimal", () => {
+  it("shows the BGG rating as the styled score block, one decimal", () => {
     const { container } = renderCard({ bgg_rating: 8.4 });
 
     const rating = screen.getByText("8.4");

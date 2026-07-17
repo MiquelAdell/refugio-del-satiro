@@ -5,12 +5,33 @@
  */
 
 .catalog-page {
-  max-width: 1120px;
+  /* 1152px of usable content at the 1440px Figma desktop frame. */
+  max-width: 1184px;
   margin: 0 auto;
   padding: 0 var(--space-md) var(--space-2xl);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+.catalog-page > h1 {
+  margin-top: var(--space-3xl);
+}
+
+.catalog-page > h1::after {
+  width: min(744px, 70%);
+  margin-top: var(--space-sm);
+}
+
+/* The Figma control area spans slightly wider than the card columns. */
+.catalog-page .catalog-type-toggle {
+  margin-top: var(--space-xl);
+  margin-inline: calc(-1 * var(--space-md));
+}
+
+.catalog-page > .search-filters-box,
+.catalog-page > .catalog-results-bar {
+  margin-inline: calc(-1 * var(--space-md));
 }
 
 .catalog-loading,
@@ -39,8 +60,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: none;
   background-color: var(--color-surface);
   color: var(--color-text-muted);
@@ -66,8 +87,9 @@
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 30px;
+  margin-top: var(--space-md);
   align-items: start;
 }
 
@@ -75,4 +97,23 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+@media (max-width: 900px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-lg);
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-page .catalog-type-toggle,
+  .catalog-page > .search-filters-box,
+  .catalog-page > .catalog-results-bar {
+    margin-inline: 0;
+  }
+
+  .catalog-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
