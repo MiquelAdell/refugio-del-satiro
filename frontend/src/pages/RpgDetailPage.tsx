@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { useAuth } from "../context/AuthContext";
 import { useRpgHistory } from "../hooks/useRpgHistory";
+import { displayDescription } from "../lib/description";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./RpgDetailPage.css";
@@ -87,7 +88,7 @@ export function RpgDetailPage() {
         ? `Prestado a ${item.borrower_display_name}`
         : "Prestado";
 
-  const descriptionParagraphs = item.description
+  const descriptionParagraphs = displayDescription(item)
     .split(/\n\n+/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);

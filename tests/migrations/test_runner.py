@@ -71,6 +71,7 @@ class TestMigrationRunner:
         assert applied == [
             "010_add_catalog_metadata",
             "011_add_game_min_age_and_primary_tag",
+            "012_add_description_es",
         ]
         game = SqliteGameRepository(conn).get_by_bgg_id(99)
         assert game is not None
@@ -119,7 +120,10 @@ class TestMigrationRunner:
 
         applied = run_migrations(conn)
 
-        assert applied == ["011_add_game_min_age_and_primary_tag"]
+        assert applied == [
+            "011_add_game_min_age_and_primary_tag",
+            "012_add_description_es",
+        ]
         game = SqliteGameRepository(conn).get_by_bgg_id(99)
         assert game is not None
         assert game.min_age == 0
@@ -146,7 +150,7 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 11
+        assert len(first_run) == 12
         assert len(second_run) == 0
         conn.close()
 
@@ -186,6 +190,8 @@ class TestMigrationRunner:
             "bgg_collection_id",
             "min_age",
             "primary_tag",
+            "description_es",
+            "description_es_source_hash",
         }
         conn.close()
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import sqlite3
 from pathlib import Path
 from typing import Annotated
 
@@ -24,6 +25,47 @@ app.add_typer(_content_scraper_app, name="content", help="Content-mirror command
 
 def _get_settings() -> Settings:
     return Settings()
+
+
+def _translate_pending_descriptions(
+    conn: sqlite3.Connection, settings: Settings
+) -> bool:
+    """Translate missing/stale Spanish descriptions. Returns True on success.
+
+    Never raises: imports must succeed even when DeepL is unavailable — the
+    frontend falls back to the English description.
+    """
+    from backend.data.deepl_translation_service import DeepLTranslationService
+    from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.domain.services.translation_service import TranslationError
+    from backend.domain.use_cases.translate_descriptions import (
+        TranslateDescriptionsUseCase,
+    )
+
+    if not settings.deepl_api_key:
+        typer.echo(
+            "Tip: set DEEPL_API_KEY to translate descriptions to Spanish. "
+            "Untranslated descriptions are served in English.",
+            err=True,
+        )
+        return False
+
+    use_case = TranslateDescriptionsUseCase(
+        SqliteGameRepository(conn),
+        DeepLTranslationService(settings.deepl_api_key),
+    )
+    try:
+        result = use_case.execute()
+    except TranslationError as exc:
+        typer.echo(f"Warning: description translation failed: {exc}", err=True)
+        return False
+
+    typer.echo(
+        f"Translations: {result.translated} translated, "
+        f"{result.up_to_date} already up to date, "
+        f"{result.without_source} without source text."
+    )
+    return True
 
 
 @app.command()
@@ -138,6 +180,7 @@ def import_games(
             )
             if result.skip_reason:
                 typer.echo(f"Warning: {result.skip_reason}", err=True)
+            _translate_pending_descriptions(conn, settings)
     finally:
         conn.close()
 
@@ -187,6 +230,7 @@ def enrich_games() -> None:
                 updated += 1
 
         typer.echo(f"Done. {updated} games enriched with full details.")
+        _translate_pending_descriptions(conn, settings)
     finally:
         conn.close()
 
@@ -227,6 +271,24 @@ def import_rol() -> None:
         )
         if result.skip_reason:
             typer.echo(f"Warning: {result.skip_reason}", err=True)
+        _translate_pending_descriptions(conn, settings)
+    finally:
+        conn.close()
+
+
+@app.command()
+def translate_descriptions() -> None:
+    """Translate missing/stale Spanish descriptions via DeepL (backfill)."""
+    settings = _get_settings()
+    if not settings.deepl_api_key:
+        typer.echo("Error: DEEPL_API_KEY is not set.", err=True)
+        raise typer.Exit(code=1)
+
+    conn = get_connection(settings.db_path)
+    try:
+        run_migrations(conn)
+        if not _translate_pending_descriptions(conn, settings):
+            raise typer.Exit(code=1)
     finally:
         conn.close()
 

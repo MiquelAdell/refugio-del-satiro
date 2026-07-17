@@ -106,6 +106,13 @@ class GameRepository(Protocol):
         categories: tuple[str, ...] = (),
     ) -> Game: ...
 
+    def update_translation(
+        self, game_id: int, description_es: str, source_hash: str
+    ) -> None: ...
+
+    # source_hash is sha256 of the English description the translation was
+    # made from — the staleness check for the per-row translation cache.
+
     # Updates by primary key, not bgg_id — enrich_games fetches shared
     # attributes from BGG's thing API keyed by bgg_id/objectid, which can be
     # shared by several distinct rows, so callers must resolve the target

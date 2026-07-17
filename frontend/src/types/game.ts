@@ -13,6 +13,7 @@ export interface Game {
   readonly bgg_rating: number;
   readonly location: string;
   readonly description: string;
+  readonly description_es: string;
   readonly categories: readonly string[];
   readonly primary_tag: string;
 }

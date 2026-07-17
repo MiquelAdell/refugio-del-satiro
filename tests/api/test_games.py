@@ -112,11 +112,13 @@ class TestListGames:
         assert by_name["Catan"]["status"] == "available"
         assert {
             "description": by_name["Catan"]["description"],
+            "description_es": by_name["Catan"]["description_es"],
             "categories": by_name["Catan"]["categories"],
             "min_age": by_name["Catan"]["min_age"],
             "primary_tag": by_name["Catan"]["primary_tag"],
         } == {
             "description": "Trade and build across the island.",
+            "description_es": "",
             "categories": ["Economic", "Negotiation"],
             "min_age": 10,
             "primary_tag": "familygames",
@@ -131,6 +133,31 @@ class TestListGames:
         assert by_name["Pandemic"]["borrower_display_name"] is None
         assert by_name["Pandemic"]["loan_id"] is None
 
+        conn.close()
+
+    def test_serves_spanish_translation_when_stored(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        game = game_repo.upsert_by_bgg_id(
+            bgg_id=100,
+            name="Catan",
+            thumbnail_url="https://example.com/catan.jpg",
+            year_published=1995,
+            description="Trade and build across the island.",
+        )
+        game_repo.update_translation(
+            game.id,
+            description_es="Comercia y construye por la isla.",
+            source_hash="abc123",
+        )
+
+        response = client.get("/api/juegos")
+
+        assert response.status_code == 200
+        (payload,) = response.json()
+        assert payload["description"] == "Trade and build across the island."
+        assert payload["description_es"] == "Comercia y construye por la isla."
         conn.close()
 
     def test_authenticated_request_exposes_borrower_identity(self) -> None:

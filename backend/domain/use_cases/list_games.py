@@ -24,6 +24,7 @@ class GameWithStatus:
     bgg_rating: float
     location: str
     description: str
+    description_es: str
     categories: tuple[str, ...]
     created_at: datetime
     updated_at: datetime
@@ -55,6 +56,7 @@ def build_game_with_status(
             bgg_rating=game.bgg_rating,
             location=game.location,
             description=game.description,
+            description_es=game.description_es,
             categories=game.categories,
             created_at=game.created_at,
             updated_at=game.updated_at,
@@ -80,6 +82,7 @@ def build_game_with_status(
         bgg_rating=game.bgg_rating,
         location=game.location,
         description=game.description,
+        description_es=game.description_es,
         categories=game.categories,
         created_at=game.created_at,
         updated_at=game.updated_at,

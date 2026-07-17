@@ -28,3 +28,5 @@ class Game:
     bgg_collection_id: int | None = field(default=None)
     min_age: int = field(default=0)
     primary_tag: str = field(default="")
+    description_es: str = field(default="")
+    description_es_source_hash: str = field(default="")

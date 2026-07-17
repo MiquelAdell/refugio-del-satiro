@@ -40,6 +40,7 @@ const item: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original tabletop RPG.",
+  description_es: "",
   categories: ["Fantasy", "Mythology"],
   publication_types: ["Core Rules", "Sourcebook"],
   status: "available",

@@ -32,6 +32,7 @@ class RpgItemResponse(BaseModel):
     year_published: int
     bgg_rating: float
     description: str
+    description_es: str
     categories: list[str]
     publication_types: list[str]
     status: str
@@ -50,6 +51,7 @@ def _to_response(item: RpgItemWithStatus, *, is_authenticated: bool) -> RpgItemR
         year_published=item.year_published,
         bgg_rating=item.bgg_rating,
         description=item.description,
+        description_es=item.description_es,
         categories=list(item.categories),
         publication_types=list(item.publication_types),
         status=item.status,

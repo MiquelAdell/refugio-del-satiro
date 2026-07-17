@@ -168,6 +168,7 @@ refugio import-games                     # Import board games from BGG API — B
 refugio import-rol                       # Import RPG items (libros de rol) from BGG API — same reconciliation
 refugio import-members members.csv       # Sync members from CSV (missing active members are disabled with a >50% safety guard)
 refugio import-members --email x@y.com --name "First Last"  # Add a single member
+refugio translate-descriptions           # Translate missing/stale Spanish descriptions via DeepL (requires DEEPL_API_KEY)
 
 refugio content run                      # Scrape Google Sites → frontend/public/content-mirror/
 refugio content run --dry-run            # Preview, don't write anything
@@ -184,6 +185,14 @@ page under `/ludoteca/admin/bgg` shows the last import date and has a
 "Reimportar desde BGG" button, so this no longer requires shell access to
 the server. It runs the same BGG-API-first, HTML-scrape-fallback import as
 the CLI command above.
+
+BGG descriptions are English; when `DEEPL_API_KEY` is set, `import-games`,
+`import-rol`, and `enrich-games` translate new or changed descriptions to
+Spanish via DeepL (API Free plan), caching each translation on the row by a
+hash of its English source so unchanged descriptions never re-consume quota.
+`translate-descriptions` runs the same backfill standalone. Without a key or
+on any DeepL failure the import still succeeds and the catalog serves the
+English text.
 
 Re-importing from the BGG API (`import-games` and `import-rol`, but not the
 JSON-seed form) treats BGG as the source of truth: an item that has
@@ -262,6 +271,7 @@ frontend/
 | `REFUGIO_BASE_URL` | Lending app public URL (used in reset-password emails) | `http://localhost:5173/ludoteca` |
 | `REFUGIO_CONTENT_MIRROR_DIR` | Where the admin "Resync content" button writes scraped pages | `frontend/public/content-mirror` (dev) / `/srv/content` (prod) |
 | `BGG_BEARER_TOKEN` | BGG API bearer token (optional) | — |
+| `DEEPL_API_KEY` | DeepL API Free key for Spanish description translation (optional; untranslated descriptions are served in English) | — |
 | `VITE_API_URL` | Frontend API base URL | `/ludoteca/api` |
 
 ## Deployment (VPS with Docker)

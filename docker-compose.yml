@@ -16,6 +16,7 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
       - BGG_BEARER_TOKEN=${BGG_BEARER_TOKEN:-}
+      - DEEPL_API_KEY=${DEEPL_API_KEY:-}
     expose:
       - "8000"
 

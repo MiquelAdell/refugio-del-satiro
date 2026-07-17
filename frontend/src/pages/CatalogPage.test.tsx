@@ -27,6 +27,7 @@ const AVAILABLE_GAME: GameWithStatus = {
   bgg_rating: 7.2,
   location: "armari",
   description: "",
+  description_es: "",
   categories: [],
   primary_tag: "familygames",
   status: "available",
