@@ -1,6 +1,11 @@
 # Plan: translating BGG game descriptions to Spanish
 
-Status: **proposal only — not implemented**.
+Status: **implemented** (branch `feature/description-translation`): migration
+`012_add_description_es`, `TranslationService` protocol +
+`DeepLTranslationService`, `TranslateDescriptionsUseCase`, CLI
+`translate-descriptions` plus automatic translation after `import-games`,
+`import-rol`, and `enrich-games`, and `description_es` served by the API with
+English fallback in the frontend.
 
 ## Problem
 

@@ -6,6 +6,7 @@ import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { ClockIcon, PlayersIcon } from "../components/MetaIcons";
 import { useAuth } from "../context/AuthContext";
 import { useGameHistory } from "../hooks/useGameHistory";
+import { displayDescription } from "../lib/description";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./GameDetailPage.css";
@@ -92,7 +93,7 @@ export function GameDetailPage() {
         ? `Prestado a ${game.borrower_display_name}`
         : "Prestado";
 
-  const descriptionParagraphs = game.description
+  const descriptionParagraphs = displayDescription(game)
     .split(/\n\n+/)
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph.length > 0);

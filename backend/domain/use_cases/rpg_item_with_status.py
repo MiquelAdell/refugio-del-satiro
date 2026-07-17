@@ -18,6 +18,7 @@ class RpgItemWithStatus:
     year_published: int
     bgg_rating: float
     description: str
+    description_es: str
     categories: tuple[str, ...]
     publication_types: tuple[str, ...]
     status: str  # "available" | "lent"
@@ -42,6 +43,7 @@ def build_rpg_with_status(
             year_published=game.year_published,
             bgg_rating=game.bgg_rating,
             description=game.description,
+            description_es=game.description_es,
             categories=game.categories,
             publication_types=game.publication_types,
             status="available",
@@ -60,6 +62,7 @@ def build_rpg_with_status(
         year_published=game.year_published,
         bgg_rating=game.bgg_rating,
         description=game.description,
+        description_es=game.description_es,
         categories=game.categories,
         publication_types=game.publication_types,
         status="lent",
