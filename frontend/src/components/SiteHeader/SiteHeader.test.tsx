@@ -262,7 +262,6 @@ describe("SiteHeader", () => {
       expect(menuitems).toEqual([
         "Mi perfil",
         "Mis préstamos",
-        "Cambiar contraseña",
         "Cerrar sesión",
       ]);
     });
@@ -292,17 +291,11 @@ describe("SiteHeader", () => {
       });
     });
 
-    it("links Cambiar contraseña to /change-password", () => {
+    it("does not link to password change", () => {
       setMember();
       renderHeader();
 
-      const changePasswordLinks = screen
-        .getAllByRole("menuitem")
-        .filter((el) => el.textContent?.trim() === "Cambiar contraseña")
-        .map((el) => el.querySelector("a"));
-      changePasswordLinks.forEach((link) => {
-        expect(link).toHaveAttribute("href", "/change-password");
-      });
+      expect(screen.queryByRole("link", { name: "Cambiar contraseña" })).toBeNull();
     });
 
     it("does not show Iniciar sesión or Administración for member", () => {
@@ -353,7 +346,6 @@ describe("SiteHeader", () => {
       expect(topLevelLabels).toEqual([
         "Mi perfil",
         "Mis préstamos",
-        "Cambiar contraseña",
         "Administración",
         "Cerrar sesión",
       ]);
