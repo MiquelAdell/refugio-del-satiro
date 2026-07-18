@@ -114,11 +114,6 @@ function UserSubmenu({
           Mis préstamos
         </Link>
       </li>
-      <li className={styles.submenuItem} role="menuitem">
-        <Link to="/change-password" onClick={onItemClick}>
-          Cambiar contraseña
-        </Link>
-      </li>
       {isAdmin && (
         <AdminNestedSubmenu
           mobileExpanded={adminExpanded}
