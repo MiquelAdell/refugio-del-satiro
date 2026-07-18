@@ -331,6 +331,239 @@ Actions secrets on the repository:
 | `DEPLOY_SSH_KEY` | Private SSH key authorised on the server |
 | `DEPLOY_PORT` | SSH port, optional (defaults to `22`) |
 
+### Weekly database backups
+
+Production takes a consistent SQLite snapshot every Sunday at 03:00
+Europe/Madrid and keeps the three newest snapshots in Google Drive. The backup
+contains member data, password hashes, and any reset tokens that have not yet
+expired. It does not have separate client-side encryption: access depends on
+the security of the Google account. Keep
+`Backups/refugio-del-satiro/database` private, do not share it, and enable 2FA
+on `refugiodelsatiro@gmail.com` before enabling the timer.
+
+Install `rclone` and authorize the club account once, as root:
+
+```bash
+apt-get update
+apt-get install -y rclone
+install -d -m 0700 /root/.config/rclone
+rclone config
+```
+
+In `rclone config`, create a Google Drive remote named `refugio-drive`, use the
+standard Drive backend, and complete the OAuth login with
+`refugiodelsatiro@gmail.com`. On a headless server, follow rclone's prompt to
+authorize in a browser on another machine. Then lock down the OAuth refresh
+token, create the backup directory, and check access:
+
+```bash
+chown root:root /root/.config/rclone/rclone.conf
+chmod 0600 /root/.config/rclone/rclone.conf
+rclone --config /root/.config/rclone/rclone.conf mkdir \
+  refugio-drive:Backups/refugio-del-satiro/database
+rclone --config /root/.config/rclone/rclone.conf lsd \
+  refugio-drive:Backups/refugio-del-satiro
+```
+
+`/root/.config/rclone/rclone.conf` contains the OAuth refresh token. Never
+commit it, copy it into the repository, or print it in logs. Confirm in the
+Google Drive sharing panel that the backup folder is restricted to the club
+account.
+
+Install and start the systemd timer from the production checkout:
+
+```bash
+cd /root/refugio-del-satiro
+install -m 0644 deploy/systemd/refugio-backup.service \
+  /etc/systemd/system/refugio-backup.service
+install -m 0644 deploy/systemd/refugio-backup.timer \
+  /etc/systemd/system/refugio-backup.timer
+systemctl daemon-reload
+systemctl enable --now refugio-backup.timer
+systemctl list-timers refugio-backup.timer
+```
+
+The last command shows the next run in the server's local display timezone;
+the timer itself always uses Europe/Madrid. To run a backup now and inspect it:
+
+```bash
+systemctl start refugio-backup.service
+systemctl status refugio-backup.service --no-pager
+journalctl -u refugio-backup.service -n 100 --no-pager
+rclone --config /root/.config/rclone/rclone.conf lsl \
+  refugio-drive:Backups/refugio-del-satiro/database \
+  --include 'refugio-????????T??????Z.db'
+```
+
+The backup script uploads a snapshot only after `PRAGMA quick_check` succeeds.
+It checks the uploaded byte count before deleting old snapshots, and rotation
+only matches names such as `refugio-20260717T010203Z.db`. Other files in the
+Drive folder are left alone. For a local test that does not contact Drive or
+rotate files, run:
+
+```bash
+cd /root/refugio-del-satiro
+./deploy/backup-db.sh --dry-run
+```
+
+The dry run leaves its validated snapshot in `/var/lib/refugio-backup`; remove
+that test file after inspection.
+
+#### Non-destructive restore drill
+
+Run this periodically with a real filename from the remote listing. It
+downloads the snapshot, runs the stronger `PRAGMA integrity_check`, verifies
+the core tables, and never touches production:
+
+```bash
+cd /root/refugio-del-satiro
+BACKUP=refugio-YYYYMMDDTHHMMSSZ.db
+RESTORE_DIR=$(mktemp -d /root/refugio-restore-test.XXXXXX)
+rclone --config /root/.config/rclone/rclone.conf copyto \
+  "refugio-drive:Backups/refugio-del-satiro/database/$BACKUP" \
+  "$RESTORE_DIR/$BACKUP"
+
+docker compose run --rm --no-deps -T \
+  -v "$RESTORE_DIR:/restore:ro" \
+  -e BACKUP="$BACKUP" \
+  app python - <<'PY'
+import os
+import sqlite3
+
+path = f"/restore/{os.environ['BACKUP']}"
+db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+try:
+    result = db.execute("PRAGMA integrity_check").fetchall()
+    tables = {
+        row[0]
+        for row in db.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"
+        )
+    }
+finally:
+    db.close()
+
+if result != [("ok",)]:
+    raise SystemExit(f"integrity_check failed: {result!r}")
+
+expected = {"games", "members", "loans", "password_tokens", "schema_migrations"}
+missing = expected - tables
+if missing:
+    raise SystemExit(f"missing expected tables: {sorted(missing)}")
+
+print("integrity_check: ok")
+print("tables:", ", ".join(sorted(tables)))
+PY
+
+rm -f "$RESTORE_DIR/$BACKUP"
+rmdir "$RESTORE_DIR"
+unset BACKUP RESTORE_DIR
+```
+
+#### Emergency recovery
+
+Choose the snapshot explicitly. Validate it before stopping the app:
+
+```bash
+cd /root/refugio-del-satiro
+BACKUP=refugio-YYYYMMDDTHHMMSSZ.db
+RESTORE_DIR=$(mktemp -d /root/refugio-recovery.XXXXXX)
+rclone --config /root/.config/rclone/rclone.conf copyto \
+  "refugio-drive:Backups/refugio-del-satiro/database/$BACKUP" \
+  "$RESTORE_DIR/$BACKUP"
+
+docker compose run --rm --no-deps -T \
+  -v "$RESTORE_DIR:/restore:ro" \
+  -e BACKUP="$BACKUP" \
+  app python - <<'PY'
+import os
+import sqlite3
+
+path = f"/restore/{os.environ['BACKUP']}"
+db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+try:
+    result = db.execute("PRAGMA integrity_check").fetchall()
+finally:
+    db.close()
+if result != [("ok",)]:
+    raise SystemExit(f"integrity_check failed: {result!r}")
+print("integrity_check: ok")
+PY
+```
+
+Only continue if that prints `integrity_check: ok`. Stop the app, make a
+consistent rollback snapshot of the current database, and atomically install
+the selected backup inside the Docker volume:
+
+```bash
+docker compose stop app
+
+docker compose run --rm --no-deps -T \
+  -v "$RESTORE_DIR:/restore:ro" \
+  -e BACKUP="$BACKUP" \
+  app python - <<'PY'
+from datetime import datetime, timezone
+import os
+from pathlib import Path
+import shutil
+import sqlite3
+
+db_path = Path("/app/data/db/refugio.db")
+source_path = Path("/restore") / os.environ["BACKUP"]
+stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+rollback_path = db_path.with_name(f"refugio-pre-restore-{stamp}.db")
+temporary_path = db_path.with_name("refugio.db.restore.tmp")
+
+if not db_path.is_file():
+    raise SystemExit(f"current database not found: {db_path}")
+
+source = sqlite3.connect(f"file:{source_path}?mode=ro", uri=True)
+try:
+    if source.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+        raise SystemExit("selected backup failed integrity_check")
+finally:
+    source.close()
+
+current = sqlite3.connect(db_path)
+rollback = sqlite3.connect(rollback_path)
+try:
+    current.backup(rollback)
+finally:
+    rollback.close()
+    current.close()
+
+rollback = sqlite3.connect(f"file:{rollback_path}?mode=ro", uri=True)
+try:
+    if rollback.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
+        raise SystemExit("rollback snapshot failed quick_check")
+finally:
+    rollback.close()
+
+shutil.copyfile(source_path, temporary_path)
+temporary_path.chmod(0o600)
+for suffix in ("-wal", "-shm"):
+    Path(f"{db_path}{suffix}").unlink(missing_ok=True)
+os.replace(temporary_path, db_path)
+print(f"rollback saved at {rollback_path}")
+PY
+
+docker compose up -d app
+docker compose exec app refugio migrate
+curl --fail --silent --show-error \
+  https://www.refugiodelsatiro.es/ludoteca/api/health
+```
+
+The health endpoint must return `{"status":"ok"}`. Log in and smoke-test the
+catalog, member profile, and an admin page before declaring recovery complete.
+Keep the printed `refugio-pre-restore-*.db` rollback file until the recovered
+site has been checked. Then remove the downloaded file and temporary directory:
+
+```bash
+rm -f "$RESTORE_DIR/$BACKUP"
+rmdir "$RESTORE_DIR"
+unset BACKUP RESTORE_DIR
+```
+
 ### Content sync (manual)
 
 Content changes on `www.refugiodelsatiro.es` flow into this repo manually:
