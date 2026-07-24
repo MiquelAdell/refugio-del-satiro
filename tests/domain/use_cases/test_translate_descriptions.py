@@ -37,7 +37,7 @@ def make_game(
         max_players=4,
         playing_time=60,
         bgg_rating=7.5,
-        location="armari",
+        location="armario",
         created_at=NOW,
         updated_at=NOW,
         description=description,

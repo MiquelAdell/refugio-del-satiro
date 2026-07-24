@@ -72,6 +72,7 @@ class TestMigrationRunner:
             "010_add_catalog_metadata",
             "011_add_game_min_age_and_primary_tag",
             "012_add_description_es",
+            "013_normalize_game_locations",
         ]
         game = SqliteGameRepository(conn).get_by_bgg_id(99)
         assert game is not None
@@ -123,6 +124,7 @@ class TestMigrationRunner:
         assert applied == [
             "011_add_game_min_age_and_primary_tag",
             "012_add_description_es",
+            "013_normalize_game_locations",
         ]
         game = SqliteGameRepository(conn).get_by_bgg_id(99)
         assert game is not None
@@ -150,8 +152,41 @@ class TestMigrationRunner:
         conn = get_memory_connection()
         first_run = run_migrations(conn)
         second_run = run_migrations(conn)
-        assert len(first_run) == 12
+        assert len(first_run) == 13
         assert len(second_run) == 0
+        conn.close()
+
+    def test_normalizes_legacy_location_values(self) -> None:
+        conn = get_memory_connection()
+        migrations = sorted(MIGRATIONS_DIR.glob("*.sql"))
+        legacy_migrations = [
+            migration
+            for migration in migrations
+            if migration.stem <= "012_add_description_es"
+        ]
+        for migration in legacy_migrations:
+            conn.executescript(migration.read_text(encoding="utf-8"))
+        conn.execute(
+            "CREATE TABLE schema_migrations ("
+            "version TEXT PRIMARY KEY, "
+            "applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"
+            ")"
+        )
+        conn.executemany(
+            "INSERT INTO schema_migrations (version) VALUES (?)",
+            ((migration.stem,) for migration in legacy_migrations),
+        )
+        conn.execute(
+            "INSERT INTO games (bgg_id, name, thumbnail_url, year_published, location) "
+            "VALUES (99, 'Legacy game', 'https://t.jpg', 2020, 'soterrani')"
+        )
+        conn.commit()
+
+        run_migrations(conn)
+
+        assert conn.execute(
+            "SELECT location FROM games WHERE bgg_id = 99"
+        ).fetchone()[0] == "sotano"
         conn.close()
 
     def test_foreign_keys_enabled(self) -> None:

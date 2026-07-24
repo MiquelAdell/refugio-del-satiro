@@ -25,7 +25,7 @@ const AVAILABLE_GAME: GameWithStatus = {
   playing_time: 90,
   min_age: 10,
   bgg_rating: 7.2,
-  location: "armari",
+  location: "armario",
   description: "",
   description_es: "",
   categories: [],
@@ -45,7 +45,7 @@ const LENT_GAME: GameWithStatus = {
   max_players: 4,
   playing_time: 45,
   bgg_rating: 7.8,
-  location: "soterrani",
+  location: "sotano",
   status: "lent",
 };
 
@@ -113,7 +113,7 @@ describe("CatalogPage filter chips", () => {
       screen.getByLabelText(AVAILABILITY_SELECT),
       "available",
     );
-    await user.selectOptions(screen.getByLabelText("Ubicación"), "armari");
+    await user.selectOptions(screen.getByLabelText("Ubicación"), "armario");
 
     const removeButtons = screen.getAllByRole("button", {
       name: "Quitar filtro",

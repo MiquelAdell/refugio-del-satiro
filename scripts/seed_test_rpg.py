@@ -48,7 +48,7 @@ _BOARD_GAME_SEED: CatalogSeed = {
     "max_players": 4,
     "playing_time": 45,
     "bgg_rating": 7.0,
-    "location": "armari",
+    "location": "armario",
     "item_type": "boardgame",
     "description": "A board game seeded for e2e catalog tests.",
 }
@@ -63,7 +63,7 @@ _RPG_SEED: CatalogSeed = {
     "max_players": 6,
     "playing_time": 120,
     "bgg_rating": 7.5,
-    "location": "armari",
+    "location": "armario",
     "item_type": "rpgitem",
     "description": "A test RPG item seeded by scripts/seed_test_rpg.py for e2e purposes.",
 }

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import time
+import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from html import unescape
@@ -23,6 +24,8 @@ class BggGame:
     image_url: str = ""
     # Full-size image captured from this entry's own collection XML <image>,
     # distinct per copy even when several copies share one objectid.
+    comment: str = ""
+    # Per-copy free-text comment from BGG's collection response.
 
 
 @dataclass(frozen=True)
@@ -53,6 +56,7 @@ class BggRpgItem:
     categories: tuple[str, ...] = ()
     publication_types: tuple[str, ...] = ()
     details_loaded: bool = True
+    comment: str = ""
 
 
 @dataclass(frozen=True)
@@ -127,6 +131,27 @@ _BROWSER_HEADERS = {
 
 
 _IMAGE_ID_PATTERN = re.compile(r"pic(\d+)\.")
+_SOTERRANI_COMMENT_PATTERN = re.compile(r"(?<!\w)sotano(?!\w)")
+_COLLECTION_COMMENT_PATTERN = re.compile(
+    r'<(?:td|div)[^>]*\bclass=["\'][^"\']*\bcollection_comment\b[^"\']*["\'][^>]*>'
+    r"(.*?)</(?:td|div)>",
+    re.IGNORECASE | re.DOTALL,
+)
+_HTML_TAG_PATTERN = re.compile(r"<[^>]+>")
+
+
+def resolve_collection_location(comment: str) -> str:
+    """Map a standalone ``sótano`` collection comment to its stored location."""
+    normalized_comment = "".join(
+        character
+        for character in unicodedata.normalize("NFD", comment.casefold())
+        if not unicodedata.combining(character)
+    )
+    return (
+        "sotano"
+        if _SOTERRANI_COMMENT_PATTERN.search(normalized_comment)
+        else "armario"
+    )
 
 
 class BggClient:
@@ -243,12 +268,20 @@ class BggClient:
             year_match = year_pattern.search(row)
             year = int(year_match.group(1)) if year_match else 0
 
+            comment_match = _COLLECTION_COMMENT_PATTERN.search(row)
+            comment = (
+                unescape(_HTML_TAG_PATTERN.sub(" ", comment_match.group(1))).strip()
+                if comment_match
+                else ""
+            )
+
             games.append(
                 BggGame(
                     bgg_id=bgg_id,
                     name=name,
                     thumbnail_url=thumbnail,
                     year_published=year,
+                    comment=comment,
                 )
             )
 
@@ -386,6 +419,7 @@ class BggClient:
                 name=_text(item, "name") or "Unknown",
                 thumbnail_url=_text(item, "thumbnail"),
                 image_url=_text(item, "image"),
+                comment=_text(item, "comment"),
                 year_published=(
                     int(_text(item, "yearpublished"))
                     if _text(item, "yearpublished")
@@ -447,6 +481,7 @@ class BggClient:
                     else ()
                 ),
                 details_loaded=item.bgg_id in details,
+                comment=item.comment,
             )
             for item in collection_items
         ]

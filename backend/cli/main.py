@@ -144,7 +144,7 @@ def import_games(
                     max_players=g.get("max_players", 0),
                     playing_time=g.get("playing_time", 0),
                     bgg_rating=g.get("bgg_rating", 0.0),
-                    location=g.get("location", "armari"),
+                    location=g.get("location", "armario"),
                 )
                 if existing is None:
                     created += 1

@@ -82,6 +82,72 @@ class TestImportGamesUseCase:
         assert game.min_age == 10
         assert game.primary_tag == "familygames"
 
+    def test_uses_basement_location_for_new_game_with_standalone_comment(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClient(
+            [
+                BggGame(
+                    13,
+                    "Catan",
+                    "https://collection-thumb.jpg",
+                    1995,
+                    comment="foo, Sótano, bar",
+                )
+            ]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.location == "sotano"
+
+    def test_uses_cabinet_location_for_embedded_basement_comment(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        bgg_client = FakeBggClient(
+            [
+                BggGame(
+                    13,
+                    "Catan",
+                    "https://collection-thumb.jpg",
+                    1995,
+                    comment="foosotanobar",
+                )
+            ]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.location == "armario"
+
+    def test_updates_existing_game_location_from_basement_comment(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            13, "Catan", "https://old-thumb.jpg", location="armario"
+        )
+        bgg_client = FakeBggClient(
+            [
+                BggGame(
+                    13,
+                    "Catan",
+                    "https://collection-thumb.jpg",
+                    1995,
+                    comment="Sótano",
+                )
+            ]
+        )
+
+        ImportGamesUseCase(fake_game_repo, bgg_client, fake_loan_repo).execute()
+
+        game = fake_game_repo.get_by_bgg_id(13)
+        assert game is not None
+        assert game.location == "sotano"
+
     def test_missing_details_fall_back_to_existing_min_age_and_primary_tag(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
@@ -178,7 +244,7 @@ class TestImportGamesUseCase:
         assert game.max_players == 4
         assert game.playing_time == 90
         assert game.bgg_rating == 7.15
-        assert game.location == "prestatge"
+        assert game.location == "armario"
         assert game.description == ""
         assert game.categories == ()
 
@@ -225,7 +291,7 @@ class TestImportGamesUseCase:
         assert game.max_players == 5
         assert game.playing_time == 75
         assert game.bgg_rating == 7.0
-        assert game.location == "prestatge"
+        assert game.location == "armario"
         assert game.description == "Stored description"
         assert game.categories == ("Stored category",)
         successful_game = fake_game_repo.get_by_bgg_id(14)
