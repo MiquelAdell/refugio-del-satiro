@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
 import { CatalogViewToggle } from "../components/CatalogViewToggle";
+import { RpgActiveFilterChips } from "../components/RpgActiveFilterChips";
+import { RpgFilterPanel } from "../components/RpgFilterPanel";
 import {
   persistCatalogView,
   storedCatalogView,
@@ -13,13 +15,10 @@ import { useRpgItems } from "../hooks/useRpgItems";
 import { computeCategoryFrequency, mostCommonOwnCategory } from "../lib/gameTags";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
-import { Select } from "../ui/Select";
 import {
   applyRpgQuery,
   DEFAULT_RPG_QUERY,
-  RPG_SORT_OPTIONS,
   type RpgQuery,
-  type RpgSortValue,
 } from "../types/rpg";
 import type { CatalogView } from "../types/catalog";
 // Shares the board game catalog layout (page frame, results bar, grid/list).
@@ -81,17 +80,10 @@ export function RpgCatalogPage() {
             </Button>
           </form>
         }
-        filters={
-          <Select
-            label="Ordenar por"
-            value={query.sort}
-            options={RPG_SORT_OPTIONS}
-            onChange={(e) =>
-              setQuery((q) => ({ ...q, sort: e.target.value as RpgSortValue }))
-            }
-          />
-        }
+        filters={<RpgFilterPanel query={query} onChange={setQuery} />}
       />
+
+      <RpgActiveFilterChips query={query} onChange={setQuery} />
 
       <div className="catalog-results-bar">
         <p className="catalog-count">
