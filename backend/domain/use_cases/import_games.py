@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.data.bgg_client import BggClient, BggGame
+from backend.data.bgg_client import BggClient, BggGame, resolve_collection_location
 from backend.domain.repositories.game_repository import GameRepository
 from backend.domain.repositories.loan_repository import LoanRepository
 from backend.domain.use_cases.bgg_reconciliation import (
@@ -115,7 +115,7 @@ class ImportGamesUseCase:
                     if details is not None
                     else existing.bgg_rating if existing is not None else 0.0
                 ),
-                location=existing.location if existing is not None else "armari",
+                location=resolve_collection_location(bgg_game.comment),
                 description=(
                     details.description
                     if details is not None

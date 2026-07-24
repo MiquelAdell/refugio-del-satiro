@@ -9,6 +9,7 @@ RPG_COLLECTION_XML = """<?xml version="1.0" encoding="utf-8"?>
        pubdate="Mon, 31 Mar 2026 00:00:00 +0000">
     <item objecttype="thing" objectid="1001" subtype="rpgitem" collid="5001">
         <name sortindex="1">Dungeons &amp; Dragons Player&#39;s Handbook</name>
+        <comment>sotano</comment>
         <yearpublished>2014</yearpublished>
         <image>https://cf.geekdo-images.com/dnd_phb.png</image>
         <thumbnail>https://cf.geekdo-images.com/dnd_phb_t.png</thumbnail>
@@ -107,6 +108,7 @@ class TestBggClientRpgParsing:
         assert dnd.thumbnail_url == "https://cf.geekdo-images.com/dnd_phb_t.png"
         assert dnd.image_url == "https://cf.geekdo-images.com/dnd_phb.png"
         assert dnd.year_published == 2014
+        assert dnd.comment == "sotano"
 
     def test_parse_xml_collection_all_ids(self) -> None:
         client = BggClient("test")
@@ -212,6 +214,7 @@ class TestBggClientRpgParsing:
         assert dnd.categories == ("Adventure", "Fantasy")
         assert dnd.publication_types == ("Core Rules",)
         assert dnd.details_loaded is True
+        assert dnd.comment == "sotano"
 
     def test_fetch_owned_rpg_items_keeps_duplicate_collection_entries_distinct(
         self, monkeypatch: object

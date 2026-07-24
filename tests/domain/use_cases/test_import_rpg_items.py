@@ -68,6 +68,59 @@ class TestImportRpgItemsUseCase:
         assert result.total == 2
         assert len(fake_game_repo.list_all()) == 2
 
+    def test_uses_basement_location_for_new_rpg_item_with_comment(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        basement_item = BggRpgItem(
+            bgg_id=1003,
+            name="Basement RPG",
+            thumbnail_url="https://cf.geekdo-images.com/basement_t.png",
+            image_url="https://cf.geekdo-images.com/basement.png",
+            year_published=2020,
+            bgg_rating=8.0,
+            description="",
+            collection_id=2003,
+            comment="Sotano",
+        )
+
+        ImportRpgItemsUseCase(
+            fake_game_repo, FakeBggClientRpg([basement_item]), fake_loan_repo
+        ).execute()
+
+        game = fake_game_repo.get_by_collection_id(2003)
+        assert game is not None
+        assert game.location == "sotano"
+
+    def test_updates_existing_rpg_item_location_from_basement_comment(
+        self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
+    ) -> None:
+        fake_game_repo.upsert_by_bgg_id(
+            1003,
+            "Basement RPG",
+            "https://old-thumb.jpg",
+            location="armario",
+            item_type="rpgitem",
+        )
+        basement_item = BggRpgItem(
+            bgg_id=1003,
+            name="Basement RPG",
+            thumbnail_url="https://cf.geekdo-images.com/basement_t.png",
+            image_url="https://cf.geekdo-images.com/basement.png",
+            year_published=2020,
+            bgg_rating=8.0,
+            description="",
+            collection_id=2003,
+            comment="Sótano",
+        )
+
+        ImportRpgItemsUseCase(
+            fake_game_repo, FakeBggClientRpg([basement_item]), fake_loan_repo
+        ).execute()
+
+        game = fake_game_repo.get_by_collection_id(2003)
+        assert game is not None
+        assert game.location == "sotano"
+
     def test_upserts_with_rpgitem_type(
         self, fake_game_repo: FakeGameRepository, fake_loan_repo: FakeLoanRepository
     ) -> None:
@@ -134,7 +187,7 @@ class TestImportRpgItemsUseCase:
         assert game.year_published == 2014
         assert game.image_url == "https://old-full.jpg"
         assert game.bgg_rating == 8.5
-        assert game.location == "prestatge"
+        assert game.location == "armario"
         assert game.description == ""
         assert game.categories == ()
         assert game.publication_types == ()
@@ -179,7 +232,7 @@ class TestImportRpgItemsUseCase:
         assert game.year_published == 2014
         assert game.image_url == "https://old-full.jpg"
         assert game.bgg_rating == 8.0
-        assert game.location == "prestatge"
+        assert game.location == "armario"
         assert game.description == "Stored description"
         assert game.categories == ("Stored genre",)
         assert game.publication_types == ("Stored type",)

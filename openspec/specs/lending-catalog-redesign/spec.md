@@ -73,6 +73,23 @@ individually removable.
 - **THEN** the corresponding filter SHALL be cleared from the catalog query
 - **AND** the catalog grid SHALL re-render with the updated result set
 
+### Requirement: Catalog location reflects the BGG collection comment
+
+The system SHALL synchronize each imported item's location from its BGG
+collection comment, assigning **Armario** by default. When the comment contains
+`Sótano` or `Sotano` as a standalone, case-insensitive word, the system SHALL
+assign it to **Sótano** on that import.
+The location filter SHALL offer Todos, Armario, and Sótano, showing the
+matching subset for each specific location.
+
+#### Scenario: Sótano marker surrounded by comment text
+- **WHEN** a collection comment is `foo, Sótano, bar`
+- **THEN** the imported item SHALL be assigned to Sótano
+
+#### Scenario: Marker text embedded in another word
+- **WHEN** a collection comment is `foosotanobar`
+- **THEN** the imported item SHALL remain assigned to Armario
+
 ### Requirement: Accessible player-range slider
 
 The system SHALL replace the existing custom dual-slider for the player-range filter with an accessible primitive built on Radix UI (or equivalent headless library) supporting full keyboard control.

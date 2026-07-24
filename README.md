@@ -220,6 +220,11 @@ existed adopt their collection id automatically on the next import; legacy
 rows that are no longer in the BGG collection at all go through the same
 removal flow (and safety guard) as collection-id rows.
 
+Catalog location is also synchronized from the BGG collection comment. Items
+default to **Armario**; add `Sótano` or `Sotano` as a separate word in an
+item's comment to place it in **Sótano** and make it available through the
+location filter. Text embedded inside another word does not change location.
+
 Admins can upload the members CSV from `/ludoteca/admin/members`. The upload
 creates and updates members, disables active members that are absent from the
 file, and preserves the administrator running the import. Empty files and files

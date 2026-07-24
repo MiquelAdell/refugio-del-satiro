@@ -44,7 +44,7 @@ def _make_game(id: int, slug: str = "catan") -> Game:
         max_players=4,
         playing_time=60,
         bgg_rating=7.0,
-        location="armari",
+        location="armario",
         created_at=NOW,
         updated_at=NOW,
     )

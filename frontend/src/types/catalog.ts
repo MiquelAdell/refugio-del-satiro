@@ -3,7 +3,7 @@ import type { GameWithStatus } from "./game";
 export const availabilityValues = ["all", "available", "lent"] as const;
 export type AvailabilityValue = (typeof availabilityValues)[number];
 
-export const locationValues = ["all", "armari", "soterrani"] as const;
+export const locationValues = ["all", "armario", "sotano"] as const;
 export type LocationValue = (typeof locationValues)[number];
 
 export const timePresets = ["all", "lt30", "30to60", "1to2h", "2hplus"] as const;
@@ -59,8 +59,8 @@ export const AVAILABILITY_OPTIONS: readonly LabelledOption<AvailabilityValue>[] 
 
 export const LOCATION_OPTIONS: readonly LabelledOption<LocationValue>[] = [
   { value: "all", label: "Todos" },
-  { value: "armari", label: "Armario" },
-  { value: "soterrani", label: "Sótano" },
+  { value: "armario", label: "Armario" },
+  { value: "sotano", label: "Sótano" },
 ];
 
 export const TIME_PRESET_OPTIONS: readonly LabelledOption<TimePreset>[] = [

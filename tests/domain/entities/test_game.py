@@ -18,7 +18,7 @@ class TestGame:
             max_players=4,
             playing_time=90,
             bgg_rating=7.1,
-            location="armari",
+            location="armario",
             created_at=now,
             updated_at=now,
         )
@@ -45,7 +45,7 @@ class TestGame:
             max_players=4,
             playing_time=90,
             bgg_rating=7.1,
-            location="armari",
+            location="armario",
             created_at=now,
             updated_at=now,
         )

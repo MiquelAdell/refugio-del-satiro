@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import httpx
 
-from backend.data.bgg_client import BggClient
+from backend.data.bgg_client import BggClient, BggGame, resolve_collection_location
 
 IMAGE_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
 <items>
@@ -223,6 +223,7 @@ SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>
 <items totalitems="3" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse" pubdate="Mon, 31 Mar 2026 00:00:00 +0000">
     <item objecttype="thing" objectid="13" subtype="boardgame" collid="1001">
         <name sortindex="1">Catan</name>
+        <comment>foo, Sótano, bar</comment>
         <yearpublished>1995</yearpublished>
         <image>https://cf.geekdo-images.com/catan.png</image>
         <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
@@ -263,10 +264,38 @@ THING_XML = """<?xml version="1.0" encoding="utf-8"?>
 
 
 class TestBggClientParsing:
+    def test_resolves_only_standalone_basement_comments(self) -> None:
+        assert resolve_collection_location("Sótano") == "sotano"
+        assert resolve_collection_location("Sotano") == "sotano"
+        assert resolve_collection_location("sotano") == "sotano"
+        assert resolve_collection_location("so\u0301tano") == "sotano"
+        assert resolve_collection_location("foo, Sótano, bar") == "sotano"
+        assert resolve_collection_location("foosotanobar") == "armario"
+
     def test_parses_collection_xml(self) -> None:
         client = BggClient("test")
         games = client._parse_xml_collection(SAMPLE_XML)
         assert len(games) == 3
+
+    def test_parses_comment_from_html_collection_row(self) -> None:
+        html = """
+        <table><tr class="collection_row">
+            <td><a href="/boardgame/13/catan">Catan</a> (1995)</td>
+            <td class="collection_comment ">foo, Sótano, bar</td>
+        </tr></table>
+        """
+
+        games = BggClient("test")._parse_html_collection(html)
+
+        assert games == [
+            BggGame(
+                bgg_id=13,
+                name="Catan",
+                thumbnail_url="",
+                year_published=1995,
+                comment="foo, Sótano, bar",
+            )
+        ]
 
     def test_parses_game_fields(self) -> None:
         client = BggClient("test")
@@ -277,6 +306,7 @@ class TestBggClientParsing:
         assert catan.thumbnail_url == "https://cf.geekdo-images.com/catan_t.png"
         assert catan.image_url == "https://cf.geekdo-images.com/catan.png"
         assert catan.year_published == 1995
+        assert catan.comment == "foo, Sótano, bar"
 
     def test_parses_all_game_ids(self) -> None:
         client = BggClient("test")
