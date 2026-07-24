@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,8 +23,8 @@ const ITEM_A: RpgItem = {
   bgg_rating: 7.9,
   description: "Wizards in medieval Europe.",
   description_es: "",
-  categories: [],
-  publication_types: [],
+  categories: ["Fantasy"],
+  publication_types: ["Core Rules"],
   status: "available",
   loan_id: null,
   borrower_display_name: null,
@@ -41,9 +41,9 @@ const ITEM_B: RpgItem = {
   bgg_rating: 8.6,
   description: "Gothic horror RPG.",
   description_es: "",
-  categories: [],
-  publication_types: [],
-  status: "available",
+  categories: ["Horror"],
+  publication_types: ["Scenario"],
+  status: "lent",
   loan_id: null,
   borrower_display_name: null,
 };
@@ -59,8 +59,8 @@ const ITEM_C: RpgItem = {
   bgg_rating: 7.2,
   description: "Fantasy RPG.",
   description_es: "",
-  categories: [],
-  publication_types: [],
+  categories: ["Fantasy"],
+  publication_types: ["Scenario"],
   status: "available",
   loan_id: null,
   borrower_display_name: null,
@@ -171,6 +171,64 @@ describe("RpgCatalogPage rating sort", () => {
     const names = getItemNames();
     // ITEM_B: 8.6, ITEM_A: 7.9, ITEM_C: 7.2
     expect(names).toEqual(["Vampire: The Masquerade", "Ars Magica", "Pathfinder"]);
+  });
+});
+
+describe("RpgCatalogPage RPG filters", () => {
+  it("updates the results count when filtering by genre", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Género" }),
+      "fantasy",
+    );
+
+    expect(screen.getByText("Mostrando 2 de 3")).toBeInTheDocument();
+    expect(screen.getByText("Ars Magica")).toBeInTheDocument();
+    expect(screen.getByText("Pathfinder")).toBeInTheDocument();
+    expect(screen.queryByText("Vampire: The Masquerade")).toBeNull();
+  });
+
+  it("removes an active filter chip to restore the full list", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Género" }),
+      "fantasy",
+    );
+
+    const chip = screen
+      .getByText("Género: Fantasía")
+      .closest('[role="status"]') as HTMLElement | null;
+    expect(chip).not.toBeNull();
+    await user.click(within(chip!).getByRole("button", { name: "Quitar filtro" }));
+
+    expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
+    expect(screen.getByText("Vampire: The Masquerade")).toBeInTheDocument();
+  });
+
+  it("combines genre and publication filters", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Género" }),
+      "fantasy",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de publicación" }),
+      "rulebook",
+    );
+
+    expect(screen.getByText("Mostrando 1 de 3")).toBeInTheDocument();
+    expect(screen.getByText("Ars Magica")).toBeInTheDocument();
+    expect(screen.queryByText("Pathfinder")).toBeNull();
+    expect(screen.queryByText("Vampire: The Masquerade")).toBeNull();
   });
 });
 

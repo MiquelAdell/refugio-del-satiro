@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveRpgTagPill, rpgPublicationKinds } from "./rpgTags";
+import {
+  matchesPublicationKind,
+  matchesRpgGenre,
+  resolveRpgTagPill,
+  rpgPublicationKinds,
+} from "./rpgTags";
 
 const CORE_RULES_TYPE = "Core Rules (min needed to play)";
 const SOURCEBOOK_TYPE = "Sourcebook (rules/options to enhance play)";
@@ -81,5 +86,33 @@ describe("rpgPublicationKinds", () => {
       rulebook: false,
       adventure: false,
     });
+  });
+});
+
+describe("matchesRpgGenre", () => {
+  it("matches a category through its resolved genre family", () => {
+    expect(matchesRpgGenre(["Horror (Cthulhu Mythos)"], "horror")).toBe(true);
+    expect(matchesRpgGenre(["Horror (Cthulhu Mythos)"], "fantasy")).toBe(false);
+  });
+
+  it("keeps urban fantasy distinct from fantasy", () => {
+    const categories = ["Fantasy (Modern Urban Fantasy)"];
+
+    expect(matchesRpgGenre(categories, "urban-fantasy")).toBe(true);
+    expect(matchesRpgGenre(categories, "fantasy")).toBe(false);
+  });
+
+  it("matches Otros only when no category resolves to a genre family", () => {
+    expect(matchesRpgGenre([], "other")).toBe(true);
+    expect(matchesRpgGenre(["Espionage"], "other")).toBe(true);
+    expect(matchesRpgGenre(["Espionage", "Horror"], "other")).toBe(false);
+  });
+});
+
+describe("matchesPublicationKind", () => {
+  it("uses the same publication kind classification as the card icons", () => {
+    expect(matchesPublicationKind([CORE_RULES_TYPE], "rulebook")).toBe(true);
+    expect(matchesPublicationKind([CORE_RULES_TYPE], "adventure")).toBe(false);
+    expect(matchesPublicationKind([ADVENTURE_TYPE], "adventure")).toBe(true);
   });
 });

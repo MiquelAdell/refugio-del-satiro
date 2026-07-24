@@ -10,29 +10,64 @@
 
 import type { TagPill } from "./gameTags";
 
+export type RpgGenreFamilyKey =
+  | "fantasy"
+  | "urban-fantasy"
+  | "horror"
+  | "sci-fi"
+  | "mythology"
+  | "history"
+  | "adventure"
+  | "modern";
+
 /** Prefix-matched, so "Horror (Cthulhu Mythos)" resolves to "Horror". */
-const RPG_CATEGORY_PILLS: readonly (readonly [string, TagPill])[] = [
+const RPG_CATEGORY_PILLS: readonly (readonly [
+  RpgGenreFamilyKey,
+  string,
+  TagPill,
+])[] = [
   [
+    "urban-fantasy",
     "Fantasy (Modern Urban Fantasy)",
     { label: "Fantasía Urbana", colorClass: "game-card-tag--turquoise" },
   ],
-  ["Fantasy", { label: "Fantasía", colorClass: "game-card-tag--mint" }],
-  ["Horror", { label: "Horror", colorClass: "game-card-tag--pink" }],
   [
+    "fantasy",
+    "Fantasy",
+    { label: "Fantasía", colorClass: "game-card-tag--mint" },
+  ],
+  ["horror", "Horror", { label: "Horror", colorClass: "game-card-tag--pink" }],
+  [
+    "sci-fi",
     "Science Fiction",
     { label: "Ciencia Ficción", colorClass: "game-card-tag--lavender" },
   ],
   [
+    "mythology",
     "Mythology / Folklore",
     { label: "Mitología", colorClass: "game-card-tag--sky" },
   ],
-  ["History", { label: "Histórico", colorClass: "game-card-tag--peach" }],
   [
+    "history",
+    "History",
+    { label: "Histórico", colorClass: "game-card-tag--peach" },
+  ],
+  [
+    "adventure",
     "Action / Adventure",
     { label: "Aventura", colorClass: "game-card-tag--yellow" },
   ],
-  ["Modern", { label: "Moderno", colorClass: "game-card-tag--pearl" }],
+  [
+    "modern",
+    "Modern",
+    { label: "Moderno", colorClass: "game-card-tag--pearl" },
+  ],
 ];
+
+export const RPG_GENRE_FAMILIES: readonly {
+  readonly key: RpgGenreFamilyKey;
+  readonly label: string;
+}[] = RPG_CATEGORY_PILLS.map(([key, , pill]) => ({ key, label: pill.label }));
 
 /** Neutral pastel used when the category has no Spanish mapping. */
 const FALLBACK_CATEGORY_COLOR_CLASS = "game-card-tag--pearl";
@@ -43,15 +78,37 @@ export function resolveRpgTagPill(
   if (!category) {
     return undefined;
   }
-  const family = RPG_CATEGORY_PILLS.find(([prefix]) =>
+  const family = RPG_CATEGORY_PILLS.find(([, prefix]) =>
     category.startsWith(prefix),
   );
   return (
-    family?.[1] ?? {
+    family?.[2] ?? {
       label: category,
       colorClass: FALLBACK_CATEGORY_COLOR_CLASS,
     }
   );
+}
+
+function resolveRpgGenreFamily(
+  category: string,
+): RpgGenreFamilyKey | undefined {
+  return RPG_CATEGORY_PILLS.find(([, prefix]) =>
+    category.startsWith(prefix),
+  )?.[0];
+}
+
+export function matchesRpgGenre(
+  categories: readonly string[],
+  genreKey: RpgGenreFamilyKey | "other",
+): boolean {
+  const resolvedFamilies = categories.flatMap((category) => {
+    const family = resolveRpgGenreFamily(category);
+    return family === undefined ? [] : [family];
+  });
+
+  return genreKey === "other"
+    ? resolvedFamilies.length === 0
+    : resolvedFamilies.includes(genreKey);
 }
 
 /*
@@ -85,4 +142,11 @@ export function rpgPublicationKinds(
       type.startsWith(ADVENTURE_TYPE_PREFIX),
     ),
   };
+}
+
+export function matchesPublicationKind(
+  publicationTypes: readonly string[],
+  kind: keyof RpgPublicationKinds,
+): boolean {
+  return rpgPublicationKinds(publicationTypes)[kind];
 }
