@@ -89,9 +89,9 @@ export function CatalogCard({
           )}
         </div>
         <div className="game-card-body">
-          {rating > 0 && (
-            <span className="game-card-rating">{rating.toFixed(1)}</span>
-          )}
+          <span className="game-card-rating">
+            {rating > 0 ? rating.toFixed(1) : "-"}
+          </span>
           <h3 className="game-card-name">{name}</h3>
           {description && (
             <p className="game-card-description">{description}</p>
