@@ -19,6 +19,9 @@ echo "==> Importing and enriching games from BGG"
 docker compose exec app refugio import-games
 docker compose exec app refugio enrich-games
 
+echo "==> Importing RPG items from BGG"
+docker compose exec app refugio import-rol
+
 echo "==> Seeding content mirror from git-checked-in copy"
 # Seeds /srv/content (the shared volume Caddy serves) from the version Vite
 # bundled into the frontend at build time. Admin-triggered syncs will
