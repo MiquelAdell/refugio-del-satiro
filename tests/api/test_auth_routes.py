@@ -35,6 +35,8 @@ def test_application_title_uses_refugio_del_satiro_brand() -> None:
 
 
 class TestLogin:
+    INVALID_CREDENTIALS_RESPONSE = {"detail": "Correo o contraseña incorrectos."}
+
     def test_login_success(self) -> None:
         client, conn = _setup_test_client()
         member_repo = SqliteMemberRepository(conn)
@@ -69,6 +71,7 @@ class TestLogin:
             "/api/login", json={"email": "TEST_email@domain.com", "password": "wrong"}
         )
         assert response.status_code == 401
+        assert response.json() == self.INVALID_CREDENTIALS_RESPONSE
 
     def test_login_nonexistent_email(self) -> None:
         client, _ = _setup_test_client()
@@ -76,6 +79,7 @@ class TestLogin:
             "/api/login", json={"email": "TEST_email@domain.com", "password": "test"}
         )
         assert response.status_code == 401
+        assert response.json() == self.INVALID_CREDENTIALS_RESPONSE
 
     def test_login_no_password_set(self) -> None:
         client, conn = _setup_test_client()
@@ -89,6 +93,31 @@ class TestLogin:
             json={"email": "TEST_email@domain.com", "password": "anything"},
         )
         assert response.status_code == 401
+        assert response.json() == self.INVALID_CREDENTIALS_RESPONSE
+
+    def test_login_inactive_member(self) -> None:
+        client, conn = _setup_test_client()
+        member_repo = SqliteMemberRepository(conn)
+        member = member_repo.upsert_by_email(
+            1,
+            "Test",
+            "User",
+            None,
+            None,
+            "TEST_email@domain.com",
+            "Test User",
+            False,
+            is_active=False,
+        )
+        member_repo.set_password_hash(member.id, hash_password("mypassword"))
+
+        response = client.post(
+            "/api/login",
+            json={"email": "TEST_email@domain.com", "password": "mypassword"},
+        )
+
+        assert response.status_code == 401
+        assert response.json() == self.INVALID_CREDENTIALS_RESPONSE
 
 
 class TestLogout:

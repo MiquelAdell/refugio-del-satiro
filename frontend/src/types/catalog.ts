@@ -6,7 +6,13 @@ export type AvailabilityValue = (typeof availabilityValues)[number];
 export const locationValues = ["all", "armario", "sotano"] as const;
 export type LocationValue = (typeof locationValues)[number];
 
-export const timePresets = ["all", "lt30", "30to60", "1to2h", "2hplus"] as const;
+export const timePresets = [
+  "all",
+  "lt30",
+  "30to60",
+  "1to2h",
+  "2hplus",
+] as const;
 export type TimePreset = (typeof timePresets)[number];
 
 export const sortValues = [
@@ -31,10 +37,12 @@ export interface CatalogQuery {
   readonly minRating: number;
   readonly playersMin: number;
   readonly playersMax: number;
+  readonly playerAge: number | null;
   readonly sort: SortValue;
 }
 
 export const PLAYER_BOUNDS = { min: 1, max: 12 } as const;
+export const PLAYER_AGE_BOUNDS = { min: 3, max: 18 } as const;
 
 interface LabelledOption<T extends string> {
   readonly value: T;
@@ -51,11 +59,12 @@ export const SORT_OPTIONS: readonly LabelledOption<SortValue>[] = [
   { value: "time-desc", label: "Tiempo de juego (largo a corto)" },
 ];
 
-export const AVAILABILITY_OPTIONS: readonly LabelledOption<AvailabilityValue>[] = [
-  { value: "all", label: "Todos" },
-  { value: "available", label: "Disponible" },
-  { value: "lent", label: "Prestado" },
-];
+export const AVAILABILITY_OPTIONS: readonly LabelledOption<AvailabilityValue>[] =
+  [
+    { value: "all", label: "Todos" },
+    { value: "available", label: "Disponible" },
+    { value: "lent", label: "Prestado" },
+  ];
 
 export const LOCATION_OPTIONS: readonly LabelledOption<LocationValue>[] = [
   { value: "all", label: "Todos" },
@@ -71,6 +80,17 @@ export const TIME_PRESET_OPTIONS: readonly LabelledOption<TimePreset>[] = [
   { value: "2hplus", label: "2h+" },
 ];
 
+export const PLAYER_AGE_OPTIONS: readonly LabelledOption<string>[] = [
+  { value: "", label: "Todas" },
+  ...Array.from(
+    { length: PLAYER_AGE_BOUNDS.max - PLAYER_AGE_BOUNDS.min + 1 },
+    (_, index) => {
+      const age = PLAYER_AGE_BOUNDS.min + index;
+      return { value: String(age), label: `${age} años` };
+    },
+  ),
+];
+
 export const DEFAULT_CATALOG_QUERY: CatalogQuery = {
   search: "",
   availability: "all",
@@ -79,6 +99,7 @@ export const DEFAULT_CATALOG_QUERY: CatalogQuery = {
   minRating: 0,
   playersMin: PLAYER_BOUNDS.min,
   playersMax: PLAYER_BOUNDS.max,
+  playerAge: null,
   sort: "name-asc",
 };
 
@@ -134,10 +155,13 @@ export function applyCatalogQuery(
 ): readonly GameWithStatus[] {
   const search = query.search.trim().toLowerCase();
   const playerRangeActive =
-    query.playersMin > PLAYER_BOUNDS.min || query.playersMax < PLAYER_BOUNDS.max;
+    query.playersMin > PLAYER_BOUNDS.min ||
+    query.playersMax < PLAYER_BOUNDS.max;
 
   return games
-    .filter((g) => query.availability === "all" || g.status === query.availability)
+    .filter(
+      (g) => query.availability === "all" || g.status === query.availability,
+    )
     .filter((g) => query.location === "all" || g.location === query.location)
     .filter((g) => search === "" || g.name.toLowerCase().includes(search))
     .filter(
@@ -147,5 +171,10 @@ export function applyCatalogQuery(
     )
     .filter((g) => matchesTimePreset(g.playing_time, query.timePreset))
     .filter((g) => query.minRating <= 0 || g.bgg_rating >= query.minRating)
+    .filter(
+      (g) =>
+        query.playerAge === null ||
+        (g.min_age > 0 && g.min_age <= query.playerAge),
+    )
     .toSorted(COMPARATORS[query.sort]);
 }

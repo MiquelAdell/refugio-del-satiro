@@ -64,10 +64,10 @@ describe("GameCard rating block (DQ-1)", () => {
     expect(container.querySelector(`.${RATING_CLASS}`)).toBe(rating);
   });
 
-  it("omits the rating block when the game has no rating", () => {
+  it("shows a placeholder when the game has no rating", () => {
     const { container } = renderCard({ bgg_rating: 0 });
 
-    expect(container.querySelector(`.${RATING_CLASS}`)).toBeNull();
+    expect(container.querySelector(`.${RATING_CLASS}`)).toHaveTextContent("-");
   });
 });
 
@@ -213,6 +213,19 @@ describe("GameCard view modes", () => {
 
     expect(container.querySelector("article")?.className).toBe(
       "game-card game-card-list",
+    );
+    expect(container.querySelector(".game-card-cover img")).toHaveAttribute(
+      "src",
+      "https://example.com/catan-large.jpg",
+    );
+    expect(container.querySelector(".game-card-rating")).toHaveTextContent(
+      "7.2",
+    );
+    expect(container.querySelector(".game-card-description")).toHaveTextContent(
+      "Trade and build across the island.",
+    );
+    expect(container.querySelector(".game-card-meta")).toHaveTextContent(
+      "10+90min3-4",
     );
   });
 });

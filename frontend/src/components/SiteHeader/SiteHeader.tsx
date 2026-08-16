@@ -86,7 +86,7 @@ interface UserSubmenuProps {
   readonly isAdmin: boolean;
   readonly adminExpanded: boolean;
   readonly onToggleAdmin: () => void;
-  readonly onLogout: () => void;
+  readonly onLogout: () => Promise<void>;
   readonly onItemClick?: () => void;
   readonly alignRight?: boolean;
 }
@@ -126,7 +126,7 @@ function UserSubmenu({
           type="button"
           className={styles.submenuButton}
           onClick={() => {
-            onLogout();
+            void onLogout();
             onItemClick?.();
           }}
         >
@@ -147,8 +147,13 @@ export function SiteHeader() {
   const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
   const [userExpanded, setUserExpanded] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
+  const [logoutNotice, setLogoutNotice] = useState<{
+    readonly kind: "success" | "error";
+    readonly message: string;
+  } | null>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
-
+  const headerRef = useRef<HTMLElement>(null);
+  const logoutNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
@@ -176,19 +181,56 @@ export function SiteHeader() {
     };
   }, [drawerOpen]);
 
-  const handleLogout = () => {
-    void logout();
-  };
+  useEffect(
+    () => () => {
+      if (logoutNoticeTimerRef.current !== null) {
+        clearTimeout(logoutNoticeTimerRef.current);
+      }
+    },
+    []
+  );
 
   const closeDrawer = () => {
     setDrawerOpen(false);
     setExpandedDrawerHref(null);
     setUserExpanded(false);
     setAdminExpanded(false);
+    if (
+      document.activeElement instanceof HTMLElement &&
+      headerRef.current?.contains(document.activeElement)
+    ) {
+      document.activeElement.blur();
+    }
+  };
+
+  const handleLogout = async () => {
+    closeDrawer();
+    setLogoutNotice(null);
+    if (logoutNoticeTimerRef.current !== null) {
+      clearTimeout(logoutNoticeTimerRef.current);
+      logoutNoticeTimerRef.current = null;
+    }
+
+    try {
+      await logout();
+      setLogoutNotice({
+        kind: "success",
+        message: "Sesión cerrada correctamente.",
+      });
+      logoutNoticeTimerRef.current = setTimeout(() => {
+        setLogoutNotice(null);
+        logoutNoticeTimerRef.current = null;
+      }, 4_000);
+    } catch {
+      setLogoutNotice({
+        kind: "error",
+        message: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+      });
+    }
   };
 
   return (
-    <header className={styles.header}>
+    <header ref={headerRef} className={styles.header}>
       <div className={styles.inner}>
         {/* Logo */}
         <a href="/inicio" className={styles.logoLink} aria-label="Refugio del Sátiro – Inicio">
@@ -371,6 +413,15 @@ export function SiteHeader() {
           </ul>
         </nav>
       </div>
+      {logoutNotice !== null && (
+        <div
+          className={`${styles.logoutToast} ${logoutNotice.kind === "error" ? styles.logoutToastError : ""}`}
+          role={logoutNotice.kind === "success" ? "status" : "alert"}
+          aria-live={logoutNotice.kind === "success" ? "polite" : "assertive"}
+        >
+          {logoutNotice.message}
+        </div>
+      )}
     </header>
   );
 }

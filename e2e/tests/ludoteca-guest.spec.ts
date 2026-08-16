@@ -77,17 +77,18 @@ test.describe("ludoteca @ guest", () => {
 
   test("ludo-4: pill toggle navigates to RPG catalog", async ({ page }) => {
     await page.goto(CATALOG_BOARDGAMES);
+    const catalogToggle = page.locator(".catalog-type-toggle");
 
     // Both pills must be visible on the board-game catalog.
     await expect(
-      page.getByRole("link", { name: "Juegos de mesa" }),
+      catalogToggle.getByRole("link", { name: "Juegos de mesa" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Libros de rol" }),
+      catalogToggle.getByRole("link", { name: "Libros de rol" }),
     ).toBeVisible();
 
     // Clicking "Libros de rol" navigates to /juegos-de-rol.
-    await page.getByRole("link", { name: "Libros de rol" }).click();
+    await catalogToggle.getByRole("link", { name: "Libros de rol" }).click();
     await expect(page).toHaveURL(new RegExp(CATALOG_RPG));
   });
 

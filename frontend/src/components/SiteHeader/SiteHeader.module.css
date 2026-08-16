@@ -366,6 +366,31 @@
   padding-top: var(--space-xs);
 }
 
+.logoutToast {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-md));
+  right: var(--space-md);
+  z-index: calc(var(--header-z) + 1);
+  max-width: min(360px, calc(100vw - 2 * var(--space-md)));
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-available);
+  box-shadow: var(--shadow-md);
+  color: var(--color-success-hover);
+  font-size: var(--font-size-sm);
+}
+
+.logoutToastError {
+  border-color: var(--color-danger);
+  background-color: color-mix(
+    in srgb,
+    var(--color-danger) 8%,
+    var(--color-surface)
+  );
+  color: var(--color-danger);
+}
+
 /* ─── Hamburger ──────────────────────────────────────────────────────── */
 
 .hamburger {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
-import { CatalogViewToggle } from "../components/CatalogViewToggle";
+import { CatalogResultsBar } from "../components/CatalogResultsBar";
 import { RpgActiveFilterChips } from "../components/RpgActiveFilterChips";
 import { RpgFilterPanel } from "../components/RpgFilterPanel";
 import {
@@ -12,12 +12,16 @@ import { RpgCard } from "../components/RpgCard";
 import { SearchBar } from "../components/SearchBar";
 import { SearchFiltersBox } from "../components/SearchFiltersBox";
 import { useRpgItems } from "../hooks/useRpgItems";
-import { computeCategoryFrequency, mostCommonOwnCategory } from "../lib/gameTags";
+import {
+  computeCategoryFrequency,
+  mostCommonOwnCategory,
+} from "../lib/gameTags";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
 import {
   applyRpgQuery,
   DEFAULT_RPG_QUERY,
+  RPG_SORT_OPTIONS,
   type RpgQuery,
 } from "../types/rpg";
 import type { CatalogView } from "../types/catalog";
@@ -33,7 +37,10 @@ export function RpgCatalogPage() {
     persistCatalogView(view);
   }, [view]);
 
-  const filteredItems = useMemo(() => applyRpgQuery(items, query), [items, query]);
+  const filteredItems = useMemo(
+    () => applyRpgQuery(items, query),
+    [items, query],
+  );
 
   // RPG items carry no `primary_tag`, so the card pill is always the item's
   // own most frequent RPGGeek category, ranked across the loaded catalog.
@@ -85,12 +92,15 @@ export function RpgCatalogPage() {
 
       <RpgActiveFilterChips query={query} onChange={setQuery} />
 
-      <div className="catalog-results-bar">
-        <p className="catalog-count">
-          Mostrando {filteredItems.length} de {items.length}
-        </p>
-        <CatalogViewToggle view={view} onChange={setView} />
-      </div>
+      <CatalogResultsBar
+        shown={filteredItems.length}
+        total={items.length}
+        sort={query.sort}
+        sortOptions={RPG_SORT_OPTIONS}
+        onSortChange={(sort) => setQuery((current) => ({ ...current, sort }))}
+        view={view}
+        onViewChange={setView}
+      />
 
       {filteredItems.length === 0 ? (
         <p className="catalog-empty">No se han encontrado libros.</p>

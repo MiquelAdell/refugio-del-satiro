@@ -126,7 +126,9 @@ describe("RpgCatalogPage empty state", () => {
       vi.advanceTimersByTime(350);
     });
 
-    expect(screen.getByText("No se han encontrado libros.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No se han encontrado libros."),
+    ).toBeInTheDocument();
 
     vi.useRealTimers();
   });
@@ -137,7 +139,11 @@ describe("RpgCatalogPage name-asc sort (default)", () => {
     renderPage();
 
     const names = getItemNames();
-    expect(names).toEqual(["Ars Magica", "Pathfinder", "Vampire: The Masquerade"]);
+    expect(names).toEqual([
+      "Ars Magica",
+      "Pathfinder",
+      "Vampire: The Masquerade",
+    ]);
   });
 });
 
@@ -146,14 +152,17 @@ describe("RpgCatalogPage name-desc sort", () => {
     renderPage();
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole("tab", { name: "Filtros" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: /ordenar por/i }),
       "name-desc",
     );
 
     const names = getItemNames();
-    expect(names).toEqual(["Vampire: The Masquerade", "Pathfinder", "Ars Magica"]);
+    expect(names).toEqual([
+      "Vampire: The Masquerade",
+      "Pathfinder",
+      "Ars Magica",
+    ]);
   });
 });
 
@@ -170,7 +179,11 @@ describe("RpgCatalogPage rating sort", () => {
 
     const names = getItemNames();
     // ITEM_B: 8.6, ITEM_A: 7.9, ITEM_C: 7.2
-    expect(names).toEqual(["Vampire: The Masquerade", "Ars Magica", "Pathfinder"]);
+    expect(names).toEqual([
+      "Vampire: The Masquerade",
+      "Ars Magica",
+      "Pathfinder",
+    ]);
   });
 });
 
@@ -205,7 +218,9 @@ describe("RpgCatalogPage RPG filters", () => {
       .getByText("Género: Fantasía")
       .closest('[role="status"]') as HTMLElement | null;
     expect(chip).not.toBeNull();
-    await user.click(within(chip!).getByRole("button", { name: "Quitar filtro" }));
+    await user.click(
+      within(chip!).getByRole("button", { name: "Quitar filtro" }),
+    );
 
     expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
     expect(screen.getByText("Vampire: The Masquerade")).toBeInTheDocument();
@@ -229,6 +244,58 @@ describe("RpgCatalogPage RPG filters", () => {
     expect(screen.getByText("Ars Magica")).toBeInTheDocument();
     expect(screen.queryByText("Pathfinder")).toBeNull();
     expect(screen.queryByText("Vampire: The Masquerade")).toBeNull();
+  });
+
+  it("clears search and filters without changing the selected sort", () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText("Ordenar por"), {
+      target: { value: "name-desc" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: /buscar libros/i }), {
+      target: { value: "ars" },
+    });
+    act(() => vi.advanceTimersByTime(350));
+    fireEvent.click(screen.getByRole("tab", { name: "Filtros" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Género" }), {
+      target: { value: "fantasy" },
+    });
+
+    expect(screen.getByText("Palabra clave: “ars”")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Limpiar búsqueda y filtros" }),
+    );
+
+    expect(screen.getByLabelText("Ordenar por")).toHaveValue("name-desc");
+    expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Filtros activos")).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it("does not restore pending search text after reset-all clears the query", () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    const searchInput = screen.getByRole("textbox", { name: /buscar libros/i });
+    fireEvent.change(searchInput, { target: { value: "ars" } });
+    act(() => vi.advanceTimersByTime(350));
+
+    fireEvent.change(searchInput, { target: { value: "vampire" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Limpiar búsqueda y filtros" }),
+    );
+    act(() => vi.advanceTimersByTime(350));
+
+    expect(searchInput).toHaveValue("");
+    expect(screen.queryByLabelText("Filtros activos")).toBeNull();
+    expect(screen.getByText("Mostrando 3 de 3")).toBeInTheDocument();
+    expect(screen.getByText("Ars Magica")).toBeInTheDocument();
+    expect(screen.getByText("Vampire: The Masquerade")).toBeInTheDocument();
+    expect(screen.getByText("Pathfinder")).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 });
 
@@ -303,6 +370,15 @@ describe("RpgCatalogPage shared catalog layout", () => {
 
     expect(container.querySelector(".catalog-grid")).toBeNull();
     expect(container.querySelector(".catalog-list")).not.toBeNull();
+  });
+
+  it("keeps sorting available when either search/filter tab is active", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    expect(screen.getByLabelText("Ordenar por")).toBeVisible();
+    await user.click(screen.getByRole("tab", { name: "Filtros" }));
+    expect(screen.getByLabelText("Ordenar por")).toBeVisible();
   });
 });
 

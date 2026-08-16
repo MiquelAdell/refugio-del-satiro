@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -54,7 +54,9 @@ const AVAILABILITY_SELECT = "Disponibilidad";
 const MIN_PLAYERS_THUMB = "Jugadores mínimo";
 const MAX_PLAYERS_THUMB = "Jugadores máximo";
 
-function setGames(games: readonly GameWithStatus[] = [AVAILABLE_GAME, LENT_GAME]) {
+function setGames(
+  games: readonly GameWithStatus[] = [AVAILABLE_GAME, LENT_GAME],
+) {
   useGamesMock.mockReturnValue({
     games,
     loading: false,
@@ -120,6 +122,90 @@ describe("CatalogPage filter chips", () => {
     });
     expect(removeButtons).toHaveLength(2);
   });
+
+  it("combines search and filters and removes each condition independently", async () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText("Buscar juego por nombre..."), {
+      target: { value: "catan" },
+    });
+    act(() => vi.advanceTimersByTime(350));
+    fireEvent.click(screen.getByRole("tab", { name: FILTROS_TAB }));
+    fireEvent.change(screen.getByLabelText(AVAILABILITY_SELECT), {
+      target: { value: "available" },
+    });
+
+    expect(screen.getByText("Mostrando 1 de 2")).toBeInTheDocument();
+    expect(screen.getByText("Palabra clave: “catan”")).toBeInTheDocument();
+    const activeFilters = screen.getByLabelText("Filtros activos");
+    expect(within(activeFilters).getByText("Disponible")).toBeInTheDocument();
+
+    const searchChip = screen
+      .getByText("Palabra clave: “catan”")
+      .closest('[role="status"]') as HTMLElement;
+    fireEvent.click(
+      within(searchChip).getByRole("button", { name: "Quitar filtro" }),
+    );
+
+    expect(screen.getByText("Catan")).toBeInTheDocument();
+    expect(screen.queryByText("Azul")).toBeNull();
+    expect(screen.queryByText("Palabra clave: “catan”")).toBeNull();
+    expect(within(activeFilters).getByText("Disponible")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  it("clears search and filters while preserving the selected sort order", () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText("Ordenar por"), {
+      target: { value: "name-desc" },
+    });
+    fireEvent.change(screen.getByLabelText("Buscar juego por nombre..."), {
+      target: { value: "catan" },
+    });
+    act(() => vi.advanceTimersByTime(350));
+    fireEvent.click(screen.getByRole("tab", { name: FILTROS_TAB }));
+    fireEvent.change(screen.getByLabelText(AVAILABILITY_SELECT), {
+      target: { value: "available" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Limpiar búsqueda y filtros" }),
+    );
+
+    expect(screen.getByLabelText("Ordenar por")).toHaveValue("name-desc");
+    expect(screen.getByText("Mostrando 2 de 2")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Filtros activos")).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it("does not restore pending search text after removing its active chip", () => {
+    vi.useFakeTimers();
+    renderPage();
+
+    const searchInput = screen.getByLabelText("Buscar juego por nombre...");
+    fireEvent.change(searchInput, { target: { value: "catan" } });
+    act(() => vi.advanceTimersByTime(350));
+
+    fireEvent.change(searchInput, { target: { value: "azul" } });
+    const searchChip = screen
+      .getByText("Palabra clave: “catan”")
+      .closest('[role="status"]') as HTMLElement;
+    fireEvent.click(
+      within(searchChip).getByRole("button", { name: "Quitar filtro" }),
+    );
+    act(() => vi.advanceTimersByTime(350));
+
+    expect(searchInput).toHaveValue("");
+    expect(screen.queryByLabelText("Filtros activos")).toBeNull();
+    expect(screen.getByText("Catan")).toBeInTheDocument();
+    expect(screen.getByText("Azul")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
 });
 
 describe("CatalogPage search-and-filters box", () => {
@@ -143,6 +229,15 @@ describe("CatalogPage search-and-filters box", () => {
       "aria-selected",
       "true",
     );
+  });
+
+  it("keeps sorting available from both search and filter tabs", async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    expect(screen.getByLabelText("Ordenar por")).toBeVisible();
+    await openFiltrosTab(user);
+    expect(screen.getByLabelText("Ordenar por")).toBeVisible();
   });
 
   it("shows the results count line", () => {
@@ -226,7 +321,39 @@ describe("CatalogPage player-range slider", () => {
 
     expect(screen.queryByText("Catan")).toBeNull();
     expect(screen.queryByText("Azul")).toBeNull();
-    expect(screen.getByText("No se han encontrado juegos.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No se han encontrado juegos."),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("CatalogPage player-age filter", () => {
+  it("offers ages 3 through 18 and excludes unknown ages while active", async () => {
+    setGames([
+      { ...AVAILABLE_GAME, name: "Apto", min_age: 8 },
+      { ...LENT_GAME, name: "Mayor", min_age: 12 },
+      { ...LENT_GAME, id: 3, name: "Sin edad", min_age: 0 },
+    ]);
+    renderPage();
+    const user = userEvent.setup();
+    await openFiltrosTab(user);
+
+    const ageSelect = screen.getByLabelText("Edad del jugador");
+    expect(
+      within(ageSelect)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual([
+      "Todas",
+      ...Array.from({ length: 16 }, (_, index) => `${index + 3} años`),
+    ]);
+
+    await user.selectOptions(ageSelect, "8");
+
+    expect(screen.getByText("Apto")).toBeInTheDocument();
+    expect(screen.queryByText("Mayor")).toBeNull();
+    expect(screen.queryByText("Sin edad")).toBeNull();
+    expect(screen.getByText("Edad del jugador: 8 años")).toBeInTheDocument();
   });
 });
 
