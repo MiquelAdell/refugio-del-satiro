@@ -16,6 +16,7 @@ from backend.data.repositories.sqlite_password_token_repository import (
     SqlitePasswordTokenRepository,
 )
 from backend.domain.entities.member import Member
+from backend.domain.services.loan_return_notifier import LoanReturnNotifier
 from backend.domain.use_cases.authenticate import AuthenticateUseCase
 from backend.domain.use_cases.change_password import ChangePasswordUseCase
 from backend.domain.use_cases.get_game import GetGameUseCase
@@ -66,6 +67,15 @@ GameRepo = Annotated[SqliteGameRepository, Depends(get_game_repo)]
 MemberRepo = Annotated[SqliteMemberRepository, Depends(get_member_repo)]
 LoanRepo = Annotated[SqliteLoanRepository, Depends(get_loan_repo)]
 TokenRepo = Annotated[SqlitePasswordTokenRepository, Depends(get_token_repo)]
+
+
+def get_loan_return_notifier() -> LoanReturnNotifier:
+    from backend.data.email_client import EmailClient
+
+    return EmailClient(_settings)
+
+
+ReturnNotifier = Annotated[LoanReturnNotifier, Depends(get_loan_return_notifier)]
 
 
 def get_list_games_use_case(

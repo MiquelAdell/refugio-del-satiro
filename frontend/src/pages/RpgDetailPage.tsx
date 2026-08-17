@@ -9,9 +9,11 @@ import { useRpgHistory } from "../hooks/useRpgHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { displayDescription } from "../lib/description";
 import {
-  BORROW_SUCCESS_MESSAGE,
-  getReturnAction,
-} from "../lib/loanActions";
+  getForcedReturnFeedback,
+  type LoanFeedback,
+} from "../lib/loanFeedback";
+import { BORROW_SUCCESS_MESSAGE, getReturnAction } from "../lib/loanActions";
+import type { ReturnLoanResponse } from "../types/loan";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./RpgDetailPage.css";
@@ -32,7 +34,7 @@ export function RpgDetailPage() {
     | null
   >(null);
   const [acting, setActing] = useState(false);
-  const [loanFeedback, setLoanFeedback] = useState<string | null>(null);
+  const [loanFeedback, setLoanFeedback] = useState<LoanFeedback | null>(null);
 
   if (loading) {
     return (
@@ -70,7 +72,7 @@ export function RpgDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: itemId }),
       });
-      setLoanFeedback(BORROW_SUCCESS_MESSAGE);
+      setLoanFeedback({ message: BORROW_SUCCESS_MESSAGE, variant: "status" });
       refetch();
       refetchMyLoans();
     } catch {
@@ -84,9 +86,13 @@ export function RpgDetailPage() {
   const handleReturn = async () => {
     setActing(true);
     try {
-      await apiFetch<unknown>(`/loans/${item.loan_id}/return`, {
-        method: "PATCH",
-      });
+      const result = await apiFetch<ReturnLoanResponse>(
+        `/loans/${item.loan_id}/return`,
+        {
+          method: "PATCH",
+        },
+      );
+      setLoanFeedback(getForcedReturnFeedback(result.forced_return_email_sent));
       refetch();
       refetchMyLoans();
     } catch {
@@ -190,7 +196,10 @@ export function RpgDetailPage() {
             )}
           </div>
 
-          <LoanActionFeedback message={loanFeedback} />
+          <LoanActionFeedback
+            message={loanFeedback?.message ?? null}
+            variant={loanFeedback?.variant}
+          />
 
           <div className="rpg-detail-bgg">
             <a

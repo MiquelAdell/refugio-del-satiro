@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
@@ -86,10 +88,12 @@ class TestBorrowGameUseCase:
         loan = borrow_use_case.execute(game.id, member.id)
         game_repo.deactivate_by_collection_ids([101])
 
-        return_use_case = ReturnGameUseCase(loan_repo)
-        returned = return_use_case.execute(loan.id, member)
+        notifier = MagicMock()
+        return_use_case = ReturnGameUseCase(loan_repo, member_repo, game_repo, notifier)
+        result = return_use_case.execute(loan.id, member)
 
-        assert returned.returned_at is not None
+        assert result.loan.returned_at is not None
+        assert result.forced_return_email_sent is None
 
     def test_borrow_rpg_item_succeeds(
         self,

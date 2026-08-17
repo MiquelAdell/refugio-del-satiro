@@ -37,6 +37,8 @@ const RETURN_CTA = "Devolver";
 const FORCE_RETURN_CTA = "Forzar devolución";
 const BORROW_SUCCESS_MESSAGE =
   "El préstamo no tiene fecha límite, pero haz un uso responsable: devuélvelo cuando hayas jugado o si finalmente no vas a usarlo.";
+const FORCED_RETURN_SUCCESS_MESSAGE =
+  "Devolución forzada. Se ha avisado por correo a la persona que tenía el préstamo.";
 const LOGIN_LINK = "Iniciar sesión";
 const HISTORY_HEADING = /Historial de préstamos y comentarios/i;
 
@@ -144,6 +146,13 @@ function renderPage() {
       </MemoryRouter>
     </CatalogModeProvider>,
   );
+}
+
+async function confirmReturn(label: string) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: label }));
+  const buttons = screen.getAllByRole("button", { name: label });
+  await user.click(buttons[buttons.length - 1]);
 }
 
 describe("GameDetailPage borrow CTA", () => {
@@ -287,6 +296,12 @@ describe("GameDetailPage borrower visibility", () => {
 });
 
 describe("GameDetailPage return CTA", () => {
+  beforeEach(() => {
+    refetch.mockReset();
+    apiFetchMock.mockReset();
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: null });
+  });
+
   it("labels the trigger and confirmation 'Devolver' for the borrower", async () => {
     setHook({
       game: {
@@ -310,9 +325,7 @@ describe("GameDetailPage return CTA", () => {
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("labels the trigger and confirmation 'Forzar devolución' for an admin returning another member's loan", async () => {
@@ -357,9 +370,7 @@ describe("GameDetailPage return CTA", () => {
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -376,9 +387,7 @@ describe("GameDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("does not infer ownership from a duplicate display name", () => {
@@ -396,9 +405,27 @@ describe("GameDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
+  });
+
+  it("shows a polite status when a forced-return email is sent", async () => {
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: true });
+    setHook({
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: "Bob Jones",
+        loan_id: 7,
+      },
+    });
+    setMember(admin);
+
+    renderPage();
+    await confirmReturn(FORCE_RETURN_CTA);
+
+    const feedback = await screen.findByRole("status");
+    expect(feedback).toHaveTextContent(FORCED_RETURN_SUCCESS_MESSAGE);
+    expect(feedback).toHaveAttribute("aria-live", "polite");
   });
 });
 

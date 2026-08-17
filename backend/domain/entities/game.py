@@ -2,6 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Literal
+
+ItemType = Literal["boardgame", "rpgitem"]
+
+
+def parse_item_type(value: str) -> ItemType:
+    if value == "boardgame":
+        return "boardgame"
+    if value == "rpgitem":
+        return "rpgitem"
+    raise ValueError(f"Unsupported item type: {value}")
 
 
 @dataclass(frozen=True)
@@ -20,7 +31,7 @@ class Game:
     location: str
     created_at: datetime
     updated_at: datetime
-    item_type: str = field(default="boardgame")
+    item_type: ItemType = field(default="boardgame")
     description: str = field(default="")
     categories: tuple[str, ...] = field(default=())
     publication_types: tuple[str, ...] = field(default=())

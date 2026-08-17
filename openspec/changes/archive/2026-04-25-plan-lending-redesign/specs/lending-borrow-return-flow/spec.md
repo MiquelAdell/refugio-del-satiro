@@ -34,12 +34,20 @@ was returned. Loan API responses SHALL expose both timestamps.
 ### Requirement: MyLoansPage as cards
 
 The system SHALL render `MyLoansPage` as a list of cards, one per active loan,
-showing the game cover, title, borrow date, and a Return button. The Return
-button SHALL open a confirmation dialog and call the existing return endpoint.
+showing the game cover, title, borrow date, and a Return button. The cover and
+title SHALL link to the correct board-game or RPG detail page. The Return button
+SHALL open a confirmation dialog and call the existing return endpoint.
 
 #### Scenario: Active loan card content
-- **WHEN** an authenticated member opens `/prestamos/my-loans`
-- **THEN** for each active loan a card SHALL render with the game cover, title, borrowed date, and a Return button
+- **WHEN** an authenticated member opens `/ludoteca/my-loans`
+- **THEN** each active loan SHALL render as a card with the game cover, title, borrowed date, and a Return button
+- **AND** the cover and title SHALL link to that item's detail page
+
+#### Scenario: Loan reaches 30 complete days
+- **GIVEN** an active loan has been open for at least 30 complete elapsed days
+- **WHEN** the member opens `/ludoteca/my-loans`
+- **THEN** the loan card SHALL show an informational marker
+- **AND** the marker SHALL NOT set a return deadline or restrict the loan
 
 #### Scenario: Returning a game
 - **WHEN** the member clicks Return on a loan card and confirms in the dialog
@@ -51,7 +59,7 @@ button SHALL open a confirmation dialog and call the existing return endpoint.
 The system SHALL show a friendly empty state on `MyLoansPage` when the member has no active loans.
 
 #### Scenario: Member with no loans
-- **WHEN** an authenticated member with zero active loans opens `/prestamos/my-loans`
+- **WHEN** an authenticated member with zero active loans opens `/ludoteca/my-loans`
 - **THEN** the page SHALL display `No tienes ningún juego en préstamo.`
 
 ### Requirement: Responsible-use feedback after borrowing
@@ -64,6 +72,11 @@ it.
 #### Scenario: Successful borrow
 - **WHEN** an authenticated member successfully borrows an available board game or RPG book
 - **THEN** the detail page SHALL expose the responsible-use guidance through a polite live status
+
+#### Scenario: Member reviews active loans
+- **WHEN** an authenticated member opens `/ludoteca/my-loans`
+- **THEN** the page SHALL explain that loans have no deadline
+- **AND** it SHALL ask the member to return items responsibly
 
 ### Requirement: Return wording reflects who owns the loan
 
@@ -83,3 +96,26 @@ not the borrower SHALL not receive either action.
 #### Scenario: Unauthorised member views another member's loan
 - **WHEN** a non-administrator views a board game or RPG book borrowed by another member
 - **THEN** neither `Devolver` nor `Forzar devolución` SHALL be available
+
+### Requirement: Forced-return notification is best effort
+
+After an administrator returns another member's loan, the system SHALL try to
+email the borrower. The return SHALL remain registered whether the email is
+sent or fails. The detail page SHALL tell the administrator which outcome
+occurred.
+
+#### Scenario: Borrower email is sent
+- **WHEN** an administrator successfully forces the return of another member's loan
+- **AND** the borrower email is sent
+- **THEN** the loan SHALL remain returned
+- **AND** the detail page SHALL confirm that the borrower was notified
+
+#### Scenario: Borrower email cannot be sent
+- **WHEN** an administrator successfully forces the return of another member's loan
+- **AND** the borrower email is unavailable or cannot be sent
+- **THEN** the loan SHALL remain returned
+- **AND** the detail page SHALL warn that the notification failed
+
+#### Scenario: Member returns their own loan
+- **WHEN** a member returns their own loan
+- **THEN** the system SHALL NOT send a forced-return email

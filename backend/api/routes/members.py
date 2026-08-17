@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
@@ -53,6 +55,8 @@ class ActiveLoanResponse(BaseModel):
     loan_id: int
     game_id: int
     game_name: str
+    game_slug: str
+    item_type: Literal["boardgame", "rpgitem"]
     game_thumbnail_url: str
     game_image_url: str
     borrowed_at: str
@@ -71,6 +75,8 @@ def get_my_loans(
             loan_id=loan.loan_id,
             game_id=loan.game_id,
             game_name=loan.game_name,
+            game_slug=loan.game_slug,
+            item_type=loan.item_type,
             game_thumbnail_url=loan.game_thumbnail_url,
             game_image_url=loan.game_image_url,
             borrowed_at=loan.borrowed_at,

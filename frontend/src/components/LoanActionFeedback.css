@@ -2,8 +2,16 @@
   max-width: 42rem;
   margin: 0;
   padding: var(--space-sm) var(--space-md);
-  border-left: 3px solid var(--color-brand);
   background-color: var(--color-surface-alt);
   color: var(--color-text-body);
   line-height: var(--line-height-relaxed);
+}
+
+.loan-action-feedback--status {
+  border-left: 3px solid var(--color-brand);
+}
+
+.loan-action-feedback--warning {
+  border-left: 3px solid var(--color-warning);
+  background-color: var(--color-lent);
 }

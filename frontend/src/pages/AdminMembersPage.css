@@ -143,12 +143,25 @@
 }
 
 .admin-th-sortable {
-  cursor: pointer;
   user-select: none;
 }
 
-.admin-th-sortable:hover {
+.admin-sort-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-sort-button:hover {
   color: var(--color-primary);
+}
+
+.admin-sort-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: var(--space-xs);
 }
 
 .admin-table tbody tr:last-child td {
@@ -177,6 +190,16 @@
 .admin-badge--inactive {
   background-color: var(--color-lent);
   color: var(--color-warning);
+}
+
+.admin-badge--administrator {
+  background-color: var(--color-text-heading);
+  color: var(--color-brand-contrast);
+}
+
+.admin-badge--member {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-heading);
 }
 
 /* Actions cell */

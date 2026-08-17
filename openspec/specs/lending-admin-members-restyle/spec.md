@@ -15,9 +15,33 @@ The system SHALL restyle `AdminMembersPage` to use the primitives and tokens fro
 
 #### Scenario: No new columns or actions
 - **WHEN** the restyled page is compared with the pre-redesign page
-- **THEN** the table columns SHALL be the same (member number, name, email, phone, admin flag, active flag, active loan count)
+- **THEN** the table SHALL retain the existing member, status, and active-loan information
 - **AND** the available actions SHALL be the same (toggle active, send link, resend link, delete)
 - **AND** no API endpoint under `/admin/members*` SHALL be added or removed
+
+### Requirement: Member roles are visible
+
+The admin member table SHALL include a `Rol` column. Each row SHALL display
+`Administrador` for administrators and `Socio` for other members. The `Rol`
+header SHALL provide a keyboard-operable sort control and expose its current
+direction through `aria-sort`.
+
+#### Scenario: Administrator row
+- **WHEN** an administrator views a member whose `is_admin` value is true
+- **THEN** the row's `Rol` cell SHALL display `Administrador`
+
+#### Scenario: Member row
+- **WHEN** an administrator views a member whose `is_admin` value is false
+- **THEN** the row's `Rol` cell SHALL display `Socio`
+
+#### Scenario: Sort by role in both directions
+- **WHEN** an administrator activates the `Rol` sort control for the first time
+- **THEN** `Administrador` rows SHALL appear before `Socio` rows
+- **AND** the column header SHALL expose `aria-sort="ascending"`
+- **WHEN** the administrator activates the same control again
+- **THEN** `Socio` rows SHALL appear before `Administrador` rows
+- **AND** the column header SHALL expose `aria-sort="descending"`
+- **AND** both activations SHALL be available by keyboard
 
 ### Requirement: Wraps in PageLayout
 
