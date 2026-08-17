@@ -11,8 +11,10 @@ import type { CurrentMember } from "../types/member";
 
 const refetch = vi.fn();
 const useGameHistoryMock = vi.fn();
+const useMyLoansMock = vi.fn();
 const useAuthMock = vi.fn();
 const apiFetchMock = vi.fn();
+const refetchMyLoans = vi.fn();
 
 vi.mock("../hooks/useGameHistory", () => ({
   useGameHistory: () => useGameHistoryMock(),
@@ -22,12 +24,19 @@ vi.mock("../context/AuthContext", () => ({
   useAuth: () => useAuthMock(),
 }));
 
+vi.mock("../hooks/useMyLoans", () => ({
+  useMyLoans: (...args: unknown[]) => useMyLoansMock(...args),
+}));
+
 vi.mock("../api/client", () => ({
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
 }));
 
 const BORROW_CTA = "Solicitar préstamo";
 const RETURN_CTA = "Devolver";
+const FORCE_RETURN_CTA = "Forzar devolución";
+const BORROW_SUCCESS_MESSAGE =
+  "El préstamo no tiene fecha límite, pero haz un uso responsable: devuélvelo cuando hayas jugado o si finalmente no vas a usarlo.";
 const LOGIN_LINK = "Iniciar sesión";
 const HISTORY_HEADING = /Historial de préstamos y comentarios/i;
 
@@ -111,6 +120,20 @@ function setMember(value: CurrentMember | null) {
   useAuthMock.mockReturnValue({ member: value, loading: false });
 }
 
+function setMyLoans(loanIds: readonly number[]) {
+  useMyLoansMock.mockReturnValue({
+    loans: loanIds.map((loan_id) => ({ loan_id })),
+    loading: false,
+    error: null,
+    refetch: refetchMyLoans,
+  });
+}
+
+beforeEach(() => {
+  refetchMyLoans.mockReset();
+  setMyLoans([]);
+});
+
 function renderPage() {
   return render(
     <CatalogModeProvider>
@@ -190,6 +213,10 @@ describe("GameDetailPage borrow CTA", () => {
       body: JSON.stringify({ game_id: 1 }),
     });
     expect(refetch).toHaveBeenCalledTimes(1);
+    expect(refetchMyLoans).toHaveBeenCalledTimes(1);
+    const feedback = await screen.findByRole("status");
+    expect(feedback).toHaveTextContent(BORROW_SUCCESS_MESSAGE);
+    expect(feedback).toHaveAttribute("aria-live", "polite");
   });
 });
 
@@ -251,6 +278,7 @@ describe("GameDetailPage borrower visibility", () => {
       },
     });
     setMember(member);
+    setMyLoans([7]);
 
     renderPage();
 
@@ -259,7 +287,7 @@ describe("GameDetailPage borrower visibility", () => {
 });
 
 describe("GameDetailPage return CTA", () => {
-  it("shows the return CTA to the borrower of a lent game", () => {
+  it("labels the trigger and confirmation 'Devolver' for the borrower", async () => {
     setHook({
       game: {
         ...game,
@@ -269,15 +297,25 @@ describe("GameDetailPage return CTA", () => {
       },
     });
     setMember(member);
+    setMyLoans([7]);
 
     renderPage();
+    const user = userEvent.setup();
 
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: RETURN_CTA }));
+
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeNull();
   });
 
-  it("shows the return CTA to an admin even when the loan is someone else's", () => {
+  it("labels the trigger and confirmation 'Forzar devolución' for an admin returning another member's loan", async () => {
     setHook({
       game: {
         ...game,
@@ -289,10 +327,39 @@ describe("GameDetailPage return CTA", () => {
     setMember(admin);
 
     renderPage();
+    const user = userEvent.setup();
+
+    expect(
+      screen.getByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: FORCE_RETURN_CTA }));
+
+    expect(
+      screen.getByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+  });
+
+  it("keeps 'Devolver' for an admin returning their own loan", () => {
+    setHook({
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: admin.display_name,
+        loan_id: 7,
+      },
+    });
+    setMember(admin);
+    setMyLoans([7]);
+
+    renderPage();
 
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeNull();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -309,6 +376,29 @@ describe("GameDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeNull();
+  });
+
+  it("does not infer ownership from a duplicate display name", () => {
+    setHook({
+      game: {
+        ...game,
+        status: "lent",
+        borrower_display_name: member.display_name,
+        loan_id: 7,
+      },
+    });
+    setMember(member);
+    setMyLoans([]);
+
+    renderPage();
+
+    expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeNull();
   });
 });
 

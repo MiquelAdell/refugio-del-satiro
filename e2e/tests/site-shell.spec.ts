@@ -22,6 +22,7 @@ const ADMIN_STATE = resolve(FIXTURES_DIR, "admin.json");
 const HOME = "/ludoteca/";
 const LOGIN_PATH = "/ludoteca/login";
 const PROFILE_PATH = "/ludoteca/profile";
+const LUDOTECA_LABEL = "Ludoteca";
 const MEMBER_DISPLAY_NAME = "E2E Member";
 const ADMIN_DISPLAY_NAME = "E2E Admin";
 const MEMBER_EMAIL =
@@ -286,9 +287,7 @@ test.describe("site-shell @ static page (member)", () => {
     page,
   }, testInfo) => {
     await page.goto(STATIC_PAGE);
-    if (isMobileProject(testInfo.project.name)) {
-      await page.getByRole("button", { name: "Abrir menú" }).click();
-    }
+    await openUserSubmenu(page, testInfo.project.name);
     await expect(
       page.getByRole("button", { name: "Cerrar sesión" }).first(),
     ).toBeVisible();

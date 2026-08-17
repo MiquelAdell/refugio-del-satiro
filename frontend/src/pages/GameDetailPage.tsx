@@ -2,11 +2,17 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoanActionFeedback } from "../components/LoanActionFeedback";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { ClockIcon, PlayersIcon } from "../components/MetaIcons";
 import { useAuth } from "../context/AuthContext";
 import { useGameHistory } from "../hooks/useGameHistory";
+import { useMyLoans } from "../hooks/useMyLoans";
 import { displayDescription } from "../lib/description";
+import {
+  BORROW_SUCCESS_MESSAGE,
+  getReturnAction,
+} from "../lib/loanActions";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./GameDetailPage.css";
@@ -15,12 +21,19 @@ export function GameDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { game, history, loading, error, refetch } = useGameHistory(slug);
   const { member } = useAuth();
+  const {
+    loans: myLoans,
+    loading: myLoansLoading,
+    error: myLoansError,
+    refetch: refetchMyLoans,
+  } = useMyLoans(member !== null);
   const [confirmAction, setConfirmAction] = useState<
     | { readonly action: "borrow"; readonly gameId: number }
     | { readonly action: "return" }
     | null
   >(null);
   const [acting, setActing] = useState(false);
+  const [loanFeedback, setLoanFeedback] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -42,11 +55,11 @@ export function GameDetailPage() {
   }
 
   const canBorrow = member !== null && game.status === "available";
-  const canReturn =
-    member !== null &&
-    game.status === "lent" &&
-    game.loan_id !== null &&
-    (member.is_admin || game.borrower_display_name === member.display_name);
+  const activeLoanIds = new Set(myLoans.map((loan) => loan.loan_id));
+  const returnAction =
+    !myLoansLoading && myLoansError === null
+      ? getReturnAction(member, game, activeLoanIds)
+      : null;
 
   // Hook point for the borrow flow. The sibling change
   // `lending-borrow-with-return-date` replaces the ConfirmDialog this opens
@@ -62,7 +75,9 @@ export function GameDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: gameId }),
       });
+      setLoanFeedback(BORROW_SUCCESS_MESSAGE);
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -78,6 +93,7 @@ export function GameDetailPage() {
         method: "PATCH",
       });
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -158,13 +174,13 @@ export function GameDetailPage() {
                 Solicitar préstamo
               </Button>
             )}
-            {canReturn && (
+            {returnAction && (
               <Button
                 variant="secondary"
                 onClick={() => setConfirmAction({ action: "return" })}
                 disabled={acting}
               >
-                Devolver
+                {returnAction.label}
               </Button>
             )}
             {member === null && game.status === "available" && (
@@ -173,6 +189,8 @@ export function GameDetailPage() {
               </Link>
             )}
           </div>
+
+          <LoanActionFeedback message={loanFeedback} />
 
           <div className="game-detail-bgg">
             <a
@@ -223,7 +241,7 @@ export function GameDetailPage() {
           message={`¿Quieres devolver "${game.name}"?`}
           onConfirm={() => void handleReturn()}
           onCancel={() => setConfirmAction(null)}
-          confirmLabel="Devolver"
+          confirmLabel={returnAction?.label ?? "Devolver"}
         />
       )}
     </div>

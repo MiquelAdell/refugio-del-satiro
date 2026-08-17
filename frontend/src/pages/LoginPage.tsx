@@ -33,7 +33,16 @@ export function LoginPage() {
       <form className="login-form" onSubmit={(e) => void handleSubmit(e)}>
         <h1>Iniciar sesión</h1>
 
-        {error && <div className="login-error">{error}</div>}
+        {error && (
+          <div className="login-error" role="alert">
+            <p>{error}</p>
+            <p className="login-membership-help">
+              El área privada de préstamos está disponible únicamente para
+              socios y socias al corriente de pago. Consulta la información para
+              <a href="/socios/"> hacerte socio o socia</a>.
+            </p>
+          </div>
+        )}
 
         <div className="login-field">
           <label htmlFor="email">Correo electrónico</label>
@@ -63,7 +72,7 @@ export function LoginPage() {
           {loading ? "Entrando..." : "Entrar"}
         </Button>
 
-        <p style={{ marginTop: "var(--space-md)", textAlign: "center", fontSize: "var(--font-size-sm)" }}>
+        <p className="login-forgot-password">
           <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
         </p>
       </form>

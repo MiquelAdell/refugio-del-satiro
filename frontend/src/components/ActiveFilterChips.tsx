@@ -1,10 +1,10 @@
 import { Chip } from "../ui/Chip";
+import { Button } from "../ui/Button";
 import {
   AVAILABILITY_OPTIONS,
   DEFAULT_CATALOG_QUERY,
   LOCATION_OPTIONS,
   PLAYER_BOUNDS,
-  SORT_OPTIONS,
   TIME_PRESET_OPTIONS,
   type CatalogQuery,
 } from "../types/catalog";
@@ -30,13 +30,21 @@ function optionLabel(
 
 function activeChips(query: CatalogQuery): readonly ActiveChip[] {
   const playerRangeActive =
-    query.playersMin > PLAYER_BOUNDS.min || query.playersMax < PLAYER_BOUNDS.max;
+    query.playersMin > PLAYER_BOUNDS.min ||
+    query.playersMax < PLAYER_BOUNDS.max;
   const playerMaxLabel =
     query.playersMax >= PLAYER_BOUNDS.max
       ? `${PLAYER_BOUNDS.max}+`
       : String(query.playersMax);
 
   const candidates: readonly (ActiveChip | null)[] = [
+    query.search.trim() !== ""
+      ? {
+          key: "search",
+          label: `Palabra clave: “${query.search.trim()}”`,
+          cleared: { ...query, search: "" },
+        }
+      : null,
     query.availability !== "all"
       ? {
           key: "availability",
@@ -76,11 +84,11 @@ function activeChips(query: CatalogQuery): readonly ActiveChip[] {
           cleared: { ...query, minRating: 0 },
         }
       : null,
-    query.sort !== DEFAULT_CATALOG_QUERY.sort
+    query.playerAge !== null
       ? {
-          key: "sort",
-          label: `Orden: ${optionLabel(SORT_OPTIONS, query.sort)}`,
-          cleared: { ...query, sort: DEFAULT_CATALOG_QUERY.sort },
+          key: "player-age",
+          label: `Edad del jugador: ${query.playerAge} años`,
+          cleared: { ...query, playerAge: null },
         }
       : null,
   ];
@@ -100,6 +108,13 @@ export function ActiveFilterChips({ query, onChange }: ActiveFilterChipsProps) {
           {chip.label}
         </Chip>
       ))}
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => onChange({ ...DEFAULT_CATALOG_QUERY, sort: query.sort })}
+      >
+        Limpiar búsqueda y filtros
+      </Button>
     </div>
   );
 }

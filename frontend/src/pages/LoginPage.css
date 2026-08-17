@@ -58,6 +58,25 @@
   margin-bottom: var(--space-md);
 }
 
+.login-error p {
+  margin: 0;
+}
+
+.login-membership-help {
+  margin-top: var(--space-sm);
+}
+
+.login-membership-help a {
+  color: inherit;
+  font-weight: var(--font-weight-medium);
+}
+
+.login-forgot-password {
+  margin-top: var(--space-md);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
 .login-form .btn {
   width: 100%;
   padding: var(--space-sm) var(--space-md);

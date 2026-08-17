@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useGames } from "../hooks/useGames";
 import { ActiveFilterChips } from "../components/ActiveFilterChips";
 import { CatalogTypeToggle } from "../components/CatalogTypeToggle";
-import { CatalogViewToggle } from "../components/CatalogViewToggle";
+import { CatalogResultsBar } from "../components/CatalogResultsBar";
 import {
   persistCatalogView,
   storedCatalogView,
@@ -12,12 +12,16 @@ import { GameCard } from "../components/GameCard";
 import { PoweredByBgg } from "../components/PoweredByBgg";
 import { SearchBar } from "../components/SearchBar";
 import { SearchFiltersBox } from "../components/SearchFiltersBox";
-import { computeCategoryFrequency, mostCommonOwnCategory } from "../lib/gameTags";
+import {
+  computeCategoryFrequency,
+  mostCommonOwnCategory,
+} from "../lib/gameTags";
 import { Button } from "../ui/Button";
 import { PageTitle } from "../ui/PageTitle";
 import {
   applyCatalogQuery,
   DEFAULT_CATALOG_QUERY,
+  SORT_OPTIONS,
   type CatalogQuery,
   type CatalogView,
 } from "../types/catalog";
@@ -36,6 +40,7 @@ export function CatalogPage() {
     () => games.some((g) => g.min_players > 0),
     [games],
   );
+  const hasAgeData = useMemo(() => games.some((g) => g.min_age > 0), [games]);
   const hasTimeData = useMemo(
     () => games.some((g) => g.playing_time > 0),
     [games],
@@ -74,6 +79,7 @@ export function CatalogPage() {
       query={query}
       onChange={setQuery}
       hasPlayerData={hasPlayerData}
+      hasAgeData={hasAgeData}
       hasTimeData={hasTimeData}
     />
   );
@@ -105,12 +111,15 @@ export function CatalogPage() {
 
       <ActiveFilterChips query={query} onChange={setQuery} />
 
-      <div className="catalog-results-bar">
-        <p className="catalog-count">
-          Mostrando {filteredGames.length} de {games.length}
-        </p>
-        <CatalogViewToggle view={view} onChange={setView} />
-      </div>
+      <CatalogResultsBar
+        shown={filteredGames.length}
+        total={games.length}
+        sort={query.sort}
+        sortOptions={SORT_OPTIONS}
+        onSortChange={(sort) => setQuery((current) => ({ ...current, sort }))}
+        view={view}
+        onViewChange={setView}
+      />
 
       {filteredGames.length === 0 ? (
         <p className="catalog-empty">No se han encontrado juegos.</p>

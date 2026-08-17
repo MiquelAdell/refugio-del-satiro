@@ -2,10 +2,16 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoanActionFeedback } from "../components/LoanActionFeedback";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { useAuth } from "../context/AuthContext";
 import { useRpgHistory } from "../hooks/useRpgHistory";
+import { useMyLoans } from "../hooks/useMyLoans";
 import { displayDescription } from "../lib/description";
+import {
+  BORROW_SUCCESS_MESSAGE,
+  getReturnAction,
+} from "../lib/loanActions";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./RpgDetailPage.css";
@@ -14,12 +20,19 @@ export function RpgDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { item, history, loading, error, refetch } = useRpgHistory(slug);
   const { member } = useAuth();
+  const {
+    loans: myLoans,
+    loading: myLoansLoading,
+    error: myLoansError,
+    refetch: refetchMyLoans,
+  } = useMyLoans(member !== null);
   const [confirmAction, setConfirmAction] = useState<
     | { readonly action: "borrow"; readonly itemId: number }
     | { readonly action: "return" }
     | null
   >(null);
   const [acting, setActing] = useState(false);
+  const [loanFeedback, setLoanFeedback] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -41,11 +54,11 @@ export function RpgDetailPage() {
   }
 
   const canBorrow = member !== null && item.status === "available";
-  const canReturn =
-    member !== null &&
-    item.status === "lent" &&
-    item.loan_id !== null &&
-    (member.is_admin || item.borrower_display_name === member.display_name);
+  const activeLoanIds = new Set(myLoans.map((loan) => loan.loan_id));
+  const returnAction =
+    !myLoansLoading && myLoansError === null
+      ? getReturnAction(member, item, activeLoanIds)
+      : null;
 
   const onBorrow = (itemId: number) =>
     setConfirmAction({ action: "borrow", itemId });
@@ -57,7 +70,9 @@ export function RpgDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: itemId }),
       });
+      setLoanFeedback(BORROW_SUCCESS_MESSAGE);
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -73,6 +88,7 @@ export function RpgDetailPage() {
         method: "PATCH",
       });
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -158,13 +174,13 @@ export function RpgDetailPage() {
                 Solicitar préstamo
               </Button>
             )}
-            {canReturn && (
+            {returnAction && (
               <Button
                 variant="secondary"
                 onClick={() => setConfirmAction({ action: "return" })}
                 disabled={acting}
               >
-                Devolver
+                {returnAction.label}
               </Button>
             )}
             {member === null && item.status === "available" && (
@@ -173,6 +189,8 @@ export function RpgDetailPage() {
               </Link>
             )}
           </div>
+
+          <LoanActionFeedback message={loanFeedback} />
 
           <div className="rpg-detail-bgg">
             <a
@@ -223,7 +241,7 @@ export function RpgDetailPage() {
           message={`¿Quieres devolver "${item.name}"?`}
           onConfirm={() => void handleReturn()}
           onCancel={() => setConfirmAction(null)}
-          confirmLabel="Devolver"
+          confirmLabel={returnAction?.label ?? "Devolver"}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { act, render, screen, fireEvent, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { SiteHeader } from "./SiteHeader";
@@ -116,6 +116,7 @@ describe("SiteHeader", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     window.history.replaceState(null, "", "/");
   });
 
@@ -421,6 +422,45 @@ describe("SiteHeader", () => {
       fireEvent.click(cerrarBtn!);
 
       expect(mockLogout).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows an accessible success toast for four seconds after logout", async () => {
+      vi.useFakeTimers();
+      setMember();
+      mockLogout.mockResolvedValue(undefined);
+      renderHeader();
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+      });
+
+      const status = screen.getByRole("status");
+      expect(status).toHaveAttribute("aria-live", "polite");
+      expect(status).toHaveTextContent("Sesión cerrada correctamente.");
+
+      act(() => vi.advanceTimersByTime(3_999));
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Sesión cerrada correctamente."
+      );
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.queryByRole("status")).toBeNull();
+      vi.useRealTimers();
+    });
+
+    it("handles logout failure and gives the member actionable feedback", async () => {
+      setMember();
+      mockLogout.mockRejectedValue(new Error("network failure"));
+      renderHeader();
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+      });
+
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "No se pudo cerrar la sesión. Inténtalo de nuevo."
+      );
     });
   });
 

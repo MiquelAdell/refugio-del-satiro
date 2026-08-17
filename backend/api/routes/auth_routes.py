@@ -89,7 +89,7 @@ def login(
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credencials incorrectes.",
+            detail="Correo o contraseña incorrectos.",
         )
     token = create_jwt(member.id, _settings.jwt_secret)
     set_auth_cookie(response, token)

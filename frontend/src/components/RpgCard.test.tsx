@@ -89,10 +89,10 @@ describe("RpgCard content", () => {
     expect(container.querySelector(`.${RATING_CLASS}`)).not.toBeNull();
   });
 
-  it("omits the rating block when bgg_rating is 0", () => {
+  it("shows a placeholder when bgg_rating is 0", () => {
     const { container } = renderCard({ bgg_rating: 0 });
 
-    expect(container.querySelector(`.${RATING_CLASS}`)).toBeNull();
+    expect(container.querySelector(`.${RATING_CLASS}`)).toHaveTextContent("-");
   });
 });
 
@@ -188,6 +188,18 @@ describe("RpgCard view variants", () => {
 
     expect(container.querySelector("article")?.className).toBe(
       "game-card game-card-list rpg-card",
+    );
+    expect(container.querySelector(".game-card-cover img")).toHaveClass(
+      "game-card-cover-img",
+    );
+    expect(container.querySelector(".game-card-rating")).toHaveTextContent(
+      "8.5",
+    );
+    expect(container.querySelector(".game-card-description")).toHaveTextContent(
+      "The original RPG.",
+    );
+    expect(container.querySelector(".game-card-meta")).toHaveTextContent(
+      "1974",
     );
   });
 });

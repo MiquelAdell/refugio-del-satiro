@@ -3,13 +3,12 @@ import { Select } from "../ui/Select";
 import {
   AVAILABILITY_OPTIONS,
   LOCATION_OPTIONS,
+  PLAYER_AGE_OPTIONS,
   PLAYER_BOUNDS,
-  SORT_OPTIONS,
   TIME_PRESET_OPTIONS,
   type AvailabilityValue,
   type CatalogQuery,
   type LocationValue,
-  type SortValue,
   type TimePreset,
 } from "../types/catalog";
 import "./FilterPanel.css";
@@ -18,6 +17,7 @@ interface FilterPanelProps {
   readonly query: CatalogQuery;
   readonly onChange: (query: CatalogQuery) => void;
   readonly hasPlayerData: boolean;
+  readonly hasAgeData: boolean;
   readonly hasTimeData: boolean;
 }
 
@@ -25,6 +25,7 @@ export function FilterPanel({
   query,
   onChange,
   hasPlayerData,
+  hasAgeData,
   hasTimeData,
 }: FilterPanelProps) {
   const playerMaxLabel =
@@ -33,20 +34,16 @@ export function FilterPanel({
       : String(query.playersMax);
 
   return (
-    <div className="filter-panel" role="group" aria-label="Filtros y ordenación">
-      <Select
-        label="Ordenar por"
-        options={SORT_OPTIONS}
-        value={query.sort}
-        onChange={(e) => onChange({ ...query, sort: e.target.value as SortValue })}
-      />
-
+    <div className="filter-panel" role="group" aria-label="Filtros">
       <Select
         label="Disponibilidad"
         options={AVAILABILITY_OPTIONS}
         value={query.availability}
         onChange={(e) =>
-          onChange({ ...query, availability: e.target.value as AvailabilityValue })
+          onChange({
+            ...query,
+            availability: e.target.value as AvailabilityValue,
+          })
         }
       />
 
@@ -88,6 +85,20 @@ export function FilterPanel({
             />
           </Slider.Root>
         </div>
+      )}
+
+      {hasAgeData && (
+        <Select
+          label="Edad del jugador"
+          options={PLAYER_AGE_OPTIONS}
+          value={query.playerAge ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...query,
+              playerAge: e.target.value === "" ? null : Number(e.target.value),
+            })
+          }
+        />
       )}
 
       {hasTimeData && (

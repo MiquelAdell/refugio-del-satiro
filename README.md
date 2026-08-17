@@ -10,8 +10,22 @@ The catalog is publicly browsable read-only (no account needed; borrowing and
 reviewing a member's own profile require logging in). Legacy `/prestamos` URLs
 redirect permanently to `/ludoteca`.
 
-Board-game and RPG catalog cards share a fixed hierarchy: titles are truncated
-after two lines and descriptions after three, keeping every card aligned.
+Board-game and RPG catalogs share search and removable filter chips, a reset
+that preserves the selected sort order, sorting beside the grid/list toggle,
+and a responsive list view with readable covers, ratings, and metadata. Board
+games can also be filtered by player age from 3 to 18; items without a known
+minimum age are omitted while that filter is active. RPG covers remain
+letterboxed rather than cropped.
+
+Failed sign-ins use the same generic credential message for every ineligible
+or invalid account and explain that the private lending area is limited to
+paid-up members, with a link to `/socios/`. Successful sign-out is confirmed by
+an accessible four-second status notification.
+
+After a board game or RPG book is borrowed, the detail page reminds the member
+that loans have no deadline and should be returned responsibly. A borrower
+sees `Devolver`; an administrator returning another member's item sees
+`Forzar devolución` in both the action and its confirmation.
 
 A public membership-validation page lives at `/ludoteca/validacion`: anyone
 can enter a member number and see whether that person is a current member

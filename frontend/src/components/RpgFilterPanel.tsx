@@ -4,11 +4,9 @@ import { AVAILABILITY_OPTIONS, type AvailabilityValue } from "../types/catalog";
 import {
   RPG_GENRE_OPTIONS,
   RPG_PUBLICATION_OPTIONS,
-  RPG_SORT_OPTIONS,
   type RpgGenreValue,
   type RpgPublicationValue,
   type RpgQuery,
-  type RpgSortValue,
 } from "../types/rpg";
 import "./FilterPanel.css";
 
@@ -19,19 +17,14 @@ interface RpgFilterPanelProps {
 
 export function RpgFilterPanel({ query, onChange }: RpgFilterPanelProps) {
   return (
-    <div className="filter-panel" role="group" aria-label="Filtros y ordenación">
-      <Select
-        label="Ordenar por"
-        options={RPG_SORT_OPTIONS}
-        value={query.sort}
-        onChange={(e) => onChange({ ...query, sort: e.target.value as RpgSortValue })}
-      />
-
+    <div className="filter-panel" role="group" aria-label="Filtros">
       <Select
         label="Género"
         options={RPG_GENRE_OPTIONS}
         value={query.genre}
-        onChange={(e) => onChange({ ...query, genre: e.target.value as RpgGenreValue })}
+        onChange={(e) =>
+          onChange({ ...query, genre: e.target.value as RpgGenreValue })
+        }
       />
 
       <Select
@@ -51,7 +44,10 @@ export function RpgFilterPanel({ query, onChange }: RpgFilterPanelProps) {
         options={AVAILABILITY_OPTIONS}
         value={query.availability}
         onChange={(e) =>
-          onChange({ ...query, availability: e.target.value as AvailabilityValue })
+          onChange({
+            ...query,
+            availability: e.target.value as AvailabilityValue,
+          })
         }
       />
 
