@@ -42,7 +42,7 @@ describe("LoginPage", () => {
     );
     expect(
       screen.getByRole("link", { name: "hacerte socio o socia" })
-    ).toHaveAttribute("href", "/socios");
+    ).toHaveAttribute("href", "/socios/");
     expect(mockLogin).toHaveBeenCalledExactlyOnceWith(
       "unknown@example.com",
       "incorrect-password"

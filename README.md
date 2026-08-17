@@ -19,7 +19,7 @@ letterboxed rather than cropped.
 
 Failed sign-ins use the same generic credential message for every ineligible
 or invalid account and explain that the private lending area is limited to
-paid-up members, with a link to `/socios`. Successful sign-out is confirmed by
+paid-up members, with a link to `/socios/`. Successful sign-out is confirmed by
 an accessible four-second status notification.
 
 After a board game or RPG book is borrowed, the detail page reminds the member

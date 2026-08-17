@@ -39,7 +39,7 @@ export function LoginPage() {
             <p className="login-membership-help">
               El área privada de préstamos está disponible únicamente para
               socios y socias al corriente de pago. Consulta la información para
-              <a href="/socios"> hacerte socio o socia</a>.
+              <a href="/socios/"> hacerte socio o socia</a>.
             </p>
           </div>
         )}
