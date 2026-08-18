@@ -87,7 +87,7 @@ function activeChips(query: CatalogQuery): readonly ActiveChip[] {
     query.playerAge !== null
       ? {
           key: "player-age",
-          label: `Edad del jugador: ${query.playerAge} años`,
+          label: `Edad, a partir de: ${query.playerAge} años`,
           cleared: { ...query, playerAge: null },
         }
       : null,
