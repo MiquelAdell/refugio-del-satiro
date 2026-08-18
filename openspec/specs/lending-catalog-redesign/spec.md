@@ -110,7 +110,7 @@ and SHALL appear beside the grid/list view toggle in the results bar.
 
 ### Requirement: Board-game player-age filter
 
-The board-game catalog SHALL offer an `Edad, a partir de` filter with ages from
+The board-game catalog SHALL offer an `Edad, hasta` filter with ages from
 3 through 18. Selecting age X SHALL include only games with a known minimum age
 greater than zero and less than or equal to X. The RPG catalog SHALL not expose
 this board-game-specific filter.

@@ -89,7 +89,7 @@ export function FilterPanel({
 
       {hasAgeData && (
         <Select
-          label="Edad, a partir de"
+          label="Edad, hasta"
           options={PLAYER_AGE_OPTIONS}
           value={query.playerAge ?? ""}
           onChange={(e) =>

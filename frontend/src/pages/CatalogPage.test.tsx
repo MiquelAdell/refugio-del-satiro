@@ -338,7 +338,7 @@ describe("CatalogPage player-age filter", () => {
     const user = userEvent.setup();
     await openFiltrosTab(user);
 
-    const ageSelect = screen.getByLabelText("Edad, a partir de");
+    const ageSelect = screen.getByLabelText("Edad, hasta");
     expect(
       within(ageSelect)
         .getAllByRole("option")
@@ -353,7 +353,7 @@ describe("CatalogPage player-age filter", () => {
     expect(screen.getByText("Apto")).toBeInTheDocument();
     expect(screen.queryByText("Mayor")).toBeNull();
     expect(screen.queryByText("Sin edad")).toBeNull();
-    expect(screen.getByText("Edad, a partir de: 8 años")).toBeInTheDocument();
+    expect(screen.getByText("Edad, hasta: 8 años")).toBeInTheDocument();
   });
 });
 
