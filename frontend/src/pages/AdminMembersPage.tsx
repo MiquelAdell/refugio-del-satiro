@@ -42,14 +42,18 @@ export function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [tokenBanner, setTokenBanner] = useState<{ url: string; label: string } | null>(null);
+  const [tokenBanner, setTokenBanner] = useState<{
+    url: string;
+    label: string;
+  } | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<keyof AdminMember>("display_name");
   const [sortAsc, setSortAsc] = useState(true);
   const [editTarget, setEditTarget] = useState<AdminMember | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<ImportMembersResponse | null>(null);
+  const [importResult, setImportResult] =
+    useState<ImportMembersResponse | null>(null);
   const [showImportHelp, setShowImportHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,7 +79,17 @@ export function AdminMembersPage() {
       return sortAsc ? av - bv : bv - av;
     }
     if (typeof av === "boolean" && typeof bv === "boolean") {
-      return sortAsc ? (av === bv ? 0 : av ? -1 : 1) : (av === bv ? 0 : av ? 1 : -1);
+      return sortAsc
+        ? av === bv
+          ? 0
+          : av
+            ? -1
+            : 1
+        : av === bv
+          ? 0
+          : av
+            ? 1
+            : -1;
     }
     return 0;
   });
@@ -86,7 +100,9 @@ export function AdminMembersPage() {
       setMembers(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error cargando los socios.");
+      setError(
+        err instanceof Error ? err.message : "Error cargando los socios.",
+      );
     } finally {
       setLoading(false);
     }
@@ -107,7 +123,9 @@ export function AdminMembersPage() {
       });
       await fetchMembers();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error actualizando el estado.");
+      setError(
+        err instanceof Error ? err.message : "Error actualizando el estado.",
+      );
     } finally {
       setActionLoading(null);
     }
@@ -120,7 +138,7 @@ export function AdminMembersPage() {
     try {
       const res = await apiFetch<SendLinkResponse>(
         `/admin/members/${m.id}/send-access-link`,
-        { method: "POST" }
+        { method: "POST" },
       );
       if (res.email_sent) {
         setSuccessMessage(`Correo enviado a ${m.email}`);
@@ -131,7 +149,9 @@ export function AdminMembersPage() {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error enviando el enlace.");
+      setError(
+        err instanceof Error ? err.message : "Error enviando el enlace.",
+      );
     } finally {
       setActionLoading(null);
     }
@@ -156,7 +176,7 @@ export function AdminMembersPage() {
       formData.append("file", file);
       const res = await apiUpload<ImportMembersResponse>(
         "/admin/members/import",
-        formData
+        formData,
       );
       setImportResult(res);
       void fetchMembers();
@@ -176,7 +196,9 @@ export function AdminMembersPage() {
       setEditTarget(null);
       await fetchMembers();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error actualizando el socio.");
+      setError(
+        err instanceof Error ? err.message : "Error actualizando el socio.",
+      );
     }
   };
 
@@ -200,6 +222,7 @@ export function AdminMembersPage() {
     ["display_name", "Nombre"],
     ["email", "Email"],
     ["member_number", "Nº Socio"],
+    ["is_admin", "Rol"],
     ["is_active", "Estado"],
     ["active_loan_count", "Préstamos activos"],
   ];
@@ -278,7 +301,9 @@ export function AdminMembersPage() {
           <ul className="admin-import-list">
             {importResult.created.map((imported) => (
               <li key={imported.email} className="admin-import-item">
-                <span className="admin-import-name">{imported.display_name}</span>
+                <span className="admin-import-name">
+                  {imported.display_name}
+                </span>
                 <div className="admin-token-url">
                   <code>{imported.token_url}</code>
                   <Button
@@ -324,9 +349,24 @@ export function AdminMembersPage() {
                   <th
                     key={key}
                     className="admin-th-sortable"
-                    onClick={() => handleSort(key)}
+                    aria-sort={
+                      sortKey === key
+                        ? sortAsc
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
                   >
-                    {label} {sortKey === key ? (sortAsc ? "▲" : "▼") : ""}
+                    <button
+                      type="button"
+                      className="admin-sort-button"
+                      onClick={() => handleSort(key)}
+                    >
+                      {label}
+                      {sortKey === key && (
+                        <span aria-hidden="true"> {sortAsc ? "▲" : "▼"}</span>
+                      )}
+                    </button>
                   </th>
                 ))}
                 <th>Acciones</th>
@@ -341,7 +381,20 @@ export function AdminMembersPage() {
                   <td>
                     <span
                       className={`admin-badge ${
-                        m.is_active ? "admin-badge--active" : "admin-badge--inactive"
+                        m.is_admin
+                          ? "admin-badge--administrator"
+                          : "admin-badge--member"
+                      }`}
+                    >
+                      {m.is_admin ? "Administrador" : "Socio"}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`admin-badge ${
+                        m.is_active
+                          ? "admin-badge--active"
+                          : "admin-badge--inactive"
                       }`}
                     >
                       {m.is_active ? "Activo" : "Desactivado"}
@@ -405,12 +458,13 @@ export function AdminMembersPage() {
               administrador que realiza la importación siempre queda protegido.
             </li>
             <li>
-              Los archivos vacíos o sospechosamente pequeños no desactivan socios
-              ausentes: la importación muestra un aviso de seguridad en ese caso.
+              Los archivos vacíos o sospechosamente pequeños no desactivan
+              socios ausentes: la importación muestra un aviso de seguridad en
+              ese caso.
             </li>
             <li>
-              Los socios nuevos reciben un enlace para establecer su
-              contraseña, que se muestra tras la importación.
+              Los socios nuevos reciben un enlace para establecer su contraseña,
+              que se muestra tras la importación.
             </li>
             <li>
               La columna <code>admin</code> con valor <code>yes</code> marca al
@@ -418,10 +472,9 @@ export function AdminMembersPage() {
               existentes conservan su estado de administrador).
             </li>
             <li>
-              La columna <code>Pagada</code> con valor <code>No</code> marca
-              al socio como inactivo (no ha pagado la cuota). Cualquier otro
-              valor (<code>Sí</code>, <code>Honorífic</code> o vacío) lo deja
-              activo.
+              La columna <code>Pagada</code> con valor <code>No</code> marca al
+              socio como inactivo (no ha pagado la cuota). Cualquier otro valor
+              (<code>Sí</code>, <code>Honorífic</code> o vacío) lo deja activo.
             </li>
           </ul>
           <div className="admin-import-help-actions">
@@ -490,7 +543,9 @@ function CreateMemberForm({ onCreated, onCancel }: CreateMemberFormProps) {
       });
       onCreated(res);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Error creando el socio.");
+      setFormError(
+        err instanceof Error ? err.message : "Error creando el socio.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -616,11 +671,11 @@ function EditMemberDialog({ member, onSave, onClose }: EditMemberDialogProps) {
   const [nickname, setNickname] = useState(member.nickname ?? "");
   const [phone, setPhone] = useState(member.phone ?? "");
   const [memberNumber, setMemberNumber] = useState(
-    member.member_number !== null ? String(member.member_number) : ""
+    member.member_number !== null ? String(member.member_number) : "",
   );
   const [lastPayment, setLastPayment] = useState(member.last_payment ?? "");
   const [gender, setGender] = useState<MemberGender>(
-    (member.gender as MemberGender | undefined | null) ?? ""
+    (member.gender as MemberGender | undefined | null) ?? "",
   );
   const [isAdmin, setIsAdmin] = useState(member.is_admin);
   const [formError, setFormError] = useState<string | null>(null);

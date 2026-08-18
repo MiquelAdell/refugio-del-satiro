@@ -10,9 +10,11 @@ import { useGameHistory } from "../hooks/useGameHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { displayDescription } from "../lib/description";
 import {
-  BORROW_SUCCESS_MESSAGE,
-  getReturnAction,
-} from "../lib/loanActions";
+  getForcedReturnFeedback,
+  type LoanFeedback,
+} from "../lib/loanFeedback";
+import { BORROW_SUCCESS_MESSAGE, getReturnAction } from "../lib/loanActions";
+import type { ReturnLoanResponse } from "../types/loan";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./GameDetailPage.css";
@@ -33,7 +35,7 @@ export function GameDetailPage() {
     | null
   >(null);
   const [acting, setActing] = useState(false);
-  const [loanFeedback, setLoanFeedback] = useState<string | null>(null);
+  const [loanFeedback, setLoanFeedback] = useState<LoanFeedback | null>(null);
 
   if (loading) {
     return (
@@ -75,7 +77,7 @@ export function GameDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: gameId }),
       });
-      setLoanFeedback(BORROW_SUCCESS_MESSAGE);
+      setLoanFeedback({ message: BORROW_SUCCESS_MESSAGE, variant: "status" });
       refetch();
       refetchMyLoans();
     } catch {
@@ -89,9 +91,13 @@ export function GameDetailPage() {
   const handleReturn = async () => {
     setActing(true);
     try {
-      await apiFetch<unknown>(`/loans/${game.loan_id}/return`, {
-        method: "PATCH",
-      });
+      const result = await apiFetch<ReturnLoanResponse>(
+        `/loans/${game.loan_id}/return`,
+        {
+          method: "PATCH",
+        },
+      );
+      setLoanFeedback(getForcedReturnFeedback(result.forced_return_email_sent));
       refetch();
       refetchMyLoans();
     } catch {
@@ -190,7 +196,10 @@ export function GameDetailPage() {
             )}
           </div>
 
-          <LoanActionFeedback message={loanFeedback} />
+          <LoanActionFeedback
+            message={loanFeedback?.message ?? null}
+            variant={loanFeedback?.variant}
+          />
 
           <div className="game-detail-bgg">
             <a

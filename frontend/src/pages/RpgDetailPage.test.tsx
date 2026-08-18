@@ -36,6 +36,8 @@ const RETURN_CTA = "Devolver";
 const FORCE_RETURN_CTA = "Forzar devolución";
 const BORROW_SUCCESS_MESSAGE =
   "El préstamo no tiene fecha límite, pero haz un uso responsable: devuélvelo cuando hayas jugado o si finalmente no vas a usarlo.";
+const FORCED_RETURN_WARNING_MESSAGE =
+  "La devolución se ha registrado, pero no se pudo enviar el correo de aviso.";
 const LOGIN_LINK = "Iniciar sesión";
 const HISTORY_HEADING = /Historial de préstamos y comentarios/i;
 
@@ -135,6 +137,13 @@ function renderPage() {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+async function confirmReturn(label: string) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: label }));
+  const buttons = screen.getAllByRole("button", { name: label });
+  await user.click(buttons[buttons.length - 1]);
 }
 
 describe("RpgDetailPage loading state", () => {
@@ -294,6 +303,12 @@ describe("RpgDetailPage borrower visibility", () => {
 });
 
 describe("RpgDetailPage return CTA", () => {
+  beforeEach(() => {
+    refetch.mockReset();
+    apiFetchMock.mockReset();
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: null });
+  });
+
   it("labels the trigger and confirmation 'Devolver' for the borrower", async () => {
     setHook({
       item: {
@@ -317,9 +332,7 @@ describe("RpgDetailPage return CTA", () => {
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("labels the trigger and confirmation 'Forzar devolución' for an admin returning another member's loan", async () => {
@@ -364,9 +377,7 @@ describe("RpgDetailPage return CTA", () => {
     expect(
       screen.getByRole("button", { name: RETURN_CTA }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -383,9 +394,7 @@ describe("RpgDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("does not infer ownership from a duplicate display name", () => {
@@ -403,16 +412,10 @@ describe("RpgDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: FORCE_RETURN_CTA }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("calls PATCH /loans/{loan_id}/return and refetches after confirming return", async () => {
-    refetch.mockReset();
-    apiFetchMock.mockReset();
-    apiFetchMock.mockResolvedValue({});
-
     setHook({
       item: {
         ...item,
@@ -435,6 +438,27 @@ describe("RpgDetailPage return CTA", () => {
       method: "PATCH",
     });
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an alert when a forced-return email cannot be sent", async () => {
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: false });
+    setHook({
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: "Bob Jones",
+        loan_id: 7,
+      },
+    });
+    setMember(admin);
+
+    renderPage();
+    await confirmReturn(FORCE_RETURN_CTA);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      FORCED_RETURN_WARNING_MESSAGE,
+    );
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });
 

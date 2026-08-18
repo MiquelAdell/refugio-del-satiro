@@ -5,7 +5,7 @@ import sqlite3
 from collections.abc import Collection
 from datetime import UTC, datetime
 
-from backend.domain.entities.game import Game
+from backend.domain.entities.game import Game, parse_item_type
 from backend.domain.slug import ensure_unique, slugify
 
 
@@ -47,7 +47,9 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         location=row["location"] if "location" in keys else "armario",
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
-        item_type=row["item_type"] if "item_type" in keys else "boardgame",
+        item_type=parse_item_type(
+            row["item_type"] if "item_type" in keys else "boardgame"
+        ),
         description=row["description"] if "description" in keys else "",
         categories=(
             _deserialize_metadata(row["categories_json"])

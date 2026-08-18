@@ -12,6 +12,8 @@ vi.mock("../api/client", () => ({
 const activeLoan: ActiveLoan = {
   loan_id: 7,
   game_id: 1,
+  game_slug: "catan",
+  item_type: "boardgame",
   game_name: "Catan",
   game_thumbnail_url: "https://example.com/catan.jpg",
   game_image_url: "https://example.com/catan-large.jpg",

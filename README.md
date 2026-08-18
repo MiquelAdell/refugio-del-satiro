@@ -27,6 +27,16 @@ that loans have no deadline and should be returned responsibly. A borrower
 sees `Devolver`; an administrator returning another member's item sees
 `Forzar devolución` in both the action and its confirmation.
 
+`Mis préstamos` repeats the responsible-use reminder. The cover and title on
+each card link to the item's detail page. Loans open for at least 30 complete
+days show an informational marker. The marker does not set a deadline or
+restrict the loan.
+
+The admin member list has a `Rol` column that identifies each person as
+`Administrador` or `Socio`. When an administrator forces a return, the app
+tries to email the borrower and reports whether the message was sent. The
+return remains registered if the email cannot be sent.
+
 A public membership-validation page lives at `/ludoteca/validacion`: anyone
 can enter a member number and see whether that person is a current member
 (name, ES/NO ES socio·a verdict, last paid fee). The legacy
