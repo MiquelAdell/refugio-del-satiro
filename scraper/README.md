@@ -1,7 +1,7 @@
 # `scraper/` — Google Sites content mirror
 
 A small Python tool that pulls every public page of
-`www.refugiodelsatiro.es` (Google Sites), strips the Sites chrome, rewrites
+`https://sites.google.com/view/refugiodelsatiro/`, strips the Sites chrome, rewrites
 internal links, rehosts images locally, and writes a static mirror to
 `frontend/public/content-mirror/`. Caddy serves that directory at `/` so the
 VPS looks and behaves like the Sites-hosted original, minus the Google
@@ -22,6 +22,10 @@ python -m scraper run --dry-run
 
 # Enumerate URLs only (what would be scraped)
 python -m scraper list-urls
+
+# Optional source override (the direct Google Sites URL is the safe default)
+REFUGIO_CONTENT_SOURCE_ORIGIN=https://sites.google.com/view/refugiodelsatiro \
+  python -m scraper list-urls
 
 # Via the main CLI (equivalent)
 refugio content run
@@ -57,7 +61,10 @@ nav/footer get layered in later by the React app / site-wide templates.
 `orchestrator.run()` ties the pipeline together:
 
 1. **Enumerate** (`enumerator.py`). BFS from `/`, depth ≤ 4, following only
-   same-host links. Skip `/inicio`, `/socios/ludoteca`,
+   links belonging to the direct Google Site or its apex, `www`, and `test`
+   custom hosts. Google Sites' `/view/refugiodelsatiro` mount prefix is
+   removed from canonical paths and added only through the source origin.
+   Skip `/inicio`, `/socios/ludoteca`,
    `/Validacion-Membresia` (handled by Caddy 301s). Required paths are derived
    at run time from the live nav on the homepage (`nav_extractor.extract_nav`)
    rather than hardcoded; assert every one was reached, force-add any that
@@ -95,7 +102,8 @@ update `SANITY_CONTENT_SELECTOR` in `scraper/config.py` to whatever div
 wraps all the page sections today. A quick inspection ritual:
 
 ```bash
-curl -s -H "User-Agent: Mozilla/5.0" https://www.refugiodelsatiro.es/ > /tmp/home.html
+curl -s -H "User-Agent: Mozilla/5.0" \
+  https://sites.google.com/view/refugiodelsatiro/ > /tmp/home.html
 python -c "
 import re
 html = open('/tmp/home.html').read()

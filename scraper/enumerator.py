@@ -4,14 +4,17 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from urllib.parse import unquote, urlparse
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from scraper.config import SKIP_PATHS, ScraperConfig
 from scraper.fetcher import Fetcher
-from scraper.linker import canonicalize_path, is_internal_href
+from scraper.linker import (
+    canonicalize_path,
+    is_internal_href,
+    source_path_from_href,
+)
 from scraper.nav_extractor import extract_nav
 
 
@@ -47,9 +50,8 @@ def _extract_links(html: str) -> tuple[str, ...]:
 
 
 def _source_path_of(href: str) -> str:
-    """Return the server-side path portion of an href, URL-decoded."""
-    parsed = urlparse(href)
-    return unquote(parsed.path or "/")
+    """Return the path relative to the configured source origin."""
+    return source_path_from_href(href)
 
 
 def _required_paths_from_nav(html: str | None) -> frozenset[str]:

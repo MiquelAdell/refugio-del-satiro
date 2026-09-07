@@ -302,6 +302,7 @@ frontend/
 | `REFUGIO_JWT_SECRET` | JWT signing secret | (dev secret) |
 | `REFUGIO_BASE_URL` | Lending app public URL (used in reset-password emails) | `http://localhost:5173/ludoteca` |
 | `REFUGIO_CONTENT_MIRROR_DIR` | Where the admin "Resync content" button writes scraped pages | `frontend/public/content-mirror` (dev) / `/srv/content` (prod) |
+| `REFUGIO_CONTENT_SOURCE_ORIGIN` | Upstream source for content sync; keep independent of public DNS | `https://sites.google.com/view/refugiodelsatiro` |
 | `BGG_BEARER_TOKEN` | BGG API bearer token (optional) | — |
 | `DEEPL_API_KEY` | DeepL API Free key for Spanish description translation (optional; untranslated descriptions are served in English) | — |
 | `VITE_API_URL` | Frontend API base URL | `/ludoteca/api` |
@@ -595,15 +596,16 @@ unset BACKUP RESTORE_DIR
 
 ### Content sync (manual)
 
-Content changes on `www.refugiodelsatiro.es` flow into this repo manually:
+Content changes published at `https://sites.google.com/view/refugiodelsatiro/`
+flow into this repo manually, independently of the custom-domain DNS:
 
 1. Run `python -m scraper run` locally (or `refugio content run`).
 2. Review the diff under `frontend/public/content-mirror/`.
 3. Commit and push if it looks good.
 
 Editors can also hit the admin-only "Resync" button at `/ludoteca/admin/content`
-to refresh the VPS cache immediately — changes are visible on
-`www.refugiodelsatiro.es` right away, but don't reach the repo until someone
+to refresh the VPS cache immediately — changes are visible on the served
+custom domain right away, but don't reach the repo until someone
 runs the local workflow above.
 
 ### BGG game data (manual)

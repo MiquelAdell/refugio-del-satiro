@@ -16,7 +16,7 @@ from scraper.shell_injector import inject_site_shell
 
 app = typer.Typer(
     name="scraper",
-    help="Scrape www.refugiodelsatiro.es into frontend/public/content-mirror/.",
+    help="Scrape the published Google Site into frontend/public/content-mirror/.",
     add_completion=False,
     no_args_is_help=False,
 )

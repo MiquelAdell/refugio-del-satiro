@@ -78,8 +78,10 @@ class FakeFetcher:
 
     def __init__(self, pages: dict[str, str]) -> None:
         self._pages = pages
+        self.requested_urls: list[str] = []
 
     async def get(self, url: str) -> FetchResult:
+        self.requested_urls.append(url)
         path = urlparse(url).path or "/"
         if path not in self._pages:
             raise RuntimeError(f"fake fetch failed for {path}")
@@ -133,6 +135,38 @@ class TestGoldenPath:
             _page_of("/juegos-de-rol"),
             _page_of("/juegos-de-rol/oneshots"),
         )
+        assert result.missing_required == ()
+        assert result.unexpected_paths == ()
+
+    @pytest.mark.asyncio
+    async def test_google_sites_mount_is_not_duplicated_in_fetch_urls(self) -> None:
+        origin = "https://sites.google.com/view/refugiodelsatiro"
+        homepage = _page(
+            nav=_nav_html(
+                (
+                    "Calendario",
+                    "/view/refugiodelsatiro/calendario",
+                    (),
+                ),
+            ),
+            links=("/view/refugiodelsatiro/calendario",),
+        )
+        fetcher = FakeFetcher(
+            {
+                "/view/refugiodelsatiro/": homepage,
+                "/view/refugiodelsatiro/calendario": _page(),
+            }
+        )
+
+        config = ScraperConfig(origin=origin)
+
+        result = await enumerate_pages(fetcher, config)
+
+        assert result.pages == (_page_of("/"), _page_of("/calendario"))
+        assert fetcher.requested_urls == [
+            "https://sites.google.com/view/refugiodelsatiro/",
+            "https://sites.google.com/view/refugiodelsatiro/calendario",
+        ]
         assert result.missing_required == ()
         assert result.unexpected_paths == ()
 

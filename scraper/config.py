@@ -6,11 +6,17 @@ class or we rearrange output, only this module needs to change.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Origin we scrape. No trailing slash.
-SOURCE_ORIGIN = "https://www.refugiodelsatiro.es"
+# The public Google Sites publishing URL is deliberately independent of the
+# custom domains that serve the mirror.  Otherwise repointing those domains at
+# Caddy would make the scraper crawl its own output.
+DEFAULT_SOURCE_ORIGIN = "https://sites.google.com/view/refugiodelsatiro"
+SOURCE_ORIGIN = os.environ.get(
+    "REFUGIO_CONTENT_SOURCE_ORIGIN", DEFAULT_SOURCE_ORIGIN
+).rstrip("/")
 
 # Paths we refuse to scrape. They either duplicate content (/inicio) or are
 # slated for replacement by our own React routes and redirected in Caddy.

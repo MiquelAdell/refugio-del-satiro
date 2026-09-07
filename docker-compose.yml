@@ -10,6 +10,7 @@ services:
       - REFUGIO_JWT_SECRET=${REFUGIO_JWT_SECRET}
       - REFUGIO_BASE_URL=${REFUGIO_BASE_URL:-http://localhost/ludoteca}
       - REFUGIO_CONTENT_MIRROR_DIR=/srv/content
+      - REFUGIO_CONTENT_SOURCE_ORIGIN=${REFUGIO_CONTENT_SOURCE_ORIGIN:-https://sites.google.com/view/refugiodelsatiro}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
