@@ -82,7 +82,11 @@ class ScraperConfig:
     origin: str = SOURCE_ORIGIN
     canonical_origin: str = CANONICAL_ORIGIN
     output_dir: Path = field(
-        default_factory=lambda: Path("frontend/public/content-mirror")
+        default_factory=lambda: Path(
+            os.environ.get(
+                "REFUGIO_CONTENT_MIRROR_DIR", "frontend/public/content-mirror"
+            )
+        )
     )
     assets_subdir: str = "_assets"
     manifest_file: str = "_manifest.json"

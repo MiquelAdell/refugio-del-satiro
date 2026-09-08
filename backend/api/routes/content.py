@@ -62,6 +62,7 @@ def _build_config() -> ScraperConfig:
     defaults = default_config()
     return ScraperConfig(
         origin=defaults.origin,
+        canonical_origin=defaults.canonical_origin,
         output_dir=output_dir,
         assets_subdir=defaults.assets_subdir,
         manifest_file=defaults.manifest_file,
