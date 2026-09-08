@@ -37,6 +37,7 @@ services:
     environment:
       - DOMAIN=${DOMAIN:-localhost}
       - REDIRECT_DOMAIN=${REDIRECT_DOMAIN:-${DOMAIN:-localhost}}
+      - ROLLBACK_DOMAIN=${ROLLBACK_DOMAIN:-${DOMAIN:-localhost}}
     depends_on:
       - app
 

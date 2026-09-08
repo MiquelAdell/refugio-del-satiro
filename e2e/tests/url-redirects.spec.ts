@@ -21,6 +21,7 @@ const ENCODED_NO_SLASH = "/juegos-de-rol/campa%C3%B1as";
 const UNKNOWN_PATH = "/this-path-does-not-exist-7f3a";
 const CANONICAL_DOMAIN = "refugiodelsatiro.es";
 const REDIRECT_DOMAIN = "www.refugiodelsatiro.es";
+const ROLLBACK_DOMAIN = "test.refugiodelsatiro.es";
 const SECURITY_HEADERS = {
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
@@ -142,7 +143,7 @@ test.describe("url-redirects", () => {
     );
   });
 
-  test("canonical-host-2: apex serves the app without a host redirect", async ({
+test("canonical-host-2: apex serves the app without a host redirect", async ({
     request,
     baseURL,
   }) => {
@@ -153,8 +154,22 @@ test.describe("url-redirects", () => {
 
     expect(healthResponse.status()).toBe(200);
     expect(healthResponse.headers().location).toBeUndefined();
-    expect(await healthResponse.json()).toEqual({ status: "ok" });
+  expect(await healthResponse.json()).toEqual({ status: "ok" });
+});
+
+test("canonical-host-3: rollback host serves the app without a host redirect", async ({
+  request,
+  baseURL,
+}) => {
+  const healthResponse = await request.get(`${baseURL}/ludoteca/api/health`, {
+    headers: { Host: ROLLBACK_DOMAIN },
+    maxRedirects: 0,
   });
+
+  expect(healthResponse.status()).toBe(200);
+  expect(healthResponse.headers().location).toBeUndefined();
+  expect(await healthResponse.json()).toEqual({ status: "ok" });
+});
 
   test("static-font-1: root font assets are served by the app", async ({
     request,

@@ -307,6 +307,7 @@ frontend/
 | `REFUGIO_CANONICAL_ORIGIN` | Public origin used in canonical links, `robots.txt`, and `sitemap.xml` | `https://DOMAIN` in Compose; `https://refugiodelsatiro.es` outside Compose |
 | `DOMAIN` | Canonical hostname served by Caddy | `localhost` |
 | `REDIRECT_DOMAIN` | Alternate hostname redirected to `DOMAIN`; set to `www.refugiodelsatiro.es` only for production | Same as `DOMAIN` (no redirect) |
+| `ROLLBACK_DOMAIN` | Temporary hostname served without redirect during the DNS rollback window; set to `test.refugiodelsatiro.es` for production | Same as `DOMAIN` |
 | `BGG_BEARER_TOKEN` | BGG API bearer token (optional) | — |
 | `DEEPL_API_KEY` | DeepL API Free key for Spanish description translation (optional; untranslated descriptions are served in English) | — |
 | `VITE_API_URL` | Frontend API base URL | `/ludoteca/api` |
@@ -335,7 +336,8 @@ git clone <repo-url> ~/refugio-del-satiro
 cd ~/refugio-del-satiro
 cp .env.production .env
 # Edit .env — set REFUGIO_JWT_SECRET and DOMAIN. For production, also set
-# REDIRECT_DOMAIN=www.refugiodelsatiro.es; staging leaves it unset.
+# REDIRECT_DOMAIN=www.refugiodelsatiro.es and
+# ROLLBACK_DOMAIN=test.refugiodelsatiro.es; staging leaves them unset.
 nano .env
 
 # Start everything
