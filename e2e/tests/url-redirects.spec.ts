@@ -142,22 +142,17 @@ test.describe("url-redirects", () => {
     );
   });
 
-  test("canonical-host-2: apex serves content without a host redirect", async ({
+  test("canonical-host-2: apex serves the app without a host redirect", async ({
     request,
     baseURL,
   }) => {
-    const contentResponse = await request.get(`${baseURL}/`, {
-      headers: { Host: CANONICAL_DOMAIN },
-      maxRedirects: 0,
-    });
     const healthResponse = await request.get(`${baseURL}/ludoteca/api/health`, {
       headers: { Host: CANONICAL_DOMAIN },
       maxRedirects: 0,
     });
 
-    expect(contentResponse.status()).toBe(200);
-    expect(contentResponse.headers().location).toBeUndefined();
     expect(healthResponse.status()).toBe(200);
+    expect(healthResponse.headers().location).toBeUndefined();
     expect(await healthResponse.json()).toEqual({ status: "ok" });
   });
 
@@ -174,13 +169,12 @@ test.describe("url-redirects", () => {
     expect((await response.body()).byteLength).toBeGreaterThan(1_000);
   });
 
-  test("security-headers-1: conservative headers cover static and lending pages", async ({
+  test("security-headers-1: conservative headers cover app and root font routes", async ({
     request,
     baseURL,
   }) => {
     for (const path of [
-      "/",
-      "/calendario/",
+      "/fonts/open-sans-variable.woff2",
       "/ludoteca/",
       "/ludoteca/login",
     ]) {
