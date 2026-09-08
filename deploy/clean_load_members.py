@@ -119,7 +119,7 @@ def summary(members: Sequence[ApprovedMember]) -> dict[str, int]:
 
 def clean_load(
     connection: sqlite3.Connection, members: Sequence[ApprovedMember]
-) -> None:
+) -> dict[str, int]:
     connection.execute("PRAGMA foreign_keys = ON")
     try:
         connection.execute("BEGIN IMMEDIATE")
@@ -153,7 +153,35 @@ def clean_load(
         foreign_key_errors = connection.execute("PRAGMA foreign_key_check").fetchall()
         if foreign_key_errors:
             raise RuntimeError("foreign_key_check failed after clean load")
+        quick_check = [
+            tuple(row) for row in connection.execute("PRAGMA quick_check").fetchall()
+        ]
+        if quick_check != [("ok",)]:
+            raise RuntimeError("quick_check failed after clean load")
+        database_counts = {
+            "members": connection.execute("SELECT COUNT(*) FROM members").fetchone()[0],
+            "active_members": connection.execute(
+                "SELECT COUNT(*) FROM members WHERE is_active = 1"
+            ).fetchone()[0],
+            "administrators": connection.execute(
+                "SELECT COUNT(*) FROM members WHERE is_admin = 1"
+            ).fetchone()[0],
+            "loans": connection.execute("SELECT COUNT(*) FROM loans").fetchone()[0],
+            "password_tokens": connection.execute(
+                "SELECT COUNT(*) FROM password_tokens"
+            ).fetchone()[0],
+        }
+        expected_counts = {
+            "members": len(members),
+            "active_members": sum(member.is_active for member in members),
+            "administrators": sum(member.is_admin for member in members),
+        }
+        if any(database_counts[key] != value for key, value in expected_counts.items()):
+            raise RuntimeError("Database counts do not match the approved source.")
+        if database_counts["loans"] != 0 or database_counts["password_tokens"] != 0:
+            raise RuntimeError("Test loans or password tokens remain after clean load.")
         connection.commit()
+        return database_counts
     except BaseException:
         connection.rollback()
         raise
@@ -193,27 +221,7 @@ def main() -> None:
         return
 
     with sqlite3.connect(args.database) as connection:
-        clean_load(connection, members)
-        check = connection.execute("PRAGMA quick_check").fetchall()
-        if check != [("ok",)]:
-            raise RuntimeError("quick_check failed after clean load")
-        database_counts = {
-            "members": connection.execute("SELECT COUNT(*) FROM members").fetchone()[0],
-            "active_members": connection.execute(
-                "SELECT COUNT(*) FROM members WHERE is_active = 1"
-            ).fetchone()[0],
-            "administrators": connection.execute(
-                "SELECT COUNT(*) FROM members WHERE is_admin = 1"
-            ).fetchone()[0],
-            "loans": connection.execute("SELECT COUNT(*) FROM loans").fetchone()[0],
-            "password_tokens": connection.execute(
-                "SELECT COUNT(*) FROM password_tokens"
-            ).fetchone()[0],
-        }
-    if any(database_counts[key] != result[key] for key in expected):
-        raise RuntimeError("Database counts do not match the approved source.")
-    if database_counts["loans"] != 0 or database_counts["password_tokens"] != 0:
-        raise RuntimeError("Test loans or password tokens remain after clean load.")
+        database_counts = clean_load(connection, members)
     print(
         "Clean load applied: "
         + ", ".join(f"{key}={value}" for key, value in database_counts.items())
