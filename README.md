@@ -159,8 +159,8 @@ Open http://localhost:8080/. The lending app is not part of this — links to
 
 ### Full stack (production-like, via Docker)
 
-Mirrors the VPS setup: Caddy at `:80`/`:443` routing `/` to the scraped site
-and `/ludoteca` to the FastAPI app, with HTTPS via Caddy's local CA. Use this
+Mirrors the VPS setup: Caddy at `:80`/`:443` routing `/` to the scraped site,
+`/ludoteca` and `/fonts` to the FastAPI app, with HTTPS via Caddy's local CA. Use this
 to verify routing, redirects, or anything that depends on both halves living
 at the same origin.
 
@@ -301,8 +301,12 @@ frontend/
 | `REFUGIO_DB_PATH` | SQLite database file path | `refugio.db` |
 | `REFUGIO_JWT_SECRET` | JWT signing secret | (dev secret) |
 | `REFUGIO_BASE_URL` | Lending app public URL (used in reset-password emails) | `http://localhost:5173/ludoteca` |
+| `REFUGIO_SECURE_AUTH_COOKIE` | Send auth cookies over HTTPS only; set to `true` for production | `false` |
 | `REFUGIO_CONTENT_MIRROR_DIR` | Where the admin "Resync content" button writes scraped pages | `frontend/public/content-mirror` (dev) / `/srv/content` (prod) |
 | `REFUGIO_CONTENT_SOURCE_ORIGIN` | Upstream source for content sync; keep independent of public DNS | `https://sites.google.com/view/refugiodelsatiro` |
+| `REFUGIO_CANONICAL_ORIGIN` | Public origin used in canonical links, `robots.txt`, and `sitemap.xml` | `https://DOMAIN` in Compose; `https://refugiodelsatiro.es` outside Compose |
+| `DOMAIN` | Canonical hostname served by Caddy | `localhost` |
+| `REDIRECT_DOMAIN` | Alternate hostname redirected to `DOMAIN`; set to `www.refugiodelsatiro.es` only for production | Same as `DOMAIN` (no redirect) |
 | `BGG_BEARER_TOKEN` | BGG API bearer token (optional) | — |
 | `DEEPL_API_KEY` | DeepL API Free key for Spanish description translation (optional; untranslated descriptions are served in English) | — |
 | `VITE_API_URL` | Frontend API base URL | `/ludoteca/api` |
@@ -330,7 +334,8 @@ ssh deploy@<server-ip>
 git clone <repo-url> ~/refugio-del-satiro
 cd ~/refugio-del-satiro
 cp .env.production .env
-# Edit .env — set REFUGIO_JWT_SECRET and DOMAIN
+# Edit .env — set REFUGIO_JWT_SECRET and DOMAIN. For production, also set
+# REDIRECT_DOMAIN=www.refugiodelsatiro.es; staging leaves it unset.
 nano .env
 
 # Start everything
@@ -580,7 +585,7 @@ PY
 docker compose up -d app
 docker compose exec app refugio migrate
 curl --fail --silent --show-error \
-  https://www.refugiodelsatiro.es/ludoteca/api/health
+  https://refugiodelsatiro.es/ludoteca/api/health
 ```
 
 The health endpoint must return `{"status":"ok"}`. Log in and smoke-test the

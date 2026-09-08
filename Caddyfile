@@ -1,4 +1,23 @@
-{$DOMAIN:localhost} {
+{$DOMAIN:localhost}, {$REDIRECT_DOMAIN:localhost} {
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Frame-Options "SAMEORIGIN"
+	}
+
+	# In production DOMAIN is the canonical apex and REDIRECT_DOMAIN is www.
+	# Staging leaves REDIRECT_DOMAIN equal to DOMAIN, so test.refugiodelsatiro.es
+	# keeps serving the release without being redirected before cutover.
+	@redirect_host expression `{http.request.host} == "{$REDIRECT_DOMAIN:localhost}" && {http.request.host} != "{$DOMAIN:localhost}"`
+	redir @redirect_host https://{$DOMAIN:localhost}{uri} 301
+
+	# The site-shell embedded in mirrored pages uses the lending app's self-hosted
+	# fonts. Preserve /fonts/* when proxying so FastAPI can serve frontend/dist.
+	handle /fonts/* {
+		reverse_proxy app:8000
+	}
+
 	# App (lending/catalog SPA) — strips the /ludoteca prefix before forwarding
 	# to the backend, which serves the SPA bundle and its API under /.
 	handle_path /ludoteca/* {

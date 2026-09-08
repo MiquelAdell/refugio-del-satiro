@@ -6,6 +6,8 @@ import bcrypt
 import jwt
 from fastapi import Request, Response
 
+from backend.config import Settings
+
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_DAYS = 7
 COOKIE_NAME = "session_token"
@@ -42,6 +44,7 @@ def set_auth_cookie(response: Response, token: str) -> None:
         key=COOKIE_NAME,
         value=token,
         httponly=True,
+        secure=Settings().secure_auth_cookie,
         samesite="lax",
         max_age=JWT_EXPIRY_DAYS * 24 * 60 * 60,
         path="/",

@@ -32,6 +32,7 @@ def _build_config(output: Path | None) -> ScraperConfig:
         return base
     return ScraperConfig(
         origin=base.origin,
+        canonical_origin=base.canonical_origin,
         output_dir=output,
         assets_subdir=base.assets_subdir,
         manifest_file=base.manifest_file,

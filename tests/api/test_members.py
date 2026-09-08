@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import sqlite3
+from unittest.mock import Mock
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
 
 from backend.api.app import create_app
 from backend.api.auth import create_jwt
 from backend.api.dependencies import _settings, get_db_conn
+from backend.api.routes.members import (
+    RATE_LIMIT_DETAIL,
+    MemberValidationRateLimiter,
+    get_member_validation_limiter,
+)
 from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
 from backend.domain.entities.member import Member
@@ -16,7 +23,11 @@ from backend.migrations.runner import run_migrations
 NOT_FOUND_DETAIL = "Socio no encontrado."
 
 
-def _setup_client() -> tuple[TestClient, sqlite3.Connection]:
+def _setup_client(
+    *,
+    limiter: MemberValidationRateLimiter | None = None,
+    client_address: tuple[str, int] = ("testclient", 50000),
+) -> tuple[TestClient, sqlite3.Connection]:
     conn = get_memory_connection()
     conn.close()
     conn = sqlite3.connect(":memory:", check_same_thread=False)
@@ -31,7 +42,9 @@ def _setup_client() -> tuple[TestClient, sqlite3.Connection]:
         yield conn
 
     app.dependency_overrides[get_db_conn] = override_db_conn
-    client = TestClient(app)
+    if limiter is not None:
+        app.dependency_overrides[get_member_validation_limiter] = lambda: limiter
+    client = TestClient(app, client=client_address)
     return client, conn
 
 
@@ -200,6 +213,132 @@ class TestValidateMember:
 
         assert response.status_code == 200
         conn.close()
+
+    def test_non_positive_number_is_rejected(self) -> None:
+        client, conn = _setup_client()
+
+        response = client.get("/api/members/validate?number=0")
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == [
+            {
+                "type": "greater_than_equal",
+                "loc": ["query", "number"],
+                "msg": "Input should be greater than or equal to 1",
+                "input": "0",
+                "ctx": {"ge": 1},
+            }
+        ]
+        conn.close()
+
+
+class TestMemberValidationRateLimit:
+    def test_known_and_unknown_lookups_share_limit_without_logging_number(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=2,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(limiter=limiter)
+        member_repo = SqliteMemberRepository(conn)
+        _make_member(
+            member_repo,
+            number=42,
+            first_name="Carlos",
+            last_name="López",
+            email="rate-limit@example.invalid",
+        )
+
+        with caplog.at_level("WARNING", logger="backend.api.routes.members"):
+            known_response = client.get("/api/members/validate?number=42")
+            unknown_response = client.get("/api/members/validate?number=9999")
+            limited_response = client.get("/api/members/validate?number=987654")
+
+        health_response = client.get("/api/health")
+
+        assert known_response.status_code == 200
+        assert unknown_response.status_code == 404
+        assert limited_response.status_code == 429
+        assert limited_response.json() == {"detail": RATE_LIMIT_DETAIL}
+        assert limited_response.headers["retry-after"] == "60"
+        assert caplog.messages == ["Membership validation rate limit exceeded"]
+        assert "987654" not in caplog.text
+        assert health_response.status_code == 200
+        assert health_response.json() == {"status": "ok"}
+        conn.close()
+
+    def test_trusted_proxy_uses_forwarded_client_address(self) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(
+            limiter=limiter,
+            client_address=("127.0.0.1", 50000),
+        )
+
+        first_client = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+        second_client = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.11"},
+        )
+        first_client_again = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+
+        assert first_client.status_code == 404
+        assert second_client.status_code == 404
+        assert first_client_again.status_code == 429
+        conn.close()
+
+    def test_untrusted_peer_cannot_evade_limit_with_forwarded_header(self) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(
+            limiter=limiter,
+            client_address=("198.51.100.7", 50000),
+        )
+
+        first_response = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+        second_response = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.11"},
+        )
+
+        assert first_response.status_code == 404
+        assert second_response.status_code == 429
+        conn.close()
+
+    def test_window_expiry_and_client_bound_are_exact(self) -> None:
+        clock = Mock(side_effect=[0.0, 0.0, 1.0, 1.0, 61.0])
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=1,
+            clock=clock,
+        )
+
+        assert limiter.check("client-a") is None
+        assert limiter.check("client-a") == 60
+        assert limiter.check("client-b") is None
+        assert limiter.check("client-a") is None
+        assert limiter.check("client-a") is None
 
 
 class TestAdminPatchMember:
@@ -458,7 +597,7 @@ class TestAdminImportMembers:
 
     def _post_import(
         self, client: TestClient, admin: Member, csv_bytes: bytes
-    ):  # type: ignore[no-untyped-def]
+    ) -> Response:
         return client.post(
             "/api/admin/members/import",
             files={"file": ("members.csv", csv_bytes, "text/csv")},

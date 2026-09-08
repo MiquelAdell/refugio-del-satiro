@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 
+import pytest
 from fastapi.testclient import TestClient
 
 from backend.api.app import create_app
@@ -55,6 +56,67 @@ class TestLogin:
         assert response.status_code == 200
         assert response.json() == {"ok": True}
         assert "session_token" in response.cookies
+
+    def test_production_login_sets_secure_cookie(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("REFUGIO_SECURE_AUTH_COOKIE", "true")
+        client, conn = _setup_test_client()
+        member_repo = SqliteMemberRepository(conn)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "secure@example.invalid", "Test User", False
+        )
+        member_repo.set_password_hash(member.id, hash_password("mypassword"))
+
+        response = client.post(
+            "/api/login",
+            json={"email": "secure@example.invalid", "password": "mypassword"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"ok": True}
+        assert response.headers["set-cookie"].split("; ") == [
+            f"session_token={response.cookies['session_token']}",
+            "HttpOnly",
+            "Max-Age=604800",
+            "Path=/",
+            "SameSite=lax",
+            "Secure",
+        ]
+
+    def test_local_login_cookie_remains_usable_over_http(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("REFUGIO_SECURE_AUTH_COOKIE", "false")
+        client, conn = _setup_test_client()
+        member_repo = SqliteMemberRepository(conn)
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "local@example.invalid", "Test User", False
+        )
+        member_repo.set_password_hash(member.id, hash_password("mypassword"))
+
+        login_response = client.post(
+            "/api/login",
+            json={"email": "local@example.invalid", "password": "mypassword"},
+        )
+        me_response = client.get("/api/me")
+
+        assert login_response.status_code == 200
+        assert "Secure" not in login_response.headers["set-cookie"]
+        assert me_response.status_code == 200
+        assert me_response.json() == {
+            "id": member.id,
+            "member_number": 1,
+            "first_name": "Test",
+            "last_name": "User",
+            "nickname": None,
+            "phone": None,
+            "email": "local@example.invalid",
+            "display_name": "Test User",
+            "is_admin": False,
+            "is_active": True,
+            "last_payment": None,
+        }
 
     def test_login_wrong_password(self) -> None:
         client, conn = _setup_test_client()

@@ -18,6 +18,13 @@ SOURCE_ORIGIN = os.environ.get(
     "REFUGIO_CONTENT_SOURCE_ORIGIN", DEFAULT_SOURCE_ORIGIN
 ).rstrip("/")
 
+# Public origin advertised to search engines. This is separate from the source
+# origin so staging can use its own canonical URLs without ever scraping itself.
+DEFAULT_CANONICAL_ORIGIN = "https://refugiodelsatiro.es"
+CANONICAL_ORIGIN = os.environ.get(
+    "REFUGIO_CANONICAL_ORIGIN", DEFAULT_CANONICAL_ORIGIN
+).rstrip("/")
+
 # Paths we refuse to scrape. They either duplicate content (/inicio) or are
 # slated for replacement by our own React routes and redirected in Caddy.
 SKIP_PATHS: frozenset[str] = frozenset(
@@ -73,6 +80,7 @@ class ScraperConfig:
     """Runtime knobs. Immutable; call replace() to override in tests."""
 
     origin: str = SOURCE_ORIGIN
+    canonical_origin: str = CANONICAL_ORIGIN
     output_dir: Path = field(
         default_factory=lambda: Path("frontend/public/content-mirror")
     )

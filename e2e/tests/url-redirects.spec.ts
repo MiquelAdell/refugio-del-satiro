@@ -19,6 +19,14 @@ const ENCODED_WITH_SLASH = "/juegos-de-rol/campa%C3%B1as/";
 const CANONICAL_WITH_SLASH = "/juegos-de-rol/campanas/";
 const ENCODED_NO_SLASH = "/juegos-de-rol/campa%C3%B1as";
 const UNKNOWN_PATH = "/this-path-does-not-exist-7f3a";
+const CANONICAL_DOMAIN = "refugiodelsatiro.es";
+const REDIRECT_DOMAIN = "www.refugiodelsatiro.es";
+const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "x-frame-options": "SAMEORIGIN",
+};
 
 test.describe("url-redirects", () => {
   test.use({ storageState: GUEST_STATE });
@@ -117,5 +125,68 @@ test.describe("url-redirects", () => {
     });
     expect(response, "expected a response from Caddy").not.toBeNull();
     expect(response!.status()).toBe(404);
+  });
+
+  test("canonical-host-1: www redirects to apex preserving path and query", async ({
+    request,
+    baseURL,
+  }) => {
+    const response = await request.get(`${baseURL}/calendario/?source=legacy`, {
+      headers: { Host: REDIRECT_DOMAIN },
+      maxRedirects: 0,
+    });
+
+    expect(response.status()).toBe(301);
+    expect(response.headers().location).toBe(
+      `https://${CANONICAL_DOMAIN}/calendario/?source=legacy`,
+    );
+  });
+
+  test("canonical-host-2: apex serves content without a host redirect", async ({
+    request,
+    baseURL,
+  }) => {
+    const contentResponse = await request.get(`${baseURL}/`, {
+      headers: { Host: CANONICAL_DOMAIN },
+      maxRedirects: 0,
+    });
+    const healthResponse = await request.get(`${baseURL}/ludoteca/api/health`, {
+      headers: { Host: CANONICAL_DOMAIN },
+      maxRedirects: 0,
+    });
+
+    expect(contentResponse.status()).toBe(200);
+    expect(contentResponse.headers().location).toBeUndefined();
+    expect(healthResponse.status()).toBe(200);
+    expect(await healthResponse.json()).toEqual({ status: "ok" });
+  });
+
+  test("static-font-1: root font assets are served by the app", async ({
+    request,
+    baseURL,
+  }) => {
+    const response = await request.get(
+      `${baseURL}/fonts/open-sans-variable.woff2`,
+    );
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("font/woff2");
+    expect((await response.body()).byteLength).toBeGreaterThan(1_000);
+  });
+
+  test("security-headers-1: conservative headers cover static and lending pages", async ({
+    request,
+    baseURL,
+  }) => {
+    for (const path of [
+      "/",
+      "/calendario/",
+      "/ludoteca/",
+      "/ludoteca/login",
+    ]) {
+      const response = await request.get(`${baseURL}${path}`);
+      expect(response.status(), path).toBe(200);
+      expect(response.headers(), path).toMatchObject(SECURITY_HEADERS);
+    }
   });
 });

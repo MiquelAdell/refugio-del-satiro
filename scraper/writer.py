@@ -7,11 +7,13 @@ import json
 import logging
 import os
 from datetime import UTC, datetime
+from html import escape
 from pathlib import Path
 
 from scraper.config import ScraperConfig
 from scraper.manifest import Manifest, PageRecord, dump, load
 from scraper.nav_extractor import NavItem
+from scraper.seo import canonical_url
 
 _log = logging.getLogger(__name__)
 
@@ -25,6 +27,14 @@ def content_sha(content_html: str) -> str:
 
 
 _NAV_FILENAME = "_nav.json"
+_ROBOTS_FILENAME = "robots.txt"
+_SITEMAP_FILENAME = "sitemap.xml"
+
+
+def _write_atomic(target: Path, content: bytes) -> None:
+    tmp = target.with_name(f"{target.name}.tmp")
+    tmp.write_bytes(content)
+    os.replace(tmp, target)
 
 
 def _serialise_item(item: NavItem) -> dict[str, object]:
@@ -59,10 +69,36 @@ def write_nav(items: tuple[NavItem, ...], target_dir: Path) -> str | None:
     sha = hashlib.sha256(json_bytes).hexdigest()
 
     dest = target_dir / _NAV_FILENAME
-    tmp = target_dir / f"{_NAV_FILENAME}.tmp"
-    tmp.write_bytes(json_bytes)
-    os.replace(tmp, dest)
+    _write_atomic(dest, json_bytes)
     return sha
+
+
+def write_search_discovery(
+    *, target_dir: Path, canonical_origin: str, paths: tuple[str, ...]
+) -> tuple[Path, Path]:
+    """Write robots.txt and sitemap.xml atomically from successful pages."""
+    origin = canonical_origin.rstrip("/")
+    robots = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        f"Sitemap: {origin}/sitemap.xml\n"
+    ).encode()
+    urls = "\n".join(
+        f"  <url><loc>{escape(canonical_url(origin, path))}</loc></url>"
+        for path in sorted(set(paths))
+    )
+    sitemap = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{urls}\n"
+        "</urlset>\n"
+    ).encode()
+
+    robots_path = target_dir / _ROBOTS_FILENAME
+    sitemap_path = target_dir / _SITEMAP_FILENAME
+    _write_atomic(robots_path, robots)
+    _write_atomic(sitemap_path, sitemap)
+    return robots_path, sitemap_path
 
 
 def write_page(
