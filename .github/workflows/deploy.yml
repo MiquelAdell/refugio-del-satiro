@@ -3,6 +3,18 @@ name: Deploy
 on:
   push:
     branches: [development]
+    paths:
+      - '.github/workflows/deploy.yml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'scraper/**'
+      - 'data/**'
+      - 'deploy/**'
+      - 'Caddyfile'
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'uv.lock'
   workflow_dispatch:
     inputs:
       target:
