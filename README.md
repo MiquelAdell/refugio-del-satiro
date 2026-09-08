@@ -361,6 +361,12 @@ job can access production secrets. The workflow checks out the exact `main`
 SHA and passes it to `deploy/deploy.sh`; the script refuses to deploy a
 different checkout or a server checkout with tracked changes.
 
+The current VPS is a single stack, not isolated staging. Before a production
+cutover on that stack, set the repository variable `STAGING_DEPLOY_ENABLED` to
+`false` to freeze `development` deployments. Do this before configuring the
+production job with that stack's checkout. Keep it disabled until staging has
+its own host or isolated stack.
+
 Configure these repository/environment secrets before enabling either route:
 
 | Secret | Value |
