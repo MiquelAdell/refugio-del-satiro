@@ -3,26 +3,60 @@ name: Deploy
 on:
   push:
     branches: [development]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deployment target (production is only available from main)"
+        required: true
+        type: choice
+        options:
+          - production
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.event_name == 'push' && 'staging' || inputs.target }}
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  deploy-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
+    environment: staging
     steps:
-      - name: Deploy via SSH
+      - name: Deploy tested development commit to staging
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          host: ${{ secrets.STAGING_DEPLOY_HOST }}
+          username: ${{ secrets.STAGING_DEPLOY_USER }}
+          key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          port: ${{ secrets.STAGING_DEPLOY_PORT || 22 }}
           script_stop: true
           script: |
-            cd /root/refugio-del-satiro
-            git fetch --all
-            git checkout -f development
-            git reset --hard origin/development
-            ./deploy/deploy.sh
+            set -euo pipefail
+            cd "${{ secrets.STAGING_DEPLOY_DIR }}"
+            git fetch --prune origin development
+            release_sha="$(git rev-parse origin/development)"
+            test "$release_sha" = "${{ github.sha }}"
+            git checkout --detach "$release_sha"
+            ./deploy/deploy.sh "$release_sha"
+
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.target == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy pinned main commit to production
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PRODUCTION_DEPLOY_HOST }}
+          username: ${{ secrets.PRODUCTION_DEPLOY_USER }}
+          key: ${{ secrets.PRODUCTION_DEPLOY_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_DEPLOY_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.PRODUCTION_DEPLOY_DIR }}"
+            git fetch --prune origin main
+            release_sha="$(git rev-parse origin/main)"
+            test "$release_sha" = "${{ github.sha }}"
+            git checkout --detach "$release_sha"
+            ./deploy/deploy.sh "$release_sha"

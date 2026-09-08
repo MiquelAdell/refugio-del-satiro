@@ -1,0 +1,19 @@
+[Unit]
+Description=Back up the Refugio del Satiro production database
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/refugio-del-satiro
+Environment=BACKUP_RETAIN_COUNT=14
+ExecStart=/bin/bash /root/refugio-del-satiro/deploy/backup-db.sh
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+[Install]
+WantedBy=multi-user.target

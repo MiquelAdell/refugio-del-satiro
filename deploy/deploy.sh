@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
-# Run from the project root on the server to deploy or update.
-# Usage: ./deploy/deploy.sh
+# Deploy a previously checked-out, pinned release from the project root.
+# Usage: ./deploy/deploy.sh <full-release-sha>
 set -euo pipefail
 
-echo "==> Pulling latest code"
-git pull
+readonly expected_sha="${1:?Usage: ./deploy/deploy.sh <full-release-sha>}"
+readonly release_sha="$(git rev-parse HEAD)"
+
+if [[ "$release_sha" != "$expected_sha" ]]; then
+    echo "Checked-out commit ($release_sha) does not match requested release ($expected_sha)." >&2
+    exit 1
+fi
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Refusing to deploy with tracked changes in the server checkout." >&2
+    exit 1
+fi
+
+echo "==> Deploying pinned release $release_sha"
 
 echo "==> Building and starting containers"
 docker compose up -d --build

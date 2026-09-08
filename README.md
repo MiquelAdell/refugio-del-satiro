@@ -346,30 +346,53 @@ docker compose exec app refugio migrate
 docker compose exec app refugio import-games data/bgg_collection.json
 ```
 
-### Update after changes
+### Releases and deployment
 
-```bash
-cd ~/refugio-del-satiro
-./deploy/deploy.sh
-```
+`development` is staging-only. Every push to it deploys the exact pushed SHA
+to the staging checkout and must be browser-tested at
+`https://test.refugiodelsatiro.es/` before release.
 
-### Automatic deployment
+Production is deliberately manual: merge the tested release into `main`, then
+run the **Deploy** workflow from the `main` branch and choose `production`.
+GitHub's `production` environment must require the release approval before its
+job can access production secrets. The workflow checks out the exact `main`
+SHA and passes it to `deploy/deploy.sh`; the script refuses to deploy a
+different checkout or a server checkout with tracked changes.
 
-Pushes to `development` trigger [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
-which SSHes into the server and runs `deploy/deploy.sh`. Requires these GitHub
-Actions secrets on the repository:
+Configure these repository/environment secrets before enabling either route:
 
 | Secret | Value |
 |--------|-------|
-| `DEPLOY_HOST` | Server hostname or IP (e.g. `45.95.175.19`) |
-| `DEPLOY_USER` | SSH user (e.g. `root`) |
-| `DEPLOY_SSH_KEY` | Private SSH key authorised on the server |
-| `DEPLOY_PORT` | SSH port, optional (defaults to `22`) |
+| `STAGING_DEPLOY_HOST` | Staging server hostname or IP |
+| `STAGING_DEPLOY_USER` | SSH user for staging |
+| `STAGING_DEPLOY_SSH_KEY` | Private key authorised for staging |
+| `STAGING_DEPLOY_PORT` | SSH port for staging, optional (defaults to `22`) |
+| `STAGING_DEPLOY_DIR` | Absolute staging checkout directory |
+| `PRODUCTION_DEPLOY_HOST` | Production server hostname or IP |
+| `PRODUCTION_DEPLOY_USER` | SSH user for production |
+| `PRODUCTION_DEPLOY_SSH_KEY` | Private key authorised for production |
+| `PRODUCTION_DEPLOY_PORT` | SSH port for production, optional (defaults to `22`) |
+| `PRODUCTION_DEPLOY_DIR` | Absolute production checkout directory |
 
-### Weekly database backups
+Until staging and production have separate checkouts (and preferably separate
+stacks), do not configure the two directory secrets to the same path. A
+staging deployment must never be able to change the production checkout.
 
-Production takes a consistent SQLite snapshot every Sunday at 03:00
-Europe/Madrid and keeps the three newest snapshots in Google Drive. The backup
+For an emergency manual deployment, use the same pinned-release sequence, not
+`git pull`:
+
+```bash
+cd /root/refugio-del-satiro
+git fetch --prune origin main
+RELEASE_SHA=$(git rev-parse origin/main)
+git checkout --detach "$RELEASE_SHA"
+./deploy/deploy.sh "$RELEASE_SHA"
+```
+
+### Daily database backups
+
+Production takes a consistent SQLite snapshot daily at 03:00 Europe/Madrid
+and keeps the 14 newest snapshots in Google Drive. The backup
 contains member data, password hashes, and any reset tokens that have not yet
 expired. It does not have separate client-side encryption: access depends on
 the security of the Google account. Keep
@@ -441,14 +464,31 @@ cd /root/refugio-del-satiro
 ./deploy/backup-db.sh --dry-run
 ```
 
-The dry run leaves its validated snapshot in `/var/lib/refugio-backup`; remove
-that test file after inspection.
+The dry run leaves its validated snapshot in `/var/lib/refugio-backup`; inspect
+it and remove it only when the retention window allows.
 
 #### Non-destructive restore drill
 
-Run this periodically with a real filename from the remote listing. It
-downloads the snapshot, runs the stronger `PRAGMA integrity_check`, verifies
-the core tables, and never touches production:
+Run this after enabling backups and at least quarterly, using a real filename
+from the remote listing. It verifies the off-box byte count, downloads the
+snapshot into a temporary directory, runs `PRAGMA integrity_check`, checks the
+core tables, prints non-PII table counts, and never mounts or changes the
+production database. Record the expected counts from the pre-cutover backup in
+the cutover log and pass them to make the drill an assertion rather than a
+visual check:
+
+```bash
+cd /root/refugio-del-satiro
+./deploy/restore-drill.sh refugio-YYYYMMDDTHHMMSSZ.db \
+  --expect-members 0 --expect-games 0 --expect-loans 0
+```
+
+Replace the zeroes with the counts captured for that selected snapshot. To
+inspect an older snapshot without fixed expectations, omit the three
+`--expect-*` arguments.
+
+The equivalent manual procedure is retained below for incident response and
+auditability:
 
 ```bash
 cd /root/refugio-del-satiro
