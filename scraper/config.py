@@ -42,13 +42,11 @@ SKIP_PATHS: frozenset[str] = frozenset(
 # bar, edit toolbar). Everything else — header nav, user footer, OG meta
 # tags, etc. — is preserved verbatim.
 
-# Deliberately empty: we keep Sites' output verbatim — scripts, iframes,
-# cookie notice, "Report abuse" trailer, "Last edited" indicator, everything.
-# The only transformations we perform are link rewriting (to canonical local
-# paths), image rehosting (to `_assets/`), and a `<base>` strip so those link
-# rewrites aren't undone. Notes + functionality match the live Sites site
-# 1:1.
-STRIP_SELECTORS: tuple[str, ...] = ()
+# Google's page runtime assumes it is running on Google Sites and navigates a
+# custom-domain visitor back to the upstream `sites.google.com` URL. Preserve
+# the document's markup and CSS, but remove that runtime. Embedded iframes
+# (notably the public calendar) remain independent and are kept.
+STRIP_SELECTORS: tuple[str, ...] = ("script", "noscript")
 
 # The content shell we still use for *sanity checking* after a strip: if this
 # element isn't present in the resulting page, something went very wrong and
