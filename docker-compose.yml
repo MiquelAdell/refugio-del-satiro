@@ -9,13 +9,17 @@ services:
       - REFUGIO_DB_PATH=/app/data/db/refugio.db
       - REFUGIO_JWT_SECRET=${REFUGIO_JWT_SECRET}
       - REFUGIO_BASE_URL=${REFUGIO_BASE_URL:-http://localhost/ludoteca}
+      - REFUGIO_SECURE_AUTH_COOKIE=${REFUGIO_SECURE_AUTH_COOKIE:-false}
       - REFUGIO_CONTENT_MIRROR_DIR=/srv/content
+      - REFUGIO_CONTENT_SOURCE_ORIGIN=${REFUGIO_CONTENT_SOURCE_ORIGIN:-https://sites.google.com/view/refugiodelsatiro}
+      - REFUGIO_CANONICAL_ORIGIN=${REFUGIO_CANONICAL_ORIGIN:-https://${DOMAIN:-localhost}}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
       - BGG_BEARER_TOKEN=${BGG_BEARER_TOKEN:-}
+      - DEEPL_API_KEY=${DEEPL_API_KEY:-}
     expose:
       - "8000"
 
@@ -32,6 +36,8 @@ services:
       - caddy-config:/config
     environment:
       - DOMAIN=${DOMAIN:-localhost}
+      - REDIRECT_DOMAIN=${REDIRECT_DOMAIN:-${DOMAIN:-localhost}}
+      - ROLLBACK_DOMAIN=${ROLLBACK_DOMAIN:-${DOMAIN:-localhost}}
     depends_on:
       - app
 

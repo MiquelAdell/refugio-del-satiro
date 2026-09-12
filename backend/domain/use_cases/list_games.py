@@ -23,11 +23,16 @@ class GameWithStatus:
     playing_time: int
     bgg_rating: float
     location: str
+    description: str
+    description_es: str
+    categories: tuple[str, ...]
     created_at: datetime
     updated_at: datetime
     status: str  # "available" or "lent"
     borrower_display_name: str | None
     loan_id: int | None
+    min_age: int
+    primary_tag: str
 
 
 def build_game_with_status(
@@ -50,11 +55,16 @@ def build_game_with_status(
             playing_time=game.playing_time,
             bgg_rating=game.bgg_rating,
             location=game.location,
+            description=game.description,
+            description_es=game.description_es,
+            categories=game.categories,
             created_at=game.created_at,
             updated_at=game.updated_at,
             status="available",
             borrower_display_name=None,
             loan_id=None,
+            min_age=game.min_age,
+            primary_tag=game.primary_tag,
         )
 
     member = member_repo.get_by_id(active_loan.member_id)
@@ -71,11 +81,16 @@ def build_game_with_status(
         playing_time=game.playing_time,
         bgg_rating=game.bgg_rating,
         location=game.location,
+        description=game.description,
+        description_es=game.description_es,
+        categories=game.categories,
         created_at=game.created_at,
         updated_at=game.updated_at,
         status="lent",
         borrower_display_name=member.display_name if member else None,
         loan_id=active_loan.id,
+        min_age=game.min_age,
+        primary_tag=game.primary_tag,
     )
 
 

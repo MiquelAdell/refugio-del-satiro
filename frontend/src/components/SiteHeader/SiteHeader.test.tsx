@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { act, render, screen, fireEvent, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { SiteHeader } from "./SiteHeader";
 import type { NavItemsState } from "../../hooks/useNavItems";
 import type { CurrentMember } from "../../types/member";
@@ -63,9 +63,16 @@ function setMember() {
     ...mockAuthState,
     member: {
       id: 1,
+      member_number: 101,
+      first_name: "Test",
+      last_name: "User",
+      nickname: "Tester",
+      phone: "600 00 00 01",
       email: "user@test.com",
       display_name: "Test User",
       is_admin: false,
+      is_active: true,
+      last_payment: "24/01/2026",
     },
   };
 }
@@ -75,11 +82,28 @@ function setAdmin() {
     ...mockAuthState,
     member: {
       id: 2,
+      member_number: 102,
+      first_name: "Admin",
+      last_name: "User",
+      nickname: null,
+      phone: "600 00 00 02",
       email: "admin@test.com",
       display_name: "Admin User",
       is_admin: true,
+      is_active: true,
+      last_payment: "24/01/2026",
     },
   };
+}
+
+/** Desktop user-menu trigger button (display name + chevron). */
+function getUserMenuTrigger(container: HTMLElement, name: string) {
+  return Array.from(container.querySelectorAll("button")).find(
+    (el) =>
+      el.textContent?.includes(name) &&
+      el.getAttribute("aria-haspopup") === "menu" &&
+      !el.closest("#mobile-drawer")
+  );
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -89,6 +113,11 @@ describe("SiteHeader", () => {
     mockNavState = { items: NAV_ITEMS, status: "ready" };
     mockLogout.mockReset();
     setGuest();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    window.history.replaceState(null, "", "/");
   });
 
   describe("fetched nav items", () => {
@@ -116,7 +145,7 @@ describe("SiteHeader", () => {
       ]);
     });
 
-    it("renders only the Ludoteca parent when status is error", () => {
+    it("renders no top-level items when status is error", () => {
       mockNavState = { items: [], status: "error" };
       const { container } = renderHeader();
 
@@ -126,44 +155,41 @@ describe("SiteHeader", () => {
       const navLinks = Array.from(desktopNav!.querySelectorAll("a")).map(
         (el) => el.textContent
       );
-      expect(navLinks).not.toContain("Inicio");
-      expect(navLinks).not.toContain("Calendario");
+      expect(navLinks).toEqual([]);
     });
 
-    it("renders only the Ludoteca parent when items is empty with ready status", () => {
+    it("renders no top-level items when items is empty with ready status", () => {
       mockNavState = { items: [], status: "ready" };
       const { container } = renderHeader();
 
       const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      // Get only direct children li of the top-level ul (not nested submenu li)
       const topNavList = desktopNav!.querySelector("ul");
       const topLevelItems = Array.from(topNavList!.children).map((li) => {
         const link = li.querySelector(":scope > a, :scope > button");
         return link?.textContent ?? "";
       });
-      // With empty items, only Ludoteca should be in the top-level nav
-      expect(topLevelItems.map((t) => t.trim())).toEqual(["Ludoteca"]);
+      expect(topLevelItems).toEqual([]);
     });
   });
 
-  describe("Ludoteca submenu — guest", () => {
-    it("renders Ludoteca as a plain link with no submenu and no chevron", () => {
+  describe("guest state", () => {
+    it("shows no menuitems and no user menu for guest", () => {
       setGuest();
       renderHeader();
 
-      // No menuitem roles at all — Ludoteca is a plain link, no submenu rendered
       expect(screen.queryAllByRole("menuitem")).toEqual([]);
-      // No aria-haspopup anywhere
       expect(
         document.querySelectorAll("[aria-haspopup='menu']").length
       ).toEqual(0);
     });
 
-    it("does not show Mis préstamos, Cerrar sesión, or Administración for guest", () => {
+    it("does not show authenticated user-menu entries for guest", () => {
       setGuest();
       renderHeader();
 
+      expect(screen.queryByText("Mi perfil")).toBeNull();
       expect(screen.queryByText("Mis préstamos")).toBeNull();
+      expect(screen.queryByText("Cambiar contraseña")).toBeNull();
       expect(screen.queryByText("Cerrar sesión")).toBeNull();
       expect(screen.queryByText("Administración")).toBeNull();
     });
@@ -191,17 +217,6 @@ describe("SiteHeader", () => {
       );
       expect(loginLinks.length).toEqual(0);
     });
-
-    it("does not show Iniciar sesión inside the Ludoteca submenu", () => {
-      setGuest();
-      renderHeader();
-
-      // Iniciar sesión exists in header/drawer (covered above) but never as a menuitem
-      const menuitems = screen
-        .queryAllByRole("menuitem")
-        .map((el) => el.textContent?.trim());
-      expect(menuitems).toEqual([]);
-    });
   });
 
   describe("Iniciar sesión action — authenticated users", () => {
@@ -226,16 +241,47 @@ describe("SiteHeader", () => {
     });
   });
 
-  describe("Ludoteca submenu — member", () => {
-    it("renders exactly Mis préstamos in submenu (not Cerrar sesión) for member", () => {
+  describe("user menu — member", () => {
+    it("renders a trigger with the display name and chevron in header actions", () => {
+      setMember();
+      const { container } = renderHeader();
+
+      const trigger = getUserMenuTrigger(container, "Test User");
+      expect(trigger).toBeDefined();
+      expect(trigger!.querySelectorAll("svg").length).toEqual(1);
+    });
+
+    it("renders the exact member menu ordering", () => {
       setMember();
       renderHeader();
 
-      const submenuItems = screen
+      // Desktop dropdown is always in the DOM (CSS-hidden); drawer submenu only
+      // renders when expanded, so these come from the desktop menu.
+      const menuitems = screen
         .getAllByRole("menuitem")
         .map((el) => el.textContent?.trim());
+      expect(menuitems).toEqual([
+        "Mi perfil",
+        "Mis préstamos",
+        "Cerrar sesión",
+      ]);
+    });
 
-      expect(submenuItems).toEqual(["Mis préstamos"]);
+    it("links Mi perfil to /profile", () => {
+      setMember();
+      renderHeader();
+
+      const profileLinks = screen
+        .getAllByRole("menuitem")
+        .filter((el) => el.textContent?.trim() === "Mi perfil")
+        .map((el) => el.querySelector("a"));
+      expect(profileLinks).toEqual([expect.any(HTMLAnchorElement)]);
+      expect(profileLinks[0]).toHaveAttribute("href", "/profile");
+    });
+
+    it("links Mis préstamos to /my-loans", () => {
+      setMember();
+      renderHeader();
 
       const misPrestamosLinks = screen
         .getAllByRole("menuitem")
@@ -246,16 +292,11 @@ describe("SiteHeader", () => {
       });
     });
 
-    it("shows Cerrar sesión button in header actions (not in submenu) for member", () => {
+    it("does not link to password change", () => {
       setMember();
       renderHeader();
 
-      // The desktop header actions slot is always in the DOM; the drawer is aria-hidden when closed
-      const cerrarBtns = screen.getAllByRole("button", { name: "Cerrar sesión" });
-      expect(cerrarBtns.length).toEqual(1);
-
-      const menuitems = screen.getAllByRole("menuitem").map((el) => el.textContent?.trim());
-      expect(menuitems).not.toContain("Cerrar sesión");
+      expect(screen.queryByRole("link", { name: "Cambiar contraseña" })).toBeNull();
     });
 
     it("does not show Iniciar sesión or Administración for member", () => {
@@ -265,26 +306,17 @@ describe("SiteHeader", () => {
       expect(screen.queryByText("Iniciar sesión")).toBeNull();
       expect(screen.queryByText("Administración")).toBeNull();
     });
-  });
 
-  describe("Ludoteca submenu — admin", () => {
-    it("renders Mis préstamos in submenu but not Cerrar sesión for admin", () => {
-      setAdmin();
+    it("shows display_name in desktop trigger and drawer section", () => {
+      setMember();
       renderHeader();
 
-      const submenuItems = screen
-        .getAllByRole("menuitem")
-        .map((el) => el.textContent?.trim());
-
-      // Admin sees link items in submenu; Cerrar sesión is now in the header actions slot
-      expect(submenuItems).toContain("Mis préstamos");
-      expect(submenuItems).not.toContain("Cerrar sesión");
-
-      // Cerrar sesión is a button in the header actions area; drawer is aria-hidden when closed
-      const cerrarBtns = screen.getAllByRole("button", { name: "Cerrar sesión" });
-      expect(cerrarBtns.length).toEqual(1);
+      const displayNameEls = screen.getAllByText("Test User");
+      expect(displayNameEls.length).toEqual(2);
     });
+  });
 
+  describe("user menu — admin", () => {
     it("renders the Administración nested parent for admin", () => {
       setAdmin();
       renderHeader();
@@ -293,12 +325,42 @@ describe("SiteHeader", () => {
       expect(screen.getByText("Administración").tagName).toEqual("BUTTON");
     });
 
-    it("renders Miembros and Contenido as nested items for admin", () => {
+    it("renders Miembros, Contenido GSite and Datos BGG as nested items for admin", () => {
       setAdmin();
       renderHeader();
 
       expect(screen.getByText("Miembros").tagName).toEqual("A");
-      expect(screen.getByText("Contenido").tagName).toEqual("A");
+      expect(screen.getByText("Contenido GSite").tagName).toEqual("A");
+      expect(screen.getByText("Datos BGG").tagName).toEqual("A");
+    });
+
+    it("renders the exact admin top-level menu ordering", () => {
+      setAdmin();
+      const { container } = renderHeader();
+
+      const desktopMenu = container.querySelector(
+        "div[class*='userMenu'] ul"
+      ) as HTMLElement;
+      const topLevelLabels = Array.from(desktopMenu.children).map((li) =>
+        li.querySelector(":scope > a, :scope > button")?.textContent?.trim()
+      );
+      expect(topLevelLabels).toEqual([
+        "Mi perfil",
+        "Mis préstamos",
+        "Administración",
+        "Cerrar sesión",
+      ]);
+    });
+
+    it("links Mi perfil to /profile for admin", () => {
+      setAdmin();
+      renderHeader();
+
+      const profileLink = screen
+        .getAllByRole("menuitem")
+        .find((el) => el.textContent?.trim() === "Mi perfil")
+        ?.querySelector("a");
+      expect(profileLink).toHaveAttribute("href", "/profile");
     });
 
     it("does not show nested admin items for guest", () => {
@@ -306,7 +368,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
-      expect(screen.queryByText("Contenido")).toBeNull();
+      expect(screen.queryByText("Contenido GSite")).toBeNull();
     });
 
     it("does not show nested admin items for non-admin member", () => {
@@ -314,12 +376,44 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
-      expect(screen.queryByText("Contenido")).toBeNull();
+      expect(screen.queryByText("Contenido GSite")).toBeNull();
+    });
+  });
+
+  describe("admin nested link hrefs (submenu-admin-2)", () => {
+    it("Miembros link has href /admin/members", () => {
+      setAdmin();
+      const { container } = renderHeader();
+
+      const allLinks = Array.from(container.querySelectorAll("a"));
+      const miembrosLink = allLinks.find((el) => el.textContent?.trim() === "Miembros");
+      expect(miembrosLink).not.toBeUndefined();
+      // Plain MemoryRouter with no basename: Link to="/admin/members" renders /admin/members
+      expect(miembrosLink!.getAttribute("href")).toEqual("/admin/members");
+    });
+
+    it("Contenido link has href /admin/content", () => {
+      setAdmin();
+      const { container } = renderHeader();
+
+      const allLinks = Array.from(container.querySelectorAll("a"));
+      const contenidoLink = allLinks.find((el) => el.textContent?.trim() === "Contenido GSite");
+      expect(contenidoLink).not.toBeUndefined();
+      expect(contenidoLink!.getAttribute("href")).toEqual("/admin/content");
     });
   });
 
   describe("Cerrar sesión action", () => {
-    it("calls logout when Cerrar sesión is clicked", async () => {
+    it("renders Cerrar sesión as a menuitem inside the user menu (single instance while drawer collapsed)", () => {
+      setMember();
+      renderHeader();
+
+      const cerrarBtns = screen.getAllByRole("button", { name: "Cerrar sesión" });
+      expect(cerrarBtns.length).toEqual(1);
+      expect(cerrarBtns[0]!.closest("[role='menuitem']")).not.toBeNull();
+    });
+
+    it("calls logout when Cerrar sesión is clicked", () => {
       setMember();
       mockLogout.mockResolvedValue(undefined);
       renderHeader();
@@ -329,85 +423,44 @@ describe("SiteHeader", () => {
 
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe("user actions — authenticated", () => {
-    it("shows display_name in header for member", () => {
-      setMember();
-      renderHeader();
-
-      // Displayed in both desktop header actions slot and mobile drawer
-      const displayNameEls = screen.getAllByText("Test User");
-      expect(displayNameEls.length).toEqual(2);
-    });
-
-    it("shows Cerrar sesión button in header for member (not in submenu)", () => {
-      setMember();
-      renderHeader();
-
-      // Desktop header actions slot only — drawer is aria-hidden when closed
-      const cerrarBtns = screen.getAllByRole("button", { name: "Cerrar sesión" });
-      expect(cerrarBtns.length).toEqual(1);
-
-      const menuitems = screen.getAllByRole("menuitem").map((el) => el.textContent?.trim());
-      expect(menuitems).not.toContain("Cerrar sesión");
-    });
-
-    it("does not show Cerrar sesión in Ludoteca submenu for member", () => {
-      setMember();
-      renderHeader();
-
-      const menuitems = screen.getAllByRole("menuitem").map((el) => el.textContent?.trim());
-      expect(menuitems).toEqual(["Mis préstamos"]);
-    });
-
-    it("shows display_name and Cerrar sesión in drawer without expanding Ludoteca", () => {
+    it("shows an accessible success toast for four seconds after logout", async () => {
+      vi.useFakeTimers();
       setMember();
       mockLogout.mockResolvedValue(undefined);
-      const { container } = renderHeader();
-
-      const hamburger = screen.getByRole("button", { name: "Abrir menú" });
-      fireEvent.click(hamburger);
-
-      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
-      const drawerUserName = within(drawer).getByText("Test User");
-      expect(drawerUserName.textContent).toEqual("Test User");
-
-      const cerrarBtn = within(drawer).getByRole("button", { name: "Cerrar sesión" });
-      fireEvent.click(cerrarBtn);
-      expect(mockLogout).toHaveBeenCalledTimes(1);
-      expect(hamburger.getAttribute("aria-expanded")).toEqual("false");
-    });
-
-    it("does not show Iniciar sesión for member", () => {
-      setMember();
       renderHeader();
 
-      expect(screen.queryByText("Iniciar sesión")).toBeNull();
-    });
-  });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+      });
 
-  describe("active-route highlighting", () => {
-    it("Ludoteca parent has active class when at /my-loans", () => {
+      const status = screen.getByRole("status");
+      expect(status).toHaveAttribute("aria-live", "polite");
+      expect(status).toHaveTextContent("Sesión cerrada correctamente.");
+
+      act(() => vi.advanceTimersByTime(3_999));
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Sesión cerrada correctamente."
+      );
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.queryByRole("status")).toBeNull();
+      vi.useRealTimers();
+    });
+
+    it("handles logout failure and gives the member actionable feedback", async () => {
       setMember();
-      const { container } = renderHeader("/my-loans");
+      mockLogout.mockRejectedValue(new Error("network failure"));
+      renderHeader();
 
-      // Find the Ludoteca <Link> element in the desktop nav (not the mobile drawer button)
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+      });
+
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "No se pudo cerrar la sesión. Inténtalo de nuevo."
       );
-      expect(ludotecaNavItem?.className).toContain("active");
-    });
-
-    it("Ludoteca parent has active class when at /juegos-de-mesa", () => {
-      const { container } = renderHeader("/juegos-de-mesa");
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      const ludotecaNavItem = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.querySelector("a")?.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaNavItem?.className).toContain("active");
     });
   });
 
@@ -456,27 +509,53 @@ describe("SiteHeader", () => {
       expect(hamburger.getAttribute("aria-expanded")).toEqual("false");
     });
 
-    it("tapping Ludoteca in drawer toggles ludoteca submenu", () => {
+    it("tapping the user name in drawer toggles the user submenu", () => {
       setMember();
-      renderHeader();
+      const { container } = renderHeader();
 
       // Open drawer first
       const hamburger = screen.getByRole("button", { name: "Abrir menú" });
       fireEvent.click(hamburger);
 
-      // There are two "Ludoteca" triggers: one in desktop nav (Link), one in drawer (button)
-      const ludotecaButtons = screen.getAllByRole("button").filter(
-        (el) => el.textContent?.includes("Ludoteca")
-      );
-      // The drawer one has aria-haspopup
-      const drawerLudoteca = ludotecaButtons.find(
-        (el) => el.getAttribute("aria-haspopup") === "menu"
-      );
-      expect(drawerLudoteca).toBeDefined();
+      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
+      const userTrigger = within(drawer)
+        .getAllByRole("button")
+        .find(
+          (el) =>
+            el.textContent?.includes("Test User") &&
+            el.getAttribute("aria-haspopup") === "menu"
+        );
+      expect(userTrigger).toBeDefined();
 
-      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("false");
-      fireEvent.click(drawerLudoteca!);
-      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("true");
+      expect(userTrigger!.getAttribute("aria-expanded")).toEqual("false");
+      fireEvent.click(userTrigger!);
+      expect(userTrigger!.getAttribute("aria-expanded")).toEqual("true");
+      expect(within(drawer).getByText("Mi perfil")).toHaveAttribute(
+        "href",
+        "/profile"
+      );
+      expect(within(drawer).getByText("Mis préstamos").tagName).toEqual("A");
+    });
+
+    it("clicking Mi perfil in the drawer closes it", () => {
+      setMember();
+      const { container } = renderHeader();
+
+      const hamburger = screen.getByRole("button", { name: "Abrir menú" });
+      fireEvent.click(hamburger);
+
+      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
+      const userTrigger = within(drawer)
+        .getAllByRole("button")
+        .find(
+          (el) =>
+            el.textContent?.includes("Test User") &&
+            el.getAttribute("aria-haspopup") === "menu"
+        );
+      fireEvent.click(userTrigger!);
+      fireEvent.click(within(drawer).getByRole("link", { name: "Mi perfil" }));
+
+      expect(hamburger.getAttribute("aria-expanded")).toEqual("false");
     });
 
     // draw-6: nested Administración expands inside drawer
@@ -491,16 +570,16 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Open Ludoteca in drawer
-      const drawerLudoteca = within(drawer)
+      // Expand the user section in drawer
+      const userTrigger = within(drawer)
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Ludoteca") &&
+            el.textContent?.includes("Admin User") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerLudoteca).toBeDefined();
-      fireEvent.click(drawerLudoteca!);
+      expect(userTrigger).toBeDefined();
+      fireEvent.click(userTrigger!);
 
       // Click the Administración nested trigger
       const adminTrigger = within(drawer)
@@ -511,14 +590,14 @@ describe("SiteHeader", () => {
 
       // Miembros and Contenido links are now visible inside the drawer
       expect(within(drawer).getByText("Miembros").tagName).toEqual("A");
-      expect(within(drawer).getByText("Contenido").tagName).toEqual("A");
+      expect(within(drawer).getByText("Contenido GSite").tagName).toEqual("A");
 
       const miembrosLinks = within(drawer)
         .getAllByRole("menuitem")
         .filter((el) => el.textContent?.trim() === "Miembros");
       const contenidoLinks = within(drawer)
         .getAllByRole("menuitem")
-        .filter((el) => el.textContent?.trim() === "Contenido");
+        .filter((el) => el.textContent?.trim() === "Contenido GSite");
 
       expect(miembrosLinks.length).toEqual(1);
       expect(contenidoLinks.length).toEqual(1);
@@ -538,7 +617,16 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Cerrar sesión is at the top of the drawer — no need to expand Ludoteca submenu
+      // Expand the user section, then log out
+      const userTrigger = within(drawer)
+        .getAllByRole("button")
+        .find(
+          (el) =>
+            el.textContent?.includes("Test User") &&
+            el.getAttribute("aria-haspopup") === "menu"
+        );
+      fireEvent.click(userTrigger!);
+
       const cerrarBtn = within(drawer).getByRole("button", { name: "Cerrar sesión" });
       fireEvent.click(cerrarBtn);
 
@@ -567,30 +655,8 @@ describe("SiteHeader", () => {
       const logoImg = logoLink!.querySelector("img");
       expect(logoImg).not.toBeNull();
       expect(logoImg!.getAttribute("alt")).toEqual("");
-    });
-  });
-
-  // submenu-admin-2: Miembros and Contenido href values
-  describe("admin nested link hrefs (submenu-admin-2)", () => {
-    it("Miembros link has href /admin/members", () => {
-      setAdmin();
-      const { container } = renderHeader();
-
-      const allLinks = Array.from(container.querySelectorAll("a"));
-      const miembrosLink = allLinks.find((el) => el.textContent?.trim() === "Miembros");
-      expect(miembrosLink).not.toBeUndefined();
-      // Plain MemoryRouter with no basename: Link to="/admin/members" renders /admin/members
-      expect(miembrosLink!.getAttribute("href")).toEqual("/admin/members");
-    });
-
-    it("Contenido link has href /admin/content", () => {
-      setAdmin();
-      const { container } = renderHeader();
-
-      const allLinks = Array.from(container.querySelectorAll("a"));
-      const contenidoLink = allLinks.find((el) => el.textContent?.trim() === "Contenido");
-      expect(contenidoLink).not.toBeUndefined();
-      expect(contenidoLink!.getAttribute("href")).toEqual("/admin/content");
+      // Committed branding asset, absolute path valid on app and mirror pages
+      expect(logoImg!.getAttribute("src")).toEqual("/ludoteca/branding/logo.png");
     });
   });
 
@@ -607,16 +673,16 @@ describe("SiteHeader", () => {
       const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
       expect(drawer).not.toBeNull();
 
-      // Open Ludoteca in drawer
-      const drawerLudoteca = within(drawer)
+      // Expand the user section in drawer
+      const userTrigger = within(drawer)
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Ludoteca") &&
+            el.textContent?.includes("Admin User") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerLudoteca).toBeDefined();
-      fireEvent.click(drawerLudoteca!);
+      expect(userTrigger).toBeDefined();
+      fireEvent.click(userTrigger!);
 
       // Find Administración nested trigger inside drawer
       const adminTrigger = within(drawer)
@@ -632,80 +698,31 @@ describe("SiteHeader", () => {
     });
   });
 
-  // chev-1: chevron SVG presence by auth state
-  describe("chevron SVG presence (chev-1)", () => {
-    it("Ludoteca parent in desktop nav contains a chevron SVG for member", () => {
-      setMember();
-      const { container } = renderHeader();
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      expect(desktopNav).not.toBeNull();
-
-      // The Ludoteca link element contains the ChevronDown SVG
-      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaLi).toBeDefined();
-      const chevrons = ludotecaLi!.querySelectorAll("svg");
-      expect(chevrons.length).toEqual(1);
-    });
-
-    it("Ludoteca parent in desktop nav contains a chevron SVG for admin", () => {
-      setAdmin();
-      const { container } = renderHeader();
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      expect(desktopNav).not.toBeNull();
-
-      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.includes("Ludoteca")
-      );
-      expect(ludotecaLi).toBeDefined();
-      // Admin: 2 SVGs — one for Ludoteca link chevron, one for Administración nested trigger chevron
-      const chevrons = ludotecaLi!.querySelectorAll("svg");
-      expect(chevrons.length).toEqual(2);
-    });
-
-    it("Ludoteca item in desktop nav has no chevron SVG for guest", () => {
-      setGuest();
-      const { container } = renderHeader();
-
-      const desktopNav = container.querySelector("nav[aria-label='Principal']");
-      expect(desktopNav).not.toBeNull();
-
-      const ludotecaLi = Array.from(desktopNav!.querySelectorAll("li")).find(
-        (li) => li.textContent?.trim() === "Ludoteca"
-      );
-      expect(ludotecaLi).toBeDefined();
-      const chevrons = ludotecaLi!.querySelectorAll("svg");
-      expect(chevrons.length).toEqual(0);
-    });
-  });
-
-  // err-2: rapid double-click on drawer Ludoteca trigger leaves aria-expanded deterministic
+  // err-2: rapid double-click on drawer user trigger leaves aria-expanded deterministic
   describe("rapid toggle is deterministic (err-2)", () => {
-    it("double-click on drawer Ludoteca trigger results in closed state", () => {
+    it("double-click on drawer user trigger results in closed state", () => {
       setMember();
-      renderHeader();
+      const { container } = renderHeader();
 
       // Open drawer
       const hamburger = screen.getByRole("button", { name: "Abrir menú" });
       fireEvent.click(hamburger);
 
-      const drawerLudoteca = screen
+      const drawer = container.querySelector("#mobile-drawer") as HTMLElement;
+      const userTrigger = within(drawer)
         .getAllByRole("button")
         .find(
           (el) =>
-            el.textContent?.includes("Ludoteca") &&
+            el.textContent?.includes("Test User") &&
             el.getAttribute("aria-haspopup") === "menu"
         );
-      expect(drawerLudoteca).toBeDefined();
+      expect(userTrigger).toBeDefined();
 
       // Rapid double-click: open then immediately close
-      fireEvent.click(drawerLudoteca!);
-      fireEvent.click(drawerLudoteca!);
+      fireEvent.click(userTrigger!);
+      fireEvent.click(userTrigger!);
 
-      expect(drawerLudoteca!.getAttribute("aria-expanded")).toEqual("false");
+      expect(userTrigger!.getAttribute("aria-expanded")).toEqual("false");
     });
   });
 });

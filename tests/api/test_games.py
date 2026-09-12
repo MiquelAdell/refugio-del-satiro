@@ -83,6 +83,10 @@ class TestListGames:
             name="Catan",
             thumbnail_url="https://example.com/catan.jpg",
             year_published=1995,
+            description="Trade and build across the island.",
+            categories=("Economic", "Negotiation"),
+            min_age=10,
+            primary_tag="familygames",
         )
         game2 = game_repo.upsert_by_bgg_id(
             bgg_id=200,
@@ -96,7 +100,7 @@ class TestListGames:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=game2.id, member_id=alice.id)
 
@@ -106,6 +110,21 @@ class TestListGames:
         by_name = {g["name"]: g for g in response.json()}
 
         assert by_name["Catan"]["status"] == "available"
+        assert {
+            "description": by_name["Catan"]["description"],
+            "description_es": by_name["Catan"]["description_es"],
+            "categories": by_name["Catan"]["categories"],
+            "min_age": by_name["Catan"]["min_age"],
+            "primary_tag": by_name["Catan"]["primary_tag"],
+        } == {
+            "description": "Trade and build across the island.",
+            "description_es": "",
+            "categories": ["Economic", "Negotiation"],
+            "min_age": 10,
+            "primary_tag": "familygames",
+        }
+        assert by_name["Pandemic"]["min_age"] == 0
+        assert by_name["Pandemic"]["primary_tag"] == ""
         assert by_name["Catan"]["borrower_display_name"] is None
         assert by_name["Catan"]["loan_id"] is None
 
@@ -114,6 +133,31 @@ class TestListGames:
         assert by_name["Pandemic"]["borrower_display_name"] is None
         assert by_name["Pandemic"]["loan_id"] is None
 
+        conn.close()
+
+    def test_serves_spanish_translation_when_stored(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+
+        game = game_repo.upsert_by_bgg_id(
+            bgg_id=100,
+            name="Catan",
+            thumbnail_url="https://example.com/catan.jpg",
+            year_published=1995,
+            description="Trade and build across the island.",
+        )
+        game_repo.update_translation(
+            game.id,
+            description_es="Comercia y construye por la isla.",
+            source_hash="abc123",
+        )
+
+        response = client.get("/api/juegos")
+
+        assert response.status_code == 200
+        (payload,) = response.json()
+        assert payload["description"] == "Trade and build across the island."
+        assert payload["description_es"] == "Comercia y construye por la isla."
         conn.close()
 
     def test_authenticated_request_exposes_borrower_identity(self) -> None:
@@ -141,14 +185,14 @@ class TestListGames:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="alice-list@example.invalid",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="bob-list@example.invalid",
         )
 
         loan = loan_repo.create(game_id=game2.id, member_id=alice.id)
@@ -187,6 +231,10 @@ class TestGetGame:
             name="Catan",
             thumbnail_url="https://example.com/catan.jpg",
             year_published=1995,
+            description="Trade and build across the island.",
+            categories=("Economic", "Negotiation"),
+            min_age=10,
+            primary_tag="familygames",
         )
 
         response = client.get(f"/api/juegos/{game.slug}")
@@ -196,6 +244,17 @@ class TestGetGame:
         assert data["id"] == game.id
         assert data["slug"] == "catan"
         assert data["name"] == "Catan"
+        assert {
+            "description": data["description"],
+            "categories": data["categories"],
+            "min_age": data["min_age"],
+            "primary_tag": data["primary_tag"],
+        } == {
+            "description": "Trade and build across the island.",
+            "categories": ["Economic", "Negotiation"],
+            "min_age": 10,
+            "primary_tag": "familygames",
+        }
         assert data["status"] == "available"
         assert data["borrower_display_name"] is None
         assert data["loan_id"] is None
@@ -218,7 +277,7 @@ class TestGetGame:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="TEST_email@domain.com",
         )
         loan_repo.create(game_id=game.id, member_id=alice.id)
 
@@ -248,14 +307,14 @@ class TestGetGame:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="alice-detail@example.invalid",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="bob-detail@example.invalid",
         )
         loan = loan_repo.create(game_id=game.id, member_id=alice.id)
 
@@ -339,14 +398,14 @@ class TestGetGameHistory:
             number=1,
             first_name="Alice",
             last_name="Smith",
-            email="alice@example.com",
+            email="alice-history@example.invalid",
         )
         bob = _make_member(
             member_repo,
             number=2,
             first_name="Bob",
             last_name="Jones",
-            email="bob@example.com",
+            email="bob-history@example.invalid",
         )
 
         loan1 = loan_repo.create(game_id=game.id, member_id=alice.id)

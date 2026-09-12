@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 from backend.domain.use_cases.get_game import GetGameUseCase
 from tests.domain.use_cases.test_list_games import (
     FakeGameRepository,
@@ -34,6 +36,8 @@ class TestGetGameUseCase:
         assert result is not None
         assert result.id == 1
         assert result.name == "Catan"
+        assert result.description == "Trade and build across the island."
+        assert result.categories == ("Economic", "Negotiation")
         assert result.status == "available"
         assert result.borrower_display_name is None
         assert result.loan_id is None
@@ -53,5 +57,17 @@ class TestGetGameUseCase:
 
         assert result is not None
         assert result.status == "lent"
+        assert result.description == "Trade and build across the island."
+        assert result.categories == ("Economic", "Negotiation")
         assert result.borrower_display_name == "Bob"
         assert result.loan_id == 100
+
+    def test_returns_none_for_deactivated_game(self) -> None:
+        game = dataclasses.replace(_make_game(1, "Catan"), is_active=False)
+        use_case = GetGameUseCase(
+            game_repo=FakeGameRepository([game]),
+            loan_repo=FakeLoanRepository(),
+            member_repo=FakeMemberRepository(),
+        )
+
+        assert use_case.execute("catan") is None

@@ -8,7 +8,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 226255,
@@ -19,7 +19,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 371947,
@@ -30,7 +30,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 75,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 68448,
@@ -41,7 +41,7 @@
     "min_players": 2,
     "max_players": 7,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 173346,
@@ -52,7 +52,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 285531,
@@ -63,7 +63,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 6249,
@@ -74,7 +74,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 161970,
@@ -85,7 +85,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 390151,
@@ -96,7 +96,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 5,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 395375,
@@ -107,7 +107,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 8051,
@@ -118,7 +118,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 230802,
@@ -129,7 +129,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 351538,
@@ -140,7 +140,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 110,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 37111,
@@ -151,7 +151,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 175763,
@@ -162,7 +162,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 150312,
@@ -173,7 +173,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 398713,
@@ -184,7 +184,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 323612,
@@ -195,7 +195,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 240980,
@@ -206,7 +206,7 @@
     "min_players": 6,
     "max_players": 21,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 413260,
@@ -217,7 +217,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 171131,
@@ -228,7 +228,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 822,
@@ -239,7 +239,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 9441,
@@ -250,7 +250,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 224031,
@@ -261,7 +261,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 36523,
@@ -272,7 +272,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 310789,
@@ -283,7 +283,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 13,
@@ -294,7 +294,7 @@
     "min_players": 3,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 383117,
@@ -305,7 +305,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 220520,
@@ -316,7 +316,7 @@
     "min_players": 1,
     "max_players": 2,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 406751,
@@ -327,7 +327,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 359970,
@@ -338,7 +338,7 @@
     "min_players": 1,
     "max_players": 8,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 402676,
@@ -349,7 +349,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 143884,
@@ -360,7 +360,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 368017,
@@ -371,7 +371,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 478,
@@ -382,7 +382,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 299963,
@@ -393,7 +393,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 90,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 178900,
@@ -404,7 +404,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 158899,
@@ -415,7 +415,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 147151,
@@ -426,7 +426,7 @@
     "min_players": 4,
     "max_players": 12,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 343899,
@@ -437,7 +437,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 8172,
@@ -448,7 +448,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 359348,
@@ -459,7 +459,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 402677,
@@ -470,7 +470,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 75165,
@@ -481,7 +481,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 298701,
@@ -492,7 +492,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 286827,
@@ -503,7 +503,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 15512,
@@ -514,7 +514,7 @@
     "min_players": 3,
     "max_players": 8,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 332019,
@@ -525,7 +525,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 256382,
@@ -536,7 +536,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 447279,
@@ -547,7 +547,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 92828,
@@ -558,7 +558,7 @@
     "min_players": 3,
     "max_players": 12,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 36218,
@@ -569,7 +569,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 40834,
@@ -580,7 +580,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 402668,
@@ -591,7 +591,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 215311,
@@ -602,7 +602,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 383109,
@@ -613,7 +613,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 397598,
@@ -624,7 +624,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 80771,
@@ -635,7 +635,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 72125,
@@ -646,7 +646,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 136063,
@@ -657,7 +657,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 929,
@@ -668,7 +668,7 @@
     "min_players": 4,
     "max_players": 8,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 450910,
@@ -679,7 +679,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 126444,
@@ -690,7 +690,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 41916,
@@ -701,7 +701,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 182351,
@@ -712,7 +712,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 50,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 168680,
@@ -723,7 +723,7 @@
     "min_players": 9,
     "max_players": 47,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 235922,
@@ -734,7 +734,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 85250,
@@ -745,7 +745,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 366278,
@@ -756,7 +756,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 50,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 175755,
@@ -767,7 +767,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 14032,
@@ -778,7 +778,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 274960,
@@ -789,7 +789,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 173200,
@@ -800,7 +800,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 344427,
@@ -811,7 +811,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 180066,
@@ -822,7 +822,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 4,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 405018,
@@ -833,7 +833,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 3,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 447110,
@@ -844,7 +844,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 1159,
@@ -855,7 +855,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 256804,
@@ -866,7 +866,7 @@
     "min_players": 2,
     "max_players": 10,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 2629,
@@ -877,7 +877,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 40628,
@@ -888,7 +888,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 371544,
@@ -899,7 +899,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 715,
@@ -910,7 +910,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 355987,
@@ -921,7 +921,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 176606,
@@ -932,7 +932,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 340899,
@@ -943,7 +943,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 9674,
@@ -954,7 +954,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 378916,
@@ -965,7 +965,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 285893,
@@ -976,7 +976,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 98778,
@@ -987,7 +987,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 158600,
@@ -998,7 +998,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 428590,
@@ -1009,7 +1009,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 320718,
@@ -1020,7 +1020,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 174078,
@@ -1031,7 +1031,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 282524,
@@ -1042,7 +1042,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 353945,
@@ -1053,7 +1053,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 199864,
@@ -1064,7 +1064,7 @@
     "min_players": 2,
     "max_players": 10,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 6472,
@@ -1075,7 +1075,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 8098,
@@ -1086,7 +1086,7 @@
     "min_players": 2,
     "max_players": 10,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 406909,
@@ -1097,7 +1097,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 452872,
@@ -1108,7 +1108,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 399806,
@@ -1119,7 +1119,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 160499,
@@ -1130,7 +1130,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 180867,
@@ -1141,7 +1141,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 142325,
@@ -1152,7 +1152,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 65244,
@@ -1163,7 +1163,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 137909,
@@ -1174,7 +1174,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 319736,
@@ -1185,7 +1185,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 41114,
@@ -1196,7 +1196,7 @@
     "min_players": 5,
     "max_players": 10,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 284083,
@@ -1207,7 +1207,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 1219,
@@ -1218,7 +1218,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 312484,
@@ -1229,7 +1229,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 457797,
@@ -1240,7 +1240,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 430633,
@@ -1251,7 +1251,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 138016,
@@ -1262,7 +1262,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 211940,
@@ -1273,7 +1273,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 32,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 36599,
@@ -1284,7 +1284,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 147949,
@@ -1295,7 +1295,7 @@
     "min_players": 3,
     "max_players": 10,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 382405,
@@ -1306,7 +1306,7 @@
     "min_players": 4,
     "max_players": 6,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 27710,
@@ -1317,7 +1317,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 25821,
@@ -1328,7 +1328,7 @@
     "min_players": 8,
     "max_players": 18,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 24480,
@@ -1339,7 +1339,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 269633,
@@ -1350,7 +1350,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 129622,
@@ -1361,7 +1361,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 351646,
@@ -1372,7 +1372,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 406168,
@@ -1383,7 +1383,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 209778,
@@ -1394,7 +1394,7 @@
     "min_players": 1,
     "max_players": 8,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 15817,
@@ -1405,7 +1405,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 139030,
@@ -1416,7 +1416,7 @@
     "min_players": 2,
     "max_players": 13,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 11778,
@@ -1427,7 +1427,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 7688,
@@ -1438,7 +1438,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 414685,
@@ -1449,7 +1449,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 50,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 243797,
@@ -1460,7 +1460,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 377515,
@@ -1471,7 +1471,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 429446,
@@ -1482,7 +1482,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 426009,
@@ -1493,7 +1493,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 4209,
@@ -1504,7 +1504,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 1927,
@@ -1515,7 +1515,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 366456,
@@ -1526,7 +1526,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 301767,
@@ -1537,7 +1537,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 152,
@@ -1548,7 +1548,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 167355,
@@ -1559,7 +1559,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 310100,
@@ -1570,7 +1570,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 180,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 157723,
@@ -1581,7 +1581,7 @@
     "min_players": 2,
     "max_players": 10,
     "playing_time": 10,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 36946,
@@ -1592,7 +1592,7 @@
     "min_players": 1,
     "max_players": 8,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 383158,
@@ -1603,7 +1603,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 367220,
@@ -1614,7 +1614,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 413435,
@@ -1625,7 +1625,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 426229,
@@ -1636,7 +1636,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 265256,
@@ -1647,7 +1647,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 379153,
@@ -1658,7 +1658,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 395636,
@@ -1669,7 +1669,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 30549,
@@ -1680,7 +1680,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 192153,
@@ -1691,7 +1691,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 280789,
@@ -1702,7 +1702,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 276498,
@@ -1713,7 +1713,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 457798,
@@ -1724,7 +1724,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 29096,
@@ -1735,7 +1735,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 339214,
@@ -1746,7 +1746,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 299833,
@@ -1757,7 +1757,7 @@
     "min_players": 2,
     "max_players": 99,
     "playing_time": 0,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 430631,
@@ -1768,7 +1768,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 66797,
@@ -1779,7 +1779,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 150,
@@ -1790,7 +1790,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 555,
@@ -1801,7 +1801,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 100,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 3076,
@@ -1812,7 +1812,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 150,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 244521,
@@ -1823,7 +1823,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 316287,
@@ -1834,7 +1834,7 @@
     "min_players": 4,
     "max_players": 10,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 245654,
@@ -1845,7 +1845,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 381249,
@@ -1856,7 +1856,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 40,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 307002,
@@ -1867,7 +1867,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 1513,
@@ -1878,7 +1878,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 300,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 321108,
@@ -1889,7 +1889,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 216201,
@@ -1900,7 +1900,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 178051,
@@ -1911,7 +1911,7 @@
     "min_players": 3,
     "max_players": 14,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 199561,
@@ -1922,7 +1922,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 402669,
@@ -1933,7 +1933,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 146816,
@@ -1944,7 +1944,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 188834,
@@ -1955,7 +1955,7 @@
     "min_players": 5,
     "max_players": 10,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 1376,
@@ -1966,7 +1966,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 255037,
@@ -1977,7 +1977,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 18296,
@@ -1988,7 +1988,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 90,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 150145,
@@ -1999,7 +1999,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 373106,
@@ -2010,7 +2010,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 204135,
@@ -2021,7 +2021,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 40692,
@@ -2032,7 +2032,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 80,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 21729,
@@ -2043,7 +2043,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 259809,
@@ -2054,7 +2054,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 146149,
@@ -2065,7 +2065,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 17557,
@@ -2076,7 +2076,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 133473,
@@ -2087,7 +2087,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 435500,
@@ -2098,7 +2098,7 @@
     "min_players": 4,
     "max_players": 10,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 442511,
@@ -2109,7 +2109,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 349369,
@@ -2120,7 +2120,7 @@
     "min_players": 1,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 253664,
@@ -2131,7 +2131,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 455759,
@@ -2142,7 +2142,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 393190,
@@ -2153,7 +2153,7 @@
     "min_players": 3,
     "max_players": 18,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 406663,
@@ -2164,7 +2164,7 @@
     "min_players": 3,
     "max_players": 8,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 963,
@@ -2175,7 +2175,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 415888,
@@ -2186,7 +2186,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 25,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 371942,
@@ -2197,7 +2197,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 80,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 182028,
@@ -2208,7 +2208,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 120,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 215,
@@ -2219,7 +2219,7 @@
     "min_players": 3,
     "max_players": 10,
     "playing_time": 90,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 154006,
@@ -2230,7 +2230,7 @@
     "min_players": 4,
     "max_players": 12,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 428282,
@@ -2241,7 +2241,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 265203,
@@ -2252,7 +2252,7 @@
     "min_players": 3,
     "max_players": 5,
     "playing_time": 70,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 352515,
@@ -2263,7 +2263,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 298060,
@@ -2274,7 +2274,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 12493,
@@ -2285,7 +2285,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 240,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 131366,
@@ -2296,7 +2296,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 371118,
@@ -2307,7 +2307,7 @@
     "min_players": 3,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 345377,
@@ -2318,7 +2318,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 150,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 159452,
@@ -2329,7 +2329,7 @@
     "min_players": 1,
     "max_players": 4,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 371981,
@@ -2340,7 +2340,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 361259,
@@ -2351,7 +2351,7 @@
     "min_players": 2,
     "max_players": 2,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 224710,
@@ -2362,7 +2362,7 @@
     "min_players": 1,
     "max_players": 6,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 147009,
@@ -2373,7 +2373,7 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 14996,
@@ -2384,7 +2384,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 60,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 28989,
@@ -2395,7 +2395,7 @@
     "min_players": 3,
     "max_players": 6,
     "playing_time": 15,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 100901,
@@ -2406,7 +2406,7 @@
     "min_players": 2,
     "max_players": 6,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 18723,
@@ -2417,7 +2417,7 @@
     "min_players": 4,
     "max_players": 16,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 432,
@@ -2428,7 +2428,7 @@
     "min_players": 2,
     "max_players": 10,
     "playing_time": 45,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 40958,
@@ -2439,7 +2439,7 @@
     "min_players": 2,
     "max_players": 5,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 7806,
@@ -2450,7 +2450,7 @@
     "min_players": 2,
     "max_players": 8,
     "playing_time": 30,
-    "location": "armari"
+    "location": "armario"
   },
   {
     "bgg_id": 302260,
@@ -2461,6 +2461,6 @@
     "min_players": 2,
     "max_players": 4,
     "playing_time": 20,
-    "location": "armari"
+    "location": "armario"
   }
 ]

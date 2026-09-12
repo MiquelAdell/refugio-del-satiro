@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Refugio del Sátiro – Inicio" [ref=e6] [cursor=pointer]:
+        - /url: /inicio
+      - navigation "Principal":
+        - list
+      - link "Iniciar sesión" [ref=e8] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - heading "Catálogo" [level=1] [ref=e11]
+      - navigation "Tipo de catálogo" [ref=e12]:
+        - link "Juegos de mesa" [ref=e13] [cursor=pointer]:
+          - /url: /ludoteca/juegos-de-mesa
+        - link "Libros de rol" [ref=e14] [cursor=pointer]:
+          - /url: /ludoteca/juegos-de-rol
+      - generic [ref=e15]:
+        - tablist "Buscar y filtrar" [ref=e16]:
+          - tab "Buscador" [ref=e17] [cursor=pointer]
+          - tab "Filtros" [active] [selected] [ref=e18] [cursor=pointer]
+        - tabpanel "Filtros" [ref=e5550]:
+          - group "Filtros y ordenación" [ref=e5551]:
+            - generic [ref=e5552]:
+              - generic [ref=e5553]: Ordenar por
+              - combobox "Ordenar por" [ref=e5554] [cursor=pointer]:
+                - option "Nombre (A-Z)" [selected]
+                - option "Nombre (Z-A)"
+                - option "Valoración BGG (alta a baja)"
+                - option "Jugadores (menos a más)"
+                - option "Jugadores (más a menos)"
+                - option "Tiempo de juego (corto a largo)"
+                - option "Tiempo de juego (largo a corto)"
+            - generic [ref=e5555]:
+              - generic [ref=e5556]: Disponibilidad
+              - combobox "Disponibilidad" [ref=e5557] [cursor=pointer]:
+                - option "Todos" [selected]
+                - option "Disponible"
+                - option "Prestado"
+            - generic [ref=e5558]:
+              - generic [ref=e5559]: Ubicación
+              - combobox "Ubicación" [ref=e5560] [cursor=pointer]:
+                - option "Todos"
+                - option "Armario"
+                - option "Sótano" [selected]
+            - generic [ref=e5561]:
+              - generic [ref=e5562]: "Jugadores: 1 – 12+"
+              - 'generic "Jugadores: 1 – 12+" [ref=e5563]':
+                - slider "Jugadores mínimo" [ref=e5567]
+                - slider "Jugadores máximo" [ref=e5569]
+            - generic [ref=e5570]:
+              - generic [ref=e5571]: Tiempo de juego
+              - combobox "Tiempo de juego" [ref=e5572] [cursor=pointer]:
+                - option "Todo" [selected]
+                - option "< 30 min"
+                - option "30-60 min"
+                - option "1-2h"
+                - option "2h+"
+            - generic [ref=e5573]:
+              - generic [ref=e5574]: "Valoración mínima: 0.0"
+              - 'generic "Valoración mínima: 0.0" [ref=e5575]':
+                - slider "Valoración mínima" [ref=e5578]
+      - generic "Filtros activos" [ref=e5579]:
+        - status [ref=e5580]:
+          - generic [ref=e5581]: "Ubicación: Sótano"
+          - button "Quitar filtro" [ref=e5582] [cursor=pointer]: ×
+      - generic [ref=e24]:
+        - paragraph [ref=e25]: Mostrando 0 de 239
+        - group "Modo de vista" [ref=e26]:
+          - button "Vista de lista" [ref=e27] [cursor=pointer]
+          - button "Vista de cuadrícula" [pressed] [ref=e35] [cursor=pointer]
+      - paragraph [ref=e5583]: No se han encontrado juegos.
+      - link "Con datos de BoardGameGeek" [ref=e5533] [cursor=pointer]:
+        - /url: https://boardgamegeek.com/
+        - img "Con datos de BoardGameGeek" [ref=e5534]
+  - contentinfo [ref=e5535]:
+    - list "Redes sociales" [ref=e5537]:
+      - listitem [ref=e5538]:
+        - link "WhatsApp" [ref=e5539] [cursor=pointer]:
+          - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+          - img "WhatsApp" [ref=e5540]
+      - listitem [ref=e5541]:
+        - link "Instagram" [ref=e5542] [cursor=pointer]:
+          - /url: https://www.instagram.com/refugiosatiro/
+          - img "Instagram" [ref=e5543]
+      - listitem [ref=e5544]:
+        - link "Facebook" [ref=e5545] [cursor=pointer]:
+          - /url: https://www.facebook.com/refugiosatiro
+          - img "Facebook" [ref=e5546]
+      - listitem [ref=e5547]:
+        - link "Discord" [ref=e5548] [cursor=pointer]:
+          - /url: https://discord.gg/XAQ8TvtS3y
+          - img "Discord" [ref=e5549]

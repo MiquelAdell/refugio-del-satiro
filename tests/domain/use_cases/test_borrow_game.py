@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
 from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
 from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseCase
+from backend.domain.use_cases.return_game import ReturnGameUseCase
 
 
 class TestBorrowGameUseCase:
@@ -17,7 +20,7 @@ class TestBorrowGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = use_case.execute(game.id, member.id)
@@ -33,10 +36,10 @@ class TestBorrowGameUseCase:
     ) -> None:
         game = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
         m1 = member_repo.upsert_by_email(
-            1, "A", "User", None, None, "a@t.com", "A User", False
+            1, "A", "User", None, None, "TEST_email@domain.com", "A User", False
         )
         m2 = member_repo.upsert_by_email(
-            2, "B", "User", None, None, "b@t.com", "B User", False
+            2, "B", "User", None, None, "TEST_email@domain.com", "B User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         use_case.execute(game.id, m1.id)
@@ -52,6 +55,46 @@ class TestBorrowGameUseCase:
         with pytest.raises(BorrowGameError, match="no encontrado"):
             use_case.execute(999, 1)
 
+    def test_cannot_borrow_deactivated_game(
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
+    ) -> None:
+        game, _ = game_repo.upsert_by_collection_id(
+            101, 1, "Catan", "https://c.jpg", 1995
+        )
+        game_repo.deactivate_by_collection_ids([101])
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
+        )
+        use_case = BorrowGameUseCase(game_repo, loan_repo)
+        with pytest.raises(BorrowGameError, match="no encontrado"):
+            use_case.execute(game.id, member.id)
+
+    def test_returning_loan_succeeds_on_deactivated_game(
+        self,
+        game_repo: SqliteGameRepository,
+        loan_repo: SqliteLoanRepository,
+        member_repo: SqliteMemberRepository,
+    ) -> None:
+        game, _ = game_repo.upsert_by_collection_id(
+            101, 1, "Catan", "https://c.jpg", 1995
+        )
+        member = member_repo.upsert_by_email(
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
+        )
+        borrow_use_case = BorrowGameUseCase(game_repo, loan_repo)
+        loan = borrow_use_case.execute(game.id, member.id)
+        game_repo.deactivate_by_collection_ids([101])
+
+        notifier = MagicMock()
+        return_use_case = ReturnGameUseCase(loan_repo, member_repo, game_repo, notifier)
+        result = return_use_case.execute(loan.id, member)
+
+        assert result.loan.returned_at is not None
+        assert result.forced_return_email_sent is None
+
     def test_borrow_rpg_item_succeeds(
         self,
         game_repo: SqliteGameRepository,
@@ -65,7 +108,7 @@ class TestBorrowGameUseCase:
             item_type="rpgitem",
         )
         member = member_repo.upsert_by_email(
-            1, "Test", "User", None, None, "t@t.com", "Test User", False
+            1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
         )
         use_case = BorrowGameUseCase(game_repo, loan_repo)
         loan = use_case.execute(rpg.id, member.id)

@@ -39,7 +39,7 @@ class TestMember:
             last_name="User",
             nickname=None,
             phone=None,
-            email="test@example.com",
+            email="TEST_email@domain.com",
             display_name="Test User",
             password_hash=None,
             is_admin=False,
@@ -60,7 +60,7 @@ class TestMember:
             last_name="Codina Busqueta",
             nickname="Caradras",
             phone="639 01 03 75",
-            email="hothgond@gmail.com",
+            email="TEST_email@domain.com",
             display_name="Caradras",
             password_hash=None,
             is_admin=False,
@@ -80,7 +80,7 @@ class TestMember:
             last_name="User",
             nickname=None,
             phone=None,
-            email="test@example.com",
+            email="TEST_email@domain.com",
             display_name="Test User",
             password_hash=None,
             is_admin=False,
@@ -89,7 +89,7 @@ class TestMember:
             updated_at=now,
         )
         try:
-            member.email = "changed@example.com"  # type: ignore[misc]
+            member.email = "TEST_email@domain.com"  # type: ignore[misc]
             raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass

@@ -1,11 +1,229 @@
 from __future__ import annotations
 
-from backend.data.bgg_client import BggClient
+import httpx
+
+from backend.data.bgg_client import BggClient, BggGame, resolve_collection_location
+
+IMAGE_THING_XML = """<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="boardgame" id="13">
+        <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
+        <image>https://cf.geekdo-images.com/abc__original/img/sig/0x0/filters:format(jpeg)/pic3479879.jpg</image>
+        <minplayers value="3"/>
+        <maxplayers value="4"/>
+        <playingtime value="90"/>
+        <statistics page="1">
+            <ratings>
+                <average value="7.20"/>
+            </ratings>
+        </statistics>
+    </item>
+</items>"""
+
+
+def _thing_xml_with_ranks(ranks_xml: str, *, minage: str = "") -> str:
+    minage_tag = f'<minage value="{minage}"/>' if minage else ""
+    return f"""<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="boardgame" id="13">
+        <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
+        <image>https://cf.geekdo-images.com/catan.png</image>
+        {minage_tag}
+        <minplayers value="3"/>
+        <maxplayers value="4"/>
+        <playingtime value="90"/>
+        <statistics page="1">
+            <ratings>
+                <average value="7.20"/>
+                <ranks>
+                    {ranks_xml}
+                </ranks>
+            </ratings>
+        </statistics>
+    </item>
+</items>"""
+
+
+IMAGES_API_RESPONSE = {
+    "images": {
+        "medium": {
+            "url": "https://cf.geekdo-images.com/abc__medium/img/sig2/fit-in/500x500/filters:no_upscale():strip_icc()/pic3479879.jpg",
+        }
+    }
+}
+
+
+class _FakeResponse:
+    def __init__(
+        self, status_code: int = 200, text: str = "", json_body: object = None
+    ) -> None:
+        self.status_code = status_code
+        self.text = text
+        self._json_body = json_body
+
+    def raise_for_status(self) -> None:
+        pass
+
+    def json(self) -> object:
+        return self._json_body
+
+
+class TestBggClientResolveDisplayImageUrl:
+    def test_resolves_to_medium_variant(self, monkeypatch: object) -> None:
+        import httpx
+
+        monkeypatch.setattr(
+            httpx,
+            "get",
+            lambda *_a, **_kw: _FakeResponse(json_body=IMAGES_API_RESPONSE),
+        )
+        client = BggClient("test")
+        result = client._resolve_display_image_url(
+            "https://cf.geekdo-images.com/abc__original/img/sig/0x0/"
+            "filters:format(jpeg)/pic3479879.jpg"
+        )
+        assert result == IMAGES_API_RESPONSE["images"]["medium"]["url"]
+
+    def test_falls_back_to_original_when_id_missing(self) -> None:
+        client = BggClient("test")
+        url = "https://cf.geekdo-images.com/no-id-here.jpg"
+        assert client._resolve_display_image_url(url) == url
+
+    def test_falls_back_to_original_on_non_200(self, monkeypatch: object) -> None:
+        import httpx
+
+        monkeypatch.setattr(
+            httpx, "get", lambda *_a, **_kw: _FakeResponse(status_code=404)
+        )
+        client = BggClient("test")
+        url = "https://cf.geekdo-images.com/x/pic3479879.jpg"
+        assert client._resolve_display_image_url(url) == url
+
+    def test_falls_back_to_original_on_malformed_json(
+        self, monkeypatch: object
+    ) -> None:
+        import httpx
+
+        monkeypatch.setattr(
+            httpx,
+            "get",
+            lambda *_a, **_kw: _FakeResponse(json_body={"unexpected": "shape"}),
+        )
+        client = BggClient("test")
+        url = "https://cf.geekdo-images.com/x/pic3479879.jpg"
+        assert client._resolve_display_image_url(url) == url
+
+    def test_falls_back_to_original_on_network_error(self, monkeypatch: object) -> None:
+        import httpx
+
+        def _raise(*_a: object, **_kw: object) -> None:
+            raise httpx.HTTPError("boom")
+
+        monkeypatch.setattr(httpx, "get", _raise)
+        client = BggClient("test")
+        url = "https://cf.geekdo-images.com/x/pic3479879.jpg"
+        assert client._resolve_display_image_url(url) == url
+
+
+class TestBggClientFetchDetails:
+    def test_resolves_image_url_to_medium_variant(self, monkeypatch: object) -> None:
+        import httpx
+
+        responses = iter(
+            [
+                _FakeResponse(text=IMAGE_THING_XML),
+                _FakeResponse(json_body=IMAGES_API_RESPONSE),
+            ]
+        )
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: next(responses))
+        client = BggClient("test")
+        details = client.fetch_details([13])
+        assert details[13].image_url == IMAGES_API_RESPONSE["images"]["medium"]["url"]
+        assert details[13].thumbnail_url == "https://cf.geekdo-images.com/catan_t.png"
+        assert details[13].min_players == 3
+        assert details[13].max_players == 4
+        assert details[13].playing_time == 90
+        assert details[13].bgg_rating == 7.2
+
+    def test_skips_resolution_when_image_missing(self, monkeypatch: object) -> None:
+        import httpx
+
+        xml = """<?xml version="1.0"?>
+        <items>
+            <item type="boardgame" id="1"></item>
+        </items>"""
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: _FakeResponse(text=xml))
+        client = BggClient("test")
+        details = client.fetch_details([1])
+        assert details[1].image_url == ""
+
+
+class TestBggClientMinAgeAndPrimaryTag:
+    OVERALL_RANK = '<rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="150"/>'
+
+    def _details(self, xml: str, monkeypatch: object):  # type: ignore[no-untyped-def]
+        import httpx
+
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: _FakeResponse(text=xml))
+        return BggClient("test").fetch_details([13])[13]
+
+    def test_parses_min_age(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK, minage="7")
+        assert self._details(xml, monkeypatch).min_age == 7
+
+    def test_min_age_defaults_to_zero_when_absent(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK)
+        assert self._details(xml, monkeypatch).min_age == 0
+
+    def test_single_family_rank_is_primary_tag(self, monkeypatch: object) -> None:
+        ranks = (
+            self.OVERALL_RANK + '<rank type="family" id="5499" name="familygames" '
+            'friendlyname="Family Game Rank" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_multiple_family_ranks_picks_best_numeric_value(
+        self, monkeypatch: object
+    ) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="strategygames" value="200"/>'
+            + '<rank type="family" id="5499" name="familygames" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_unranked_family_entries_lose_to_numeric_ones(
+        self, monkeypatch: object
+    ) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="partygames" value="Not Ranked"/>'
+            + '<rank type="family" id="5499" name="familygames" value="52"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "familygames"
+
+    def test_all_unranked_family_entries_takes_first(self, monkeypatch: object) -> None:
+        ranks = (
+            self.OVERALL_RANK
+            + '<rank type="family" id="5497" name="partygames" value="Not Ranked"/>'
+            + '<rank type="family" id="5499" name="familygames" value="Not Ranked"/>'
+        )
+        xml = _thing_xml_with_ranks(ranks)
+        assert self._details(xml, monkeypatch).primary_tag == "partygames"
+
+    def test_no_family_rank_yields_empty_primary_tag(self, monkeypatch: object) -> None:
+        xml = _thing_xml_with_ranks(self.OVERALL_RANK)
+        assert self._details(xml, monkeypatch).primary_tag == ""
+
 
 SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>
 <items totalitems="3" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse" pubdate="Mon, 31 Mar 2026 00:00:00 +0000">
     <item objecttype="thing" objectid="13" subtype="boardgame" collid="1001">
         <name sortindex="1">Catan</name>
+        <comment>foo, Sótano, bar</comment>
         <yearpublished>1995</yearpublished>
         <image>https://cf.geekdo-images.com/catan.png</image>
         <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
@@ -27,20 +245,68 @@ SAMPLE_XML = """<?xml version="1.0" encoding="utf-8"?>
     </item>
 </items>"""
 
+THING_XML = """<?xml version="1.0" encoding="utf-8"?>
+<items>
+    <item type="boardgame" id="13">
+        <thumbnail>https://cf.geekdo-images.com/catan_t.png</thumbnail>
+        <image>https://cf.geekdo-images.com/catan.png</image>
+        <description>Trade &amp;amp; build across the island.</description>
+        <minplayers value="3"/>
+        <maxplayers value="4"/>
+        <playingtime value="90"/>
+        <link type="boardgamecategory" value=" Strategy "/>
+        <link type="boardgamecategory" value="Economic"/>
+        <link type="boardgamecategory" value="strategy"/>
+        <link type="boardgamepublisher" value="Ignored Publisher"/>
+        <statistics><ratings><average value="7.15"/></ratings></statistics>
+    </item>
+</items>"""
+
 
 class TestBggClientParsing:
+    def test_resolves_only_standalone_basement_comments(self) -> None:
+        assert resolve_collection_location("Sótano") == "sotano"
+        assert resolve_collection_location("Sotano") == "sotano"
+        assert resolve_collection_location("sotano") == "sotano"
+        assert resolve_collection_location("so\u0301tano") == "sotano"
+        assert resolve_collection_location("foo, Sótano, bar") == "sotano"
+        assert resolve_collection_location("foosotanobar") == "armario"
+
     def test_parses_collection_xml(self) -> None:
         client = BggClient("test")
         games = client._parse_xml_collection(SAMPLE_XML)
         assert len(games) == 3
+
+    def test_parses_comment_from_html_collection_row(self) -> None:
+        html = """
+        <table><tr class="collection_row">
+            <td><a href="/boardgame/13/catan">Catan</a> (1995)</td>
+            <td class="collection_comment ">foo, Sótano, bar</td>
+        </tr></table>
+        """
+
+        games = BggClient("test")._parse_html_collection(html)
+
+        assert games == [
+            BggGame(
+                bgg_id=13,
+                name="Catan",
+                thumbnail_url="",
+                year_published=1995,
+                comment="foo, Sótano, bar",
+            )
+        ]
 
     def test_parses_game_fields(self) -> None:
         client = BggClient("test")
         games = client._parse_xml_collection(SAMPLE_XML)
         catan = next(g for g in games if g.bgg_id == 13)
         assert catan.name == "Catan"
+        assert catan.collection_id == 1001
         assert catan.thumbnail_url == "https://cf.geekdo-images.com/catan_t.png"
+        assert catan.image_url == "https://cf.geekdo-images.com/catan.png"
         assert catan.year_published == 1995
+        assert catan.comment == "foo, Sótano, bar"
 
     def test_parses_all_game_ids(self) -> None:
         client = BggClient("test")
@@ -67,3 +333,22 @@ class TestBggClientParsing:
         games = client._parse_xml_collection(xml)
         assert len(games) == 1
         assert games[0].thumbnail_url == ""
+
+    def test_fetch_details_parses_description_and_normalized_categories(
+        self, monkeypatch: object
+    ) -> None:
+        class _FakeResponse:
+            status_code = 200
+            text = THING_XML
+
+        monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: _FakeResponse())
+
+        details = BggClient("test").fetch_details([13])
+
+        assert details[13].description == "Trade & build across the island."
+        assert details[13].categories == ("Economic", "Strategy")
+        assert details[13].image_url == "https://cf.geekdo-images.com/catan.png"
+        assert details[13].min_players == 3
+        assert details[13].max_players == 4
+        assert details[13].playing_time == 90
+        assert details[13].bgg_rating == 7.15

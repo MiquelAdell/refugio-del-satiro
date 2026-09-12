@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import sqlite3
+from unittest.mock import Mock
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
 
 from backend.api.app import create_app
 from backend.api.auth import create_jwt
 from backend.api.dependencies import _settings, get_db_conn
+from backend.api.routes.members import (
+    RATE_LIMIT_DETAIL,
+    MemberValidationRateLimiter,
+    get_member_validation_limiter,
+)
 from backend.data.database import get_memory_connection
 from backend.data.repositories.sqlite_member_repository import SqliteMemberRepository
 from backend.domain.entities.member import Member
@@ -16,7 +23,11 @@ from backend.migrations.runner import run_migrations
 NOT_FOUND_DETAIL = "Socio no encontrado."
 
 
-def _setup_client() -> tuple[TestClient, sqlite3.Connection]:
+def _setup_client(
+    *,
+    limiter: MemberValidationRateLimiter | None = None,
+    client_address: tuple[str, int] = ("testclient", 50000),
+) -> tuple[TestClient, sqlite3.Connection]:
     conn = get_memory_connection()
     conn.close()
     conn = sqlite3.connect(":memory:", check_same_thread=False)
@@ -31,7 +42,9 @@ def _setup_client() -> tuple[TestClient, sqlite3.Connection]:
         yield conn
 
     app.dependency_overrides[get_db_conn] = override_db_conn
-    client = TestClient(app)
+    if limiter is not None:
+        app.dependency_overrides[get_member_validation_limiter] = lambda: limiter
+    client = TestClient(app, client=client_address)
     return client, conn
 
 
@@ -79,7 +92,7 @@ class TestValidateMember:
             number=42,
             first_name="Carlos",
             last_name="López",
-            email="carlos@test.com",
+            email="TEST_email@domain.com",
             gender="Masculino",
             last_payment="5/02/2022",
         )
@@ -105,7 +118,7 @@ class TestValidateMember:
             number=7,
             first_name="Ana",
             last_name="García",
-            email="ana@test.com",
+            email="TEST_email@domain.com",
             gender="Femenino",
             last_payment="1/01/2023",
         )
@@ -131,7 +144,7 @@ class TestValidateMember:
             number=15,
             first_name="Jordan",
             last_name="Martínez",
-            email="jordan@test.com",
+            email="TEST_email@domain.com",
             gender=None,
             last_payment=None,
         )
@@ -157,7 +170,7 @@ class TestValidateMember:
             number=99,
             first_name="Inactivo",
             last_name="Prueba",
-            email="inactivo@test.com",
+            email="TEST_email@domain.com",
             gender="Masculino",
             is_active=False,
         )
@@ -193,13 +206,139 @@ class TestValidateMember:
             number=1,
             first_name="Public",
             last_name="Member",
-            email="pub@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.get("/api/members/validate?number=1")
 
         assert response.status_code == 200
         conn.close()
+
+    def test_non_positive_number_is_rejected(self) -> None:
+        client, conn = _setup_client()
+
+        response = client.get("/api/members/validate?number=0")
+
+        assert response.status_code == 422
+        assert response.json()["detail"] == [
+            {
+                "type": "greater_than_equal",
+                "loc": ["query", "number"],
+                "msg": "Input should be greater than or equal to 1",
+                "input": "0",
+                "ctx": {"ge": 1},
+            }
+        ]
+        conn.close()
+
+
+class TestMemberValidationRateLimit:
+    def test_known_and_unknown_lookups_share_limit_without_logging_number(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=2,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(limiter=limiter)
+        member_repo = SqliteMemberRepository(conn)
+        _make_member(
+            member_repo,
+            number=42,
+            first_name="Carlos",
+            last_name="López",
+            email="rate-limit@example.invalid",
+        )
+
+        with caplog.at_level("WARNING", logger="backend.api.routes.members"):
+            known_response = client.get("/api/members/validate?number=42")
+            unknown_response = client.get("/api/members/validate?number=9999")
+            limited_response = client.get("/api/members/validate?number=987654")
+
+        health_response = client.get("/api/health")
+
+        assert known_response.status_code == 200
+        assert unknown_response.status_code == 404
+        assert limited_response.status_code == 429
+        assert limited_response.json() == {"detail": RATE_LIMIT_DETAIL}
+        assert limited_response.headers["retry-after"] == "60"
+        assert caplog.messages == ["Membership validation rate limit exceeded"]
+        assert "987654" not in caplog.text
+        assert health_response.status_code == 200
+        assert health_response.json() == {"status": "ok"}
+        conn.close()
+
+    def test_trusted_proxy_uses_forwarded_client_address(self) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(
+            limiter=limiter,
+            client_address=("127.0.0.1", 50000),
+        )
+
+        first_client = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+        second_client = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.11"},
+        )
+        first_client_again = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+
+        assert first_client.status_code == 404
+        assert second_client.status_code == 404
+        assert first_client_again.status_code == 429
+        conn.close()
+
+    def test_untrusted_peer_cannot_evade_limit_with_forwarded_header(self) -> None:
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=10,
+            clock=lambda: 10.0,
+        )
+        client, conn = _setup_client(
+            limiter=limiter,
+            client_address=("198.51.100.7", 50000),
+        )
+
+        first_response = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+        second_response = client.get(
+            "/api/members/validate?number=1",
+            headers={"X-Forwarded-For": "203.0.113.11"},
+        )
+
+        assert first_response.status_code == 404
+        assert second_response.status_code == 429
+        conn.close()
+
+    def test_window_expiry_and_client_bound_are_exact(self) -> None:
+        clock = Mock(side_effect=[0.0, 0.0, 1.0, 1.0, 61.0])
+        limiter = MemberValidationRateLimiter(
+            limit=1,
+            window_seconds=60,
+            max_clients=1,
+            clock=clock,
+        )
+
+        assert limiter.check("client-a") is None
+        assert limiter.check("client-a") == 60
+        assert limiter.check("client-b") is None
+        assert limiter.check("client-a") is None
+        assert limiter.check("client-a") is None
 
 
 class TestAdminPatchMember:
@@ -211,7 +350,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -219,12 +358,18 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
         )
 
         response = client.patch(
             f"/api/admin/members/{target.id}",
-            json={"last_payment": "10/03/2024", "gender": "Femenino"},
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "TEST_email@domain.com",
+                "last_payment": "10/03/2024",
+                "gender": "Femenino",
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -237,6 +382,117 @@ class TestAdminPatchMember:
         assert updated.gender == "Femenino"
         conn.close()
 
+    def test_patch_updates_name_number_phone_and_admin(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="TEST_email@domain.com",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="TEST_email@domain.com",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Renamed",
+                "last_name": "Person",
+                "email": "TEST_email@domain.com",
+                "nickname": "Ren",
+                "phone": "600 11 22 33",
+                "member_number": 42,
+                "is_admin": True,
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 200
+        updated = member_repo.get_by_id(target.id)
+        assert updated is not None
+        assert updated.first_name == "Renamed"
+        assert updated.last_name == "Person"
+        assert updated.email == "TEST_email@domain.com"
+        assert updated.nickname == "Ren"
+        assert updated.phone == "600 11 22 33"
+        assert updated.member_number == 42
+        assert updated.display_name == "Renamed Person"
+        assert updated.is_admin is True
+        conn.close()
+
+    def test_patch_email_conflict_returns_409(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin-conflict@example.invalid",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="target-conflict@example.invalid",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "admin-conflict@example.invalid",
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 409
+        conn.close()
+
+    def test_patch_member_number_conflict_returns_409(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="admin-number@example.invalid",
+            is_admin=True,
+        )
+        target = _make_member(
+            member_repo,
+            number=2,
+            first_name="Target",
+            last_name="Member",
+            email="target-number@example.invalid",
+        )
+
+        response = client.patch(
+            f"/api/admin/members/{target.id}",
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "target-number@example.invalid",
+                "member_number": 1,
+            },
+            headers=_auth_cookie(admin),
+        )
+
+        assert response.status_code == 409
+        conn.close()
+
     def test_patch_clears_fields_when_null(self) -> None:
         client, conn = _setup_client()
         member_repo = SqliteMemberRepository(conn)
@@ -245,7 +501,7 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
         target = _make_member(
@@ -253,14 +509,20 @@ class TestAdminPatchMember:
             number=2,
             first_name="Target",
             last_name="Member",
-            email="target@test.com",
+            email="TEST_email@domain.com",
             last_payment="5/02/2022",
             gender="Masculino",
         )
 
         response = client.patch(
             f"/api/admin/members/{target.id}",
-            json={"last_payment": None, "gender": None},
+            json={
+                "first_name": "Target",
+                "last_name": "Member",
+                "email": "TEST_email@domain.com",
+                "last_payment": None,
+                "gender": None,
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -279,13 +541,18 @@ class TestAdminPatchMember:
             number=1,
             first_name="Admin",
             last_name="User",
-            email="admin@test.com",
+            email="TEST_email@domain.com",
             is_admin=True,
         )
 
         response = client.patch(
             "/api/admin/members/9999",
-            json={"last_payment": "1/01/2024"},
+            json={
+                "first_name": "Ghost",
+                "last_name": "Member",
+                "email": "TEST_email@domain.com",
+                "last_payment": "1/01/2024",
+            },
             headers=_auth_cookie(admin),
         )
 
@@ -301,13 +568,407 @@ class TestAdminPatchMember:
             number=1,
             first_name="Regular",
             last_name="User",
-            email="regular@test.com",
+            email="TEST_email@domain.com",
             is_admin=False,
         )
 
         response = client.patch(
             f"/api/admin/members/{regular.id}",
-            json={"last_payment": "1/01/2024"},
+            json={
+                "first_name": "Regular",
+                "last_name": "User",
+                "email": "TEST_email@domain.com",
+                "last_payment": "1/01/2024",
+            },
+            headers=_auth_cookie(regular),
+        )
+
+        assert response.status_code == 403
+        conn.close()
+
+
+class TestAdminImportMembers:
+    CSV_HEADER = (
+        "Nº Socio,Apellidos,Nombre,Apodo,Telefóno,Email,admin,Última cuota,Género"
+    )
+
+    def _csv_bytes(self, rows: list[str]) -> bytes:
+        return "\n".join([self.CSV_HEADER, *rows]).encode("utf-8")
+
+    def _post_import(
+        self, client: TestClient, admin: Member, csv_bytes: bytes
+    ) -> Response:
+        return client.post(
+            "/api/admin/members/import",
+            files={"file": ("members.csv", csv_bytes, "text/csv")},
+            headers=_auth_cookie(admin),
+        )
+
+    def _make_admin(self, member_repo: SqliteMemberRepository) -> Member:
+        return _make_member(
+            member_repo,
+            number=1,
+            first_name="Admin",
+            last_name="User",
+            email="import-admin@example.invalid",
+            is_admin=True,
+        )
+
+    def test_import_creates_members_and_returns_tokens(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            [
+                "10,García,Ana,Anita,600111222,ana@example.invalid,,5/02/2022,Femenino",
+                "11,López,Carlos,,600333444,carlos@example.invalid,,1/01/2023,Masculino",
+            ]
+        )
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body == {
+            "created": body["created"],
+            "created_count": 2,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 2,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert body["created_count"] == len(body["created"])
+        assert len(body["created"]) == 2
+
+        by_email = {c["email"]: c for c in body["created"]}
+        assert by_email["ana@example.invalid"]["display_name"] == "Anita"
+        assert by_email["carlos@example.invalid"]["display_name"] == "Carlos López"
+        for created in body["created"]:
+            assert "/set-password?token=" in created["token_url"]
+
+        ana = member_repo.get_by_email("ana@example.invalid")
+        assert ana is not None
+        assert ana.member_number == 10
+        conn.close()
+
+    def test_reimport_same_file_returns_empty_created(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            ["10,García,Ana,,600111222,ana@example.invalid,,5/02/2022,Femenino"]
+        )
+        first = self._post_import(client, admin, csv_bytes)
+        assert first.status_code == 200
+        assert len(first.json()["created"]) == 1
+
+        second = self._post_import(client, admin, csv_bytes)
+
+        assert second.status_code == 200
+        assert second.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 0,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert second.json()["created_count"] == len(second.json()["created"])
+        # Upsert: no duplicate member created (admin + Ana only)
+        assert len(member_repo.list_all()) == 2
+        conn.close()
+
+    def test_blank_email_rows_counted_as_skipped(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = self._csv_bytes(
+            [
+                "10,García,Ana,,600111222,ana@example.invalid,,,",
+                "11,Sin,Email,,600333444,,,,",
+            ]
+        )
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body == {
+            "created": body["created"],
+            "created_count": 1,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 2,
+            "skipped_rows": 1,
+            "deactivation_skip_reason": None,
+        }
+        assert body["created_count"] == len(body["created"])
+        assert body["created"][0]["email"] == "ana@example.invalid"
+        conn.close()
+
+    def test_import_disables_missing_member_at_safety_threshold(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        retained = _make_member(
+            member_repo,
+            number=2,
+            first_name="Retained",
+            last_name="Member",
+            email="retained@example.invalid",
+        )
+        removed = _make_member(
+            member_repo,
+            number=3,
+            first_name="Removed",
+            last_name="Member",
+            email="removed@example.invalid",
+        )
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(["2,Member,Retained,,,retained@example.invalid,,,"]),
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 1,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": None,
+        }
+        assert response.json()["created_count"] == len(response.json()["created"])
+        assert member_repo.get_by_id(retained.id).is_active is True  # type: ignore[union-attr]
+        assert member_repo.get_by_id(removed.id).is_active is False  # type: ignore[union-attr]
+        conn.close()
+
+    def test_import_keeps_acting_admin_active_when_absent_from_csv(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(["2,Member,New,,,new-member@example.invalid,,,"]),
+        )
+
+        assert response.status_code == 200
+        stored_admin = member_repo.get_by_id(admin.id)
+        assert stored_admin is not None
+        assert stored_admin.is_admin is True
+        assert stored_admin.is_active is True
+        conn.close()
+
+    def test_header_only_import_skips_deactivation(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+
+        response = self._post_import(client, admin, self._csv_bytes([]))
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 0,
+            "disabled_count": 0,
+            "total_rows": 0,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": (
+                "No se desactivaron socios ausentes porque la importación "
+                "no contiene ninguna dirección de email válida."
+            ),
+        }
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_import_over_safety_threshold_skips_deactivation(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        members = [
+            _make_member(
+                member_repo,
+                number=number,
+                first_name=name,
+                last_name="Member",
+                email=f"{name.lower()}@example.invalid",
+            )
+            for number, name in [(2, "Alpha"), (3, "Beta"), (4, "Gamma")]
+        ]
+
+        response = self._post_import(
+            client,
+            admin,
+            self._csv_bytes(["2,Member,Alpha,,,alpha@example.invalid,,,"]),
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "created": [],
+            "created_count": 0,
+            "updated_count": 1,
+            "disabled_count": 0,
+            "total_rows": 1,
+            "skipped_rows": 0,
+            "deactivation_skip_reason": (
+                "Faltan 2 de 3 socios activos en la importación (> 50%); "
+                "no se desactivaron los socios ausentes."
+            ),
+        }
+        assert all(
+            member_repo.get_by_id(member.id).is_active is True  # type: ignore[union-attr]
+            for member in members
+        )
+        conn.close()
+
+    def test_malformed_row_shape_returns_400_before_any_upsert(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+        csv_bytes = self._csv_bytes(
+            [
+                "10,Member,Valid,,,valid@example.invalid,,,",
+                "11,Member,Missing,,,missing@example.invalid,,",
+            ]
+        )
+
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "Todas las filas del CSV deben tener el mismo número de columnas."
+        }
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    @pytest.mark.parametrize(
+        ("rows", "expected_detail"),
+        [
+            (
+                [
+                    "10,Member,Valid,,,valid@example.invalid,,,,extra",
+                ],
+                "Todas las filas del CSV deben tener el mismo número de columnas.",
+            ),
+            (
+                [
+                    "10,Member,Valid,,,valid@example.invalid,,,",
+                    '11,Member,"Unclosed,,,bad@example.invalid,,,',
+                ],
+                "El archivo CSV no tiene un formato válido.",
+            ),
+        ],
+    )
+    def test_malformed_csv_returns_400_before_any_upsert(
+        self, rows: list[str], expected_detail: str
+    ) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+
+        response = self._post_import(client, admin, self._csv_bytes(rows))
+
+        assert response.status_code == 400
+        assert response.json() == {"detail": expected_detail}
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_invalid_member_number_returns_400_before_any_upsert(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+        existing = _make_member(
+            member_repo,
+            number=2,
+            first_name="Existing",
+            last_name="Member",
+            email="existing@example.invalid",
+        )
+        csv_bytes = self._csv_bytes(
+            [
+                "10,Member,Valid,,,valid@example.invalid,,,",
+                "invalid,Member,Bad,,,bad@example.invalid,,,",
+            ]
+        )
+
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": (
+                "El archivo CSV contiene datos no válidos. "
+                "Revisa los números de socio y vuelve a intentarlo."
+            )
+        }
+        assert member_repo.get_by_email("valid@example.invalid") is None
+        assert member_repo.get_by_id(existing.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_missing_email_header_returns_400(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        admin = self._make_admin(member_repo)
+
+        csv_bytes = b"Nombre,Apellidos\nAna,Garc\xc3\xada\n"
+        response = self._post_import(client, admin, csv_bytes)
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "El archivo CSV debe tener una columna 'Email'."
+        }
+        assert member_repo.get_by_id(admin.id).is_active is True  # type: ignore[union-attr]
+        conn.close()
+
+    def test_import_requires_admin(self) -> None:
+        client, conn = _setup_client()
+        member_repo = SqliteMemberRepository(conn)
+        regular = _make_member(
+            member_repo,
+            number=1,
+            first_name="Regular",
+            last_name="User",
+            email="TEST_email@domain.com",
+            is_admin=False,
+        )
+
+        csv_bytes = self._csv_bytes(
+            ["10,García,Ana,,600111222,TEST_email@domain.com,,,"]
+        )
+        response = client.post(
+            "/api/admin/members/import",
+            files={"file": ("members.csv", csv_bytes, "text/csv")},
             headers=_auth_cookie(regular),
         )
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import sqlite3
 from pathlib import Path
 from typing import Annotated
 
@@ -24,6 +25,47 @@ app.add_typer(_content_scraper_app, name="content", help="Content-mirror command
 
 def _get_settings() -> Settings:
     return Settings()
+
+
+def _translate_pending_descriptions(
+    conn: sqlite3.Connection, settings: Settings
+) -> bool:
+    """Translate missing/stale Spanish descriptions. Returns True on success.
+
+    Never raises: imports must succeed even when DeepL is unavailable — the
+    frontend falls back to the English description.
+    """
+    from backend.data.deepl_translation_service import DeepLTranslationService
+    from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.domain.services.translation_service import TranslationError
+    from backend.domain.use_cases.translate_descriptions import (
+        TranslateDescriptionsUseCase,
+    )
+
+    if not settings.deepl_api_key:
+        typer.echo(
+            "Tip: set DEEPL_API_KEY to translate descriptions to Spanish. "
+            "Untranslated descriptions are served in English.",
+            err=True,
+        )
+        return False
+
+    use_case = TranslateDescriptionsUseCase(
+        SqliteGameRepository(conn),
+        DeepLTranslationService(settings.deepl_api_key),
+    )
+    try:
+        result = use_case.execute()
+    except TranslationError as exc:
+        typer.echo(f"Warning: description translation failed: {exc}", err=True)
+        return False
+
+    typer.echo(
+        f"Translations: {result.translated} translated, "
+        f"{result.up_to_date} already up to date, "
+        f"{result.without_source} without source text."
+    )
+    return True
 
 
 @app.command()
@@ -54,6 +96,7 @@ def import_games(
     import json
 
     from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
     from backend.domain.use_cases.import_games import ImportGamesUseCase
 
     settings = _get_settings()
@@ -63,7 +106,10 @@ def import_games(
         game_repo = SqliteGameRepository(conn)
 
         if json_file:
-            # Import from JSON seed file
+            # Import from JSON seed file. No reconciliation here: seed files
+            # are partial/test fixtures, not full collection dumps, so
+            # diffing against them would wrongly delete/deactivate the real
+            # catalog.
             path = Path(json_file)
             if not path.exists():
                 typer.echo(f"Error: file not found: {json_file}", err=True)
@@ -98,7 +144,7 @@ def import_games(
                     max_players=g.get("max_players", 0),
                     playing_time=g.get("playing_time", 0),
                     bgg_rating=g.get("bgg_rating", 0.0),
-                    location=g.get("location", "armari"),
+                    location=g.get("location", "armario"),
                 )
                 if existing is None:
                     created += 1
@@ -122,13 +168,19 @@ def import_games(
             bgg_client = BggClient(
                 username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
             )
-            use_case = ImportGamesUseCase(game_repo, bgg_client)
+            loan_repo = SqliteLoanRepository(conn)
+            use_case = ImportGamesUseCase(game_repo, bgg_client, loan_repo)
 
             typer.echo("Fetching games from BGG (this may take a moment)...")
             result = use_case.execute()
             typer.echo(
-                f"Done. {result.created} new, {result.updated} updated, {result.total} total."
+                f"Done. {result.created} new, {result.updated} updated, "
+                f"{result.deleted} deleted, {result.deactivated} deactivated "
+                f"(on loan), {result.total} total."
             )
+            if result.skip_reason:
+                typer.echo(f"Warning: {result.skip_reason}", err=True)
+            _translate_pending_descriptions(conn, settings)
     finally:
         conn.close()
 
@@ -157,21 +209,28 @@ def enrich_games() -> None:
         for game in games:
             if game.bgg_id in details:
                 d = details[game.bgg_id]
-                game_repo.upsert_by_bgg_id(
-                    bgg_id=game.bgg_id,
-                    name=game.name,
-                    thumbnail_url=d.thumbnail_url or game.thumbnail_url,
-                    image_url=d.image_url or game.image_url or game.thumbnail_url,
-                    year_published=game.year_published,
+                # Player count, playing time, and rating are legitimately
+                # shared per BGG's thing API (one page per bgg_id). Image and
+                # thumbnail are NOT: BGG's collection can list several
+                # distinct owned items under one bgg_id (see
+                # BggGame.collection_id), each with its own picture, already
+                # captured at import time — only fall back to the shared
+                # thing-API image when this row doesn't have one yet.
+                game_repo.update_details(
+                    game.id,
+                    thumbnail_url=game.thumbnail_url or d.thumbnail_url,
+                    image_url=game.image_url or d.image_url or game.thumbnail_url,
                     min_players=d.min_players,
                     max_players=d.max_players,
                     playing_time=d.playing_time,
                     bgg_rating=d.bgg_rating,
-                    location=game.location,
+                    description=d.description,
+                    categories=d.categories,
                 )
                 updated += 1
 
         typer.echo(f"Done. {updated} games enriched with full details.")
+        _translate_pending_descriptions(conn, settings)
     finally:
         conn.close()
 
@@ -181,6 +240,7 @@ def import_rol() -> None:
     """Import RPG items (libros de rol) from BGG API."""
     from backend.data.bgg_client import BggClient
     from backend.data.repositories.sqlite_game_repository import SqliteGameRepository
+    from backend.data.repositories.sqlite_loan_repository import SqliteLoanRepository
     from backend.domain.use_cases.import_rpg_items import ImportRpgItemsUseCase
 
     settings = _get_settings()
@@ -199,13 +259,36 @@ def import_rol() -> None:
         bgg_client = BggClient(
             username="RefugioDelSatiro", bearer_token=settings.bgg_bearer_token
         )
-        use_case = ImportRpgItemsUseCase(game_repo, bgg_client)
+        loan_repo = SqliteLoanRepository(conn)
+        use_case = ImportRpgItemsUseCase(game_repo, bgg_client, loan_repo)
 
         typer.echo("Fetching RPG items from BGG (this may take a moment)...")
         result = use_case.execute()
         typer.echo(
-            f"Done. {result.created} new, {result.updated} updated, {result.total} total."
+            f"Done. {result.created} new, {result.updated} updated, "
+            f"{result.deleted} deleted, {result.deactivated} deactivated "
+            f"(on loan), {result.total} total."
         )
+        if result.skip_reason:
+            typer.echo(f"Warning: {result.skip_reason}", err=True)
+        _translate_pending_descriptions(conn, settings)
+    finally:
+        conn.close()
+
+
+@app.command()
+def translate_descriptions() -> None:
+    """Translate missing/stale Spanish descriptions via DeepL (backfill)."""
+    settings = _get_settings()
+    if not settings.deepl_api_key:
+        typer.echo("Error: DEEPL_API_KEY is not set.", err=True)
+        raise typer.Exit(code=1)
+
+    conn = get_connection(settings.db_path)
+    try:
+        run_migrations(conn)
+        if not _translate_pending_descriptions(conn, settings):
+            raise typer.Exit(code=1)
     finally:
         conn.close()
 
@@ -295,18 +378,27 @@ def import_members(
             )
             raise typer.Exit(code=1)
 
-        results = use_case.execute(raw_members)
+        batch_result = use_case.execute(raw_members)
 
-        for result in results:
+        for result in batch_result.created:
             typer.echo(
                 f"{result.member.display_name} ({result.member.email}): "
                 f"{result.token_url}"
             )
 
-        if not results:
+        if not batch_result.created:
             typer.echo("No new members added.")
-        else:
-            typer.echo(f"\n{len(results)} new member(s) imported.")
+
+        typer.echo(
+            "\nImport summary: "
+            f"{batch_result.created_count} created, "
+            f"{batch_result.updated_count} updated, "
+            f"{batch_result.skipped_count} skipped, "
+            f"{batch_result.disabled_count} disabled "
+            f"({batch_result.total_rows} total rows)."
+        )
+        if batch_result.deactivation_skip_reason is not None:
+            typer.echo(f"Warning: {batch_result.deactivation_skip_reason}", err=True)
     finally:
         conn.close()
 

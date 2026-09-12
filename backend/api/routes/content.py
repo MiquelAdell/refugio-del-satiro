@@ -62,6 +62,7 @@ def _build_config() -> ScraperConfig:
     defaults = default_config()
     return ScraperConfig(
         origin=defaults.origin,
+        canonical_origin=defaults.canonical_origin,
         output_dir=output_dir,
         assets_subdir=defaults.assets_subdir,
         manifest_file=defaults.manifest_file,
@@ -149,12 +150,12 @@ async def _event_stream() -> AsyncIterator[bytes]:
     _state.subscribers.add(queue)
     try:
         while True:
-            event = await queue.get()
-            if event is None:
+            queued_event = await queue.get()
+            if queued_event is None:
                 yield b"event: done\ndata: {}\n\n"
                 return
-            payload = json.dumps(event.as_json(), ensure_ascii=False)
-            yield f"event: {event.kind}\ndata: {payload}\n\n".encode()
+            payload = json.dumps(queued_event.as_json(), ensure_ascii=False)
+            yield f"event: {queued_event.kind}\ndata: {payload}\n\n".encode()
     finally:
         _state.subscribers.discard(queue)
 

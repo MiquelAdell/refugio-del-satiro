@@ -13,6 +13,10 @@ export function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setLocalValue(value);
   }, [value]);
 
@@ -25,6 +29,7 @@ export function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
     }
 
     timerRef.current = setTimeout(() => {
+      timerRef.current = null;
       onChange(newValue);
     }, 300);
   };
@@ -33,6 +38,7 @@ export function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
     };
   }, []);

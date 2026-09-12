@@ -1,4 +1,4 @@
-"""Content-mirror scraper for www.refugiodelsatiro.es → Caddy."""
+"""Content-mirror scraper for the published Google Site → Caddy."""
 
 from scraper.config import ScraperConfig, default_config
 

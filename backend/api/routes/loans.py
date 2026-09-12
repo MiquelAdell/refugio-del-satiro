@@ -7,6 +7,8 @@ from backend.api.dependencies import (
     CurrentMember,
     GameRepo,
     LoanRepo,
+    MemberRepo,
+    ReturnNotifier,
 )
 from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseCase
 from backend.domain.use_cases.return_game import ReturnGameError, ReturnGameUseCase
@@ -30,6 +32,10 @@ class OkResponse(BaseModel):
     ok: bool = True
 
 
+class ReturnLoanResponse(LoanResponse):
+    forced_return_email_sent: bool | None
+
+
 @router.post("/loans", response_model=LoanResponse, status_code=status.HTTP_201_CREATED)
 def borrow_game(
     body: BorrowRequest,
@@ -51,21 +57,26 @@ def borrow_game(
     )
 
 
-@router.patch("/loans/{loan_id}/return", response_model=LoanResponse)
+@router.patch("/loans/{loan_id}/return", response_model=ReturnLoanResponse)
 def return_game(
     loan_id: int,
     member: CurrentMember,
     loan_repo: LoanRepo,
-) -> LoanResponse:
-    use_case = ReturnGameUseCase(loan_repo)
+    member_repo: MemberRepo,
+    game_repo: GameRepo,
+    notifier: ReturnNotifier,
+) -> ReturnLoanResponse:
+    use_case = ReturnGameUseCase(loan_repo, member_repo, game_repo, notifier)
     try:
-        loan = use_case.execute(loan_id, member)
+        result = use_case.execute(loan_id, member)
     except ReturnGameError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
-    return LoanResponse(
+    loan = result.loan
+    return ReturnLoanResponse(
         id=loan.id,
         game_id=loan.game_id,
         member_id=loan.member_id,
         borrowed_at=loan.borrowed_at.isoformat(),
         returned_at=loan.returned_at.isoformat() if loan.returned_at else None,
+        forced_return_email_sent=result.forced_return_email_sent,
     )

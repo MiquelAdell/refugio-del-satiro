@@ -20,7 +20,7 @@ class BorrowGameUseCase:
 
     def execute(self, game_id: int, member_id: int) -> Loan:
         game = self._game_repo.get_by_id(game_id)
-        if game is None:
+        if game is None or not game.is_active:
             raise BorrowGameError("Juego no encontrado.")
 
         active_loan = self._loan_repo.get_active_by_game_id(game_id)

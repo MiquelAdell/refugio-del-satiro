@@ -32,6 +32,9 @@ class RpgItemResponse(BaseModel):
     year_published: int
     bgg_rating: float
     description: str
+    description_es: str
+    categories: list[str]
+    publication_types: list[str]
     status: str
     borrower_display_name: str | None
     loan_id: int | None
@@ -48,6 +51,9 @@ def _to_response(item: RpgItemWithStatus, *, is_authenticated: bool) -> RpgItemR
         year_published=item.year_published,
         bgg_rating=item.bgg_rating,
         description=item.description,
+        description_es=item.description_es,
+        categories=list(item.categories),
+        publication_types=list(item.publication_types),
         status=item.status,
         borrower_display_name=item.borrower_display_name if is_authenticated else None,
         loan_id=item.loan_id if is_authenticated else None,
@@ -60,7 +66,10 @@ def list_rpg_items(
     member: OptionalMember,
 ) -> list[RpgItemResponse]:
     is_authenticated = member is not None
-    return [_to_response(item, is_authenticated=is_authenticated) for item in use_case.execute()]
+    return [
+        _to_response(item, is_authenticated=is_authenticated)
+        for item in use_case.execute()
+    ]
 
 
 @router.get("/{slug}/history", response_model=list[LoanHistoryEntryResponse])

@@ -1,0 +1,25 @@
+.catalog-results-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-md);
+}
+
+.catalog-results-controls > :first-child {
+  min-width: 15rem;
+}
+
+@media (max-width: 600px) {
+  .catalog-results-bar {
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .catalog-results-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalog-results-controls > :first-child {
+    min-width: 0;
+  }
+}

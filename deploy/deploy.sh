@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Run from the project root on the server to deploy or update.
-# Usage: ./deploy/deploy.sh [commit]
+# Deploy a previously checked-out, pinned release from the project root.
+# Usage: ./deploy/deploy.sh <full-release-sha>
 set -euo pipefail
 
-if [ "$#" -gt 1 ]; then
-    echo "Usage: $0 [commit]" >&2
-    exit 64
+readonly expected_sha="${1:?Usage: ./deploy/deploy.sh <full-release-sha>}"
+readonly release_sha="$(git rev-parse HEAD)"
+
+if [[ "$release_sha" != "$expected_sha" ]]; then
+    echo "Checked-out commit ($release_sha) does not match requested release ($expected_sha)." >&2
+    exit 1
 fi
 
-if [ "$#" -eq 1 ]; then
-    release_sha="$1"
-    echo "==> Using pinned release $release_sha"
-    git rev-parse --verify "$release_sha^{commit}" >/dev/null
-    git checkout --detach "$release_sha"
-else
-    echo "==> Pulling latest code"
-    git pull
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Refusing to deploy with tracked changes in the server checkout." >&2
+    exit 1
 fi
+
+echo "==> Deploying pinned release $release_sha"
 
 echo "==> Building and starting containers"
 docker compose up -d --build
@@ -30,6 +30,9 @@ docker compose exec app refugio migrate
 echo "==> Importing and enriching games from BGG"
 docker compose exec app refugio import-games
 docker compose exec app refugio enrich-games
+
+echo "==> Importing RPG items from BGG"
+docker compose exec app refugio import-rol
 
 echo "==> Seeding content mirror from git-checked-in copy"
 # Seeds /srv/content (the shared volume Caddy serves) from the version Vite

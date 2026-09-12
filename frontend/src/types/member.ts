@@ -1,8 +1,15 @@
 export interface CurrentMember {
   readonly id: number;
-  readonly display_name: string;
+  readonly member_number: number | null;
+  readonly first_name: string;
+  readonly last_name: string;
+  readonly nickname: string | null;
+  readonly phone: string | null;
   readonly email: string;
+  readonly display_name: string;
   readonly is_admin: boolean;
+  readonly is_active: boolean;
+  readonly last_payment: string | null;
 }
 
 export const genderLabels = ["socio", "socia", "socio/a"] as const;

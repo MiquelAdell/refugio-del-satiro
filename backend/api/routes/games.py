@@ -33,11 +33,16 @@ class GameResponse(BaseModel):
     playing_time: int
     bgg_rating: float
     location: str
+    description: str
+    description_es: str
+    categories: list[str]
     created_at: datetime
     updated_at: datetime
     status: str
     borrower_display_name: str | None
     loan_id: int | None
+    min_age: int
+    primary_tag: str
 
 
 def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
@@ -54,11 +59,16 @@ def _to_response(g: GameWithStatus, *, is_authenticated: bool) -> GameResponse:
         playing_time=g.playing_time,
         bgg_rating=g.bgg_rating,
         location=g.location,
+        description=g.description,
+        description_es=g.description_es,
+        categories=list(g.categories),
         created_at=g.created_at,
         updated_at=g.updated_at,
         status=g.status,
         borrower_display_name=g.borrower_display_name if is_authenticated else None,
         loan_id=g.loan_id if is_authenticated else None,
+        min_age=g.min_age,
+        primary_tag=g.primary_tag,
     )
 
 
@@ -91,15 +101,11 @@ def get_game(
 @router.get("/{slug}/history", response_model=list[LoanHistoryEntryResponse])
 def get_game_history(
     slug: str,
-    game_use_case: Annotated[GetGameUseCase, Depends(get_game_use_case)],
-    history_use_case: Annotated[GetGameHistoryUseCase, Depends(get_game_history_use_case)],
+    history_use_case: Annotated[
+        GetGameHistoryUseCase, Depends(get_game_history_use_case)
+    ],
     member: OptionalMember,
 ) -> list[LoanHistoryEntryResponse]:
-    # Guard: history is only exposed for boardgames via this endpoint.
-    if game_use_case.execute(slug) is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Juego no encontrado."
-        )
     entries = history_use_case.execute(slug)
     if entries is None:
         raise HTTPException(

@@ -6,11 +6,24 @@ class or we rearrange output, only this module needs to change.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Origin we scrape. No trailing slash.
-SOURCE_ORIGIN = "https://www.refugiodelsatiro.es"
+# The public Google Sites publishing URL is deliberately independent of the
+# custom domains that serve the mirror.  Otherwise repointing those domains at
+# Caddy would make the scraper crawl its own output.
+DEFAULT_SOURCE_ORIGIN = "https://sites.google.com/view/refugiodelsatiro"
+SOURCE_ORIGIN = os.environ.get(
+    "REFUGIO_CONTENT_SOURCE_ORIGIN", DEFAULT_SOURCE_ORIGIN
+).rstrip("/")
+
+# Public origin advertised to search engines. This is separate from the source
+# origin so staging can use its own canonical URLs without ever scraping itself.
+DEFAULT_CANONICAL_ORIGIN = "https://refugiodelsatiro.es"
+CANONICAL_ORIGIN = os.environ.get(
+    "REFUGIO_CANONICAL_ORIGIN", DEFAULT_CANONICAL_ORIGIN
+).rstrip("/")
 
 # Paths we refuse to scrape. They either duplicate content (/inicio) or are
 # slated for replacement by our own React routes and redirected in Caddy.
@@ -29,13 +42,11 @@ SKIP_PATHS: frozenset[str] = frozenset(
 # bar, edit toolbar). Everything else — header nav, user footer, OG meta
 # tags, etc. — is preserved verbatim.
 
-# Deliberately empty: we keep Sites' output verbatim — scripts, iframes,
-# cookie notice, "Report abuse" trailer, "Last edited" indicator, everything.
-# The only transformations we perform are link rewriting (to canonical local
-# paths), image rehosting (to `_assets/`), and a `<base>` strip so those link
-# rewrites aren't undone. Notes + functionality match the live Sites site
-# 1:1.
-STRIP_SELECTORS: tuple[str, ...] = ()
+# Google's page runtime assumes it is running on Google Sites and navigates a
+# custom-domain visitor back to the upstream `sites.google.com` URL. Preserve
+# the document's markup and CSS, but remove that runtime. Embedded iframes
+# (notably the public calendar) remain independent and are kept.
+STRIP_SELECTORS: tuple[str, ...] = ("script", "noscript")
 
 # The content shell we still use for *sanity checking* after a strip: if this
 # element isn't present in the resulting page, something went very wrong and
@@ -67,8 +78,13 @@ class ScraperConfig:
     """Runtime knobs. Immutable; call replace() to override in tests."""
 
     origin: str = SOURCE_ORIGIN
+    canonical_origin: str = CANONICAL_ORIGIN
     output_dir: Path = field(
-        default_factory=lambda: Path("frontend/public/content-mirror")
+        default_factory=lambda: Path(
+            os.environ.get(
+                "REFUGIO_CONTENT_MIRROR_DIR", "frontend/public/content-mirror"
+            )
+        )
     )
     assets_subdir: str = "_assets"
     manifest_file: str = "_manifest.json"

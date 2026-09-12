@@ -29,8 +29,15 @@ export interface CreateMemberRequest {
 }
 
 export interface EditMemberRequest {
+  readonly first_name: string;
+  readonly last_name: string;
+  readonly email: string;
+  readonly nickname?: string | null;
+  readonly phone?: string | null;
+  readonly member_number?: number | null;
   readonly last_payment?: string | null;
   readonly gender?: MemberGender | null;
+  readonly is_admin: boolean;
 }
 
 export interface CreateMemberResponse {
@@ -41,6 +48,22 @@ export interface CreateMemberResponse {
 export interface SendLinkResponse {
   readonly email_sent: boolean;
   readonly token_url: string;
+}
+
+export interface ImportedMember {
+  readonly display_name: string;
+  readonly email: string;
+  readonly token_url: string;
+}
+
+export interface ImportMembersResponse {
+  readonly created: readonly ImportedMember[];
+  readonly created_count: number;
+  readonly updated_count: number;
+  readonly disabled_count: number;
+  readonly total_rows: number;
+  readonly skipped_rows: number;
+  readonly deactivation_skip_reason: string | null;
 }
 
 export interface OkResponse {

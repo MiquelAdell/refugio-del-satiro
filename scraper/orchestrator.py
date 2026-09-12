@@ -23,6 +23,7 @@ from scraper.linker import (
 )
 from scraper.manifest import Manifest, PageRecord
 from scraper.nav_extractor import extract_nav
+from scraper.seo import inject_canonical_metadata
 from scraper.shell_injector import inject_site_shell
 from scraper.stripper import ContentExtractionError, strip
 from scraper.writer import (
@@ -34,6 +35,7 @@ from scraper.writer import (
     write_manifest,
     write_nav,
     write_page,
+    write_search_discovery,
 )
 
 EventSink = Callable[[ScraperEvent], Awaitable[None] | None]
@@ -332,6 +334,11 @@ async def run(
             total_reused += reused
 
             inject_site_shell(stripped.document)
+            inject_canonical_metadata(
+                stripped.document,
+                canonical_origin=config.canonical_origin,
+                path=canonical,
+            )
 
             document_html = _render_document(stripped.document)
             output_file = path_to_output(canonical, config.assets_subdir)
@@ -430,6 +437,11 @@ async def run(
                     ),
                 )
             write_manifest(output_dir, manifest, config.manifest_file)
+            write_search_discovery(
+                target_dir=output_dir,
+                canonical_origin=config.canonical_origin,
+                paths=tuple(page.path for page in new_pages),
+            )
             purged = purge_orphan_assets(
                 output_dir=output_dir,
                 assets_subdir=config.assets_subdir,

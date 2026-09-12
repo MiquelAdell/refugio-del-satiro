@@ -103,6 +103,28 @@
   font-weight: var(--font-weight-regular);
 }
 
+.rpg-detail-classifications {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.rpg-detail-classifications > div {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.rpg-detail-classifications dt {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+}
+
+.rpg-detail-classifications dd {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
 .rpg-detail-actions {
   display: flex;
   flex-wrap: wrap;

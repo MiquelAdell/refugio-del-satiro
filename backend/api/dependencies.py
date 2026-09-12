@@ -16,7 +16,9 @@ from backend.data.repositories.sqlite_password_token_repository import (
     SqlitePasswordTokenRepository,
 )
 from backend.domain.entities.member import Member
+from backend.domain.services.loan_return_notifier import LoanReturnNotifier
 from backend.domain.use_cases.authenticate import AuthenticateUseCase
+from backend.domain.use_cases.change_password import ChangePasswordUseCase
 from backend.domain.use_cases.get_game import GetGameUseCase
 from backend.domain.use_cases.get_game_history import GetGameHistoryUseCase
 from backend.domain.use_cases.get_rpg_item import GetRpgItemUseCase
@@ -67,6 +69,15 @@ LoanRepo = Annotated[SqliteLoanRepository, Depends(get_loan_repo)]
 TokenRepo = Annotated[SqlitePasswordTokenRepository, Depends(get_token_repo)]
 
 
+def get_loan_return_notifier() -> LoanReturnNotifier:
+    from backend.data.email_client import EmailClient
+
+    return EmailClient(_settings)
+
+
+ReturnNotifier = Annotated[LoanReturnNotifier, Depends(get_loan_return_notifier)]
+
+
 def get_list_games_use_case(
     game_repo: GameRepo,
     loan_repo: LoanRepo,
@@ -88,7 +99,9 @@ def get_game_history_use_case(
     loan_repo: LoanRepo,
     member_repo: MemberRepo,
 ) -> GetGameHistoryUseCase:
-    return GetGameHistoryUseCase(game_repo, loan_repo, member_repo)
+    return GetGameHistoryUseCase(
+        game_repo, loan_repo, member_repo, item_type="boardgame"
+    )
 
 
 def get_list_rpg_items_use_case(
@@ -112,7 +125,7 @@ def get_rpg_item_history_use_case(
     loan_repo: LoanRepo,
     member_repo: MemberRepo,
 ) -> GetGameHistoryUseCase:
-    return GetGameHistoryUseCase(game_repo, loan_repo, member_repo)
+    return GetGameHistoryUseCase(game_repo, loan_repo, member_repo, item_type="rpgitem")
 
 
 def get_authenticate_use_case(member_repo: MemberRepo) -> AuthenticateUseCase:
@@ -124,6 +137,10 @@ def get_set_password_use_case(
     token_repo: TokenRepo,
 ) -> SetPasswordUseCase:
     return SetPasswordUseCase(member_repo, token_repo)
+
+
+def get_change_password_use_case(member_repo: MemberRepo) -> ChangePasswordUseCase:
+    return ChangePasswordUseCase(member_repo)
 
 
 def get_request_password_reset_use_case(
@@ -155,7 +172,7 @@ def require_current_member(
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cal iniciar sessió.",
+            detail="Es necesario iniciar sesión.",
         )
     return member
 

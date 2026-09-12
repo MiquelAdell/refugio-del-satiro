@@ -1,5 +1,10 @@
 .active-filter-chips {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-sm);
+}
+
+.active-filter-chips > button:last-child {
+  margin-left: auto;
 }

@@ -2,9 +2,18 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoanActionFeedback } from "../components/LoanActionFeedback";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { useAuth } from "../context/AuthContext";
 import { useRpgHistory } from "../hooks/useRpgHistory";
+import { useMyLoans } from "../hooks/useMyLoans";
+import { displayDescription } from "../lib/description";
+import {
+  getForcedReturnFeedback,
+  type LoanFeedback,
+} from "../lib/loanFeedback";
+import { BORROW_SUCCESS_MESSAGE, getReturnAction } from "../lib/loanActions";
+import type { ReturnLoanResponse } from "../types/loan";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./RpgDetailPage.css";
@@ -13,10 +22,19 @@ export function RpgDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { item, history, loading, error, refetch } = useRpgHistory(slug);
   const { member } = useAuth();
+  const {
+    loans: myLoans,
+    loading: myLoansLoading,
+    error: myLoansError,
+    refetch: refetchMyLoans,
+  } = useMyLoans(member !== null);
   const [confirmAction, setConfirmAction] = useState<
-    { readonly action: "borrow"; readonly itemId: number } | { readonly action: "return" } | null
+    | { readonly action: "borrow"; readonly itemId: number }
+    | { readonly action: "return" }
+    | null
   >(null);
   const [acting, setActing] = useState(false);
+  const [loanFeedback, setLoanFeedback] = useState<LoanFeedback | null>(null);
 
   if (loading) {
     return (
@@ -38,13 +56,14 @@ export function RpgDetailPage() {
   }
 
   const canBorrow = member !== null && item.status === "available";
-  const canReturn =
-    member !== null &&
-    item.status === "lent" &&
-    item.loan_id !== null &&
-    (member.is_admin || item.borrower_display_name === member.display_name);
+  const activeLoanIds = new Set(myLoans.map((loan) => loan.loan_id));
+  const returnAction =
+    !myLoansLoading && myLoansError === null
+      ? getReturnAction(member, item, activeLoanIds)
+      : null;
 
-  const onBorrow = (itemId: number) => setConfirmAction({ action: "borrow", itemId });
+  const onBorrow = (itemId: number) =>
+    setConfirmAction({ action: "borrow", itemId });
 
   const handleBorrow = async (itemId: number) => {
     setActing(true);
@@ -53,7 +72,9 @@ export function RpgDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: itemId }),
       });
+      setLoanFeedback({ message: BORROW_SUCCESS_MESSAGE, variant: "status" });
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -65,10 +86,15 @@ export function RpgDetailPage() {
   const handleReturn = async () => {
     setActing(true);
     try {
-      await apiFetch<unknown>(`/loans/${item.loan_id}/return`, {
-        method: "PATCH",
-      });
+      const result = await apiFetch<ReturnLoanResponse>(
+        `/loans/${item.loan_id}/return`,
+        {
+          method: "PATCH",
+        },
+      );
+      setLoanFeedback(getForcedReturnFeedback(result.forced_return_email_sent));
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -84,7 +110,7 @@ export function RpgDetailPage() {
         ? `Prestado a ${item.borrower_display_name}`
         : "Prestado";
 
-  const descriptionParagraphs = item.description
+  const descriptionParagraphs = displayDescription(item)
     .split(/\n\n+/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
@@ -118,7 +144,28 @@ export function RpgDetailPage() {
             </div>
           )}
 
-          <Badge variant={item.status === "available" ? "available" : "lent"} className="rpg-detail-status">
+          {(item.categories.length > 0 ||
+            item.publication_types.length > 0) && (
+            <dl className="rpg-detail-classifications">
+              {item.categories.length > 0 && (
+                <div>
+                  <dt>Categorías</dt>
+                  <dd>{item.categories.join(", ")}</dd>
+                </div>
+              )}
+              {item.publication_types.length > 0 && (
+                <div>
+                  <dt>Tipo de publicación</dt>
+                  <dd>{item.publication_types.join(", ")}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          <Badge
+            variant={item.status === "available" ? "available" : "lent"}
+            className="rpg-detail-status"
+          >
             {statusLabel}
           </Badge>
 
@@ -133,13 +180,13 @@ export function RpgDetailPage() {
                 Solicitar préstamo
               </Button>
             )}
-            {canReturn && (
+            {returnAction && (
               <Button
                 variant="secondary"
                 onClick={() => setConfirmAction({ action: "return" })}
                 disabled={acting}
               >
-                Devolver
+                {returnAction.label}
               </Button>
             )}
             {member === null && item.status === "available" && (
@@ -148,6 +195,11 @@ export function RpgDetailPage() {
               </Link>
             )}
           </div>
+
+          <LoanActionFeedback
+            message={loanFeedback?.message ?? null}
+            variant={loanFeedback?.variant}
+          />
 
           <div className="rpg-detail-bgg">
             <a
@@ -162,17 +214,19 @@ export function RpgDetailPage() {
       </div>
 
       {descriptionParagraphs.length > 0 && (
-        <div className="rpg-detail-description">
+        <section className="rpg-detail-description" aria-label="Descripción">
           {descriptionParagraphs.map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
-        </div>
+        </section>
       )}
 
       <div className="rpg-detail-history">
         <h2>Historial de préstamos y comentarios</h2>
         {history.length === 0 ? (
-          <p className="rpg-detail-no-history">Este libro nunca ha sido prestado.</p>
+          <p className="rpg-detail-no-history">
+            Este libro nunca ha sido prestado.
+          </p>
         ) : (
           <div className="rpg-detail-history-list">
             {history.map((entry, i) => (
@@ -196,7 +250,7 @@ export function RpgDetailPage() {
           message={`¿Quieres devolver "${item.name}"?`}
           onConfirm={() => void handleReturn()}
           onCancel={() => setConfirmAction(null)}
-          confirmLabel="Devolver"
+          confirmLabel={returnAction?.label ?? "Devolver"}
         />
       )}
     </div>

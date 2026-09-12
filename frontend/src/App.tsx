@@ -9,11 +9,14 @@ import { MyLoansPage } from "./pages/MyLoansPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { SetPasswordPage } from "./pages/SetPasswordPage";
+import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
+import { AdminBggPage } from "./pages/AdminBggPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
 import { ValidacionPage } from "./pages/ValidacionPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { EmailSupportPage } from "./pages/EmailSupportPage";
 
 export default function App() {
@@ -23,7 +26,10 @@ export default function App() {
         <CatalogModeProvider>
           <SiteNavProvider>
             <Routes>
-              <Route path="/" element={<Navigate to="/juegos-de-mesa" replace />} />
+              <Route
+                path="/"
+                element={<Navigate to="/juegos-de-mesa" replace />}
+              />
               <Route
                 path="/juegos-de-mesa"
                 element={
@@ -65,6 +71,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/profile"
+                element={
+                  <PageLayout>
+                    <ProfilePage />
+                  </PageLayout>
+                }
+              />
+              <Route
                 path="/admin/members"
                 element={
                   <PageLayout>
@@ -77,6 +91,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <AdminContentPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/admin/bgg"
+                element={
+                  <PageLayout>
+                    <AdminBggPage />
                   </PageLayout>
                 }
               />
@@ -117,6 +139,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <SetPasswordPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
+                  <PageLayout>
+                    <ChangePasswordPage />
                   </PageLayout>
                 }
               />

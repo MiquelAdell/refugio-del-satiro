@@ -24,52 +24,30 @@ function ChevronDown() {
   );
 }
 
-// ─── Submenu item config ──────────────────────────────────────────────────────
+// ─── User menu config ─────────────────────────────────────────────────────────
 
-type SubmenuRole = "guest" | "member" | "admin";
-
-interface LinkSubmenuItem {
-  readonly type: "link";
+interface AdminSubmenuLink {
   readonly label: string;
   readonly to: string;
-  readonly roles: readonly SubmenuRole[];
 }
-
-interface NestedSubmenuItem {
-  readonly type: "nested";
-  readonly label: string;
-  readonly roles: readonly SubmenuRole[];
-  readonly children: readonly LinkSubmenuItem[];
-}
-
-type SubmenuItem = LinkSubmenuItem | NestedSubmenuItem;
 
 // `to` values are router-relative (inside `<BrowserRouter basename="/ludoteca">`),
 // so they omit the `/ludoteca` prefix — the router prepends it.
-const LUDOTECA_SUBMENU: readonly SubmenuItem[] = [
-  { type: "link", label: "Mis préstamos", to: "/my-loans", roles: ["member", "admin"] },
-  {
-    type: "nested",
-    label: "Administración",
-    roles: ["admin"],
-    children: [
-      { type: "link", label: "Miembros", to: "/admin/members", roles: ["admin"] },
-      { type: "link", label: "Contenido", to: "/admin/content", roles: ["admin"] },
-    ],
-  },
+const ADMIN_SUBMENU: readonly AdminSubmenuLink[] = [
+  { label: "Miembros", to: "/admin/members" },
+  { label: "Contenido GSite", to: "/admin/content" },
+  { label: "Datos BGG", to: "/admin/bgg" },
 ];
 
 // ─── AdminNestedSubmenu ───────────────────────────────────────────────────────
 
 interface AdminNestedSubmenuProps {
-  readonly item: NestedSubmenuItem;
   readonly mobileExpanded: boolean;
   readonly onToggleMobile: () => void;
   readonly onItemClick?: () => void;
 }
 
 function AdminNestedSubmenu({
-  item,
   mobileExpanded,
   onToggleMobile,
   onItemClick,
@@ -83,14 +61,14 @@ function AdminNestedSubmenu({
         aria-expanded={mobileExpanded}
         onClick={onToggleMobile}
       >
-        {item.label}
+        Administración
         <ChevronDown />
       </button>
       <ul
         className={`${styles.nestedList} ${mobileExpanded ? styles.nestedListOpen : ""}`}
         role="menu"
       >
-        {item.children.map((child) => (
+        {ADMIN_SUBMENU.map((child) => (
           <li key={child.to} className={styles.nestedItem} role="menuitem">
             <Link to={child.to} onClick={onItemClick}>
               {child.label}
@@ -102,47 +80,59 @@ function AdminNestedSubmenu({
   );
 }
 
-// ─── LudotecaSubmenu ──────────────────────────────────────────────────────────
+// ─── UserSubmenu (shared: desktop dropdown + drawer section) ─────────────────
 
-interface LudotecaSubmenuProps {
-  readonly role: SubmenuRole;
+interface UserSubmenuProps {
+  readonly isAdmin: boolean;
   readonly adminExpanded: boolean;
   readonly onToggleAdmin: () => void;
+  readonly onLogout: () => Promise<void>;
   readonly onItemClick?: () => void;
+  readonly alignRight?: boolean;
 }
 
-function LudotecaSubmenu({
-  role,
+function UserSubmenu({
+  isAdmin,
   adminExpanded,
   onToggleAdmin,
+  onLogout,
   onItemClick,
-}: LudotecaSubmenuProps) {
-  const visibleItems = LUDOTECA_SUBMENU.filter((item) =>
-    item.roles.includes(role)
-  );
-
+  alignRight = false,
+}: UserSubmenuProps) {
   return (
-    <ul className={styles.submenu} role="menu">
-      {visibleItems.map((item) => {
-        if (item.type === "nested") {
-          return (
-            <AdminNestedSubmenu
-              key={item.label}
-              item={item}
-              mobileExpanded={adminExpanded}
-              onToggleMobile={onToggleAdmin}
-              onItemClick={onItemClick}
-            />
-          );
-        }
-        return (
-          <li key={item.to} className={styles.submenuItem} role="menuitem">
-            <Link to={item.to} onClick={onItemClick}>
-              {item.label}
-            </Link>
-          </li>
-        );
-      })}
+    <ul
+      className={`${styles.submenu} ${alignRight ? styles.submenuRight : ""}`}
+      role="menu"
+    >
+      <li className={styles.submenuItem} role="menuitem">
+        <Link to="/profile" onClick={onItemClick}>
+          Mi perfil
+        </Link>
+      </li>
+      <li className={styles.submenuItem} role="menuitem">
+        <Link to="/my-loans" onClick={onItemClick}>
+          Mis préstamos
+        </Link>
+      </li>
+      {isAdmin && (
+        <AdminNestedSubmenu
+          mobileExpanded={adminExpanded}
+          onToggleMobile={onToggleAdmin}
+          onItemClick={onItemClick}
+        />
+      )}
+      <li className={`${styles.submenuItem} ${styles.logoutItem}`} role="menuitem">
+        <button
+          type="button"
+          className={styles.submenuButton}
+          onClick={() => {
+            void onLogout();
+            onItemClick?.();
+          }}
+        >
+          Cerrar sesión
+        </button>
+      </li>
     </ul>
   );
 }
@@ -155,30 +145,21 @@ export function SiteHeader() {
   const { isGuest } = useCatalogMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedDrawerHref, setExpandedDrawerHref] = useState<string | null>(null);
-  const [ludotecaExpanded, setLudotecaExpanded] = useState(false);
+  const [userExpanded, setUserExpanded] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(false);
+  const [logoutNotice, setLogoutNotice] = useState<{
+    readonly kind: "success" | "error";
+    readonly message: string;
+  } | null>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
-
-  // The router runs under basename "/ludoteca", so useMatch matches against
-  // the basename-stripped location. "/" matches the catalog root; "/*" covers
-  // all nested routes.
-  const isLudotecaActive = useMatch("/*") !== null;
+  const headerRef = useRef<HTMLElement>(null);
+  const logoutNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isLoginRoute = Boolean(useMatch("/login"));
 
-  // isGuest is derived from auth state via CatalogModeContext; determines
-  // which submenu items are visible.
-  const role: SubmenuRole = isGuest
-    ? "guest"
-    : member?.is_admin === true
-      ? "admin"
-      : member !== null
-        ? "member"
-        : "guest";
-
-  const hasLudotecaSubmenu = LUDOTECA_SUBMENU.some((item) =>
-    item.roles.includes(role)
-  );
+  // isGuest is derived from auth state via CatalogModeContext.
+  const isLoggedIn = !isGuest && member !== null;
+  const isAdmin = isLoggedIn && member.is_admin === true;
 
   // Close drawer and return focus on Escape
   useEffect(() => {
@@ -200,24 +181,61 @@ export function SiteHeader() {
     };
   }, [drawerOpen]);
 
-  const handleLogout = () => {
-    void logout();
-  };
+  useEffect(
+    () => () => {
+      if (logoutNoticeTimerRef.current !== null) {
+        clearTimeout(logoutNoticeTimerRef.current);
+      }
+    },
+    []
+  );
 
   const closeDrawer = () => {
     setDrawerOpen(false);
     setExpandedDrawerHref(null);
-    setLudotecaExpanded(false);
+    setUserExpanded(false);
     setAdminExpanded(false);
+    if (
+      document.activeElement instanceof HTMLElement &&
+      headerRef.current?.contains(document.activeElement)
+    ) {
+      document.activeElement.blur();
+    }
+  };
+
+  const handleLogout = async () => {
+    closeDrawer();
+    setLogoutNotice(null);
+    if (logoutNoticeTimerRef.current !== null) {
+      clearTimeout(logoutNoticeTimerRef.current);
+      logoutNoticeTimerRef.current = null;
+    }
+
+    try {
+      await logout();
+      setLogoutNotice({
+        kind: "success",
+        message: "Sesión cerrada correctamente.",
+      });
+      logoutNoticeTimerRef.current = setTimeout(() => {
+        setLogoutNotice(null);
+        logoutNoticeTimerRef.current = null;
+      }, 4_000);
+    } catch {
+      setLogoutNotice({
+        kind: "error",
+        message: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+      });
+    }
   };
 
   return (
-    <header className={styles.header}>
+    <header ref={headerRef} className={styles.header}>
       <div className={styles.inner}>
         {/* Logo */}
         <a href="/inicio" className={styles.logoLink} aria-label="Refugio del Sátiro – Inicio">
           <img
-            src="/_assets/200953ee27cc922e.png"
+            src="/ludoteca/branding/logo.png"
             alt=""
             className={styles.logo}
             height="40"
@@ -230,9 +248,12 @@ export function SiteHeader() {
           <ul className={styles.navList}>
             {status !== "error" &&
               items.map((item) => {
+                // "/inicio" 301-redirects to "/", so the home nav item must
+                // also match the bare root path.
                 const isActive =
                   typeof window !== "undefined" &&
-                  window.location.pathname.startsWith(item.href);
+                  (window.location.pathname.startsWith(item.href) ||
+                    (item.href === "/inicio" && window.location.pathname === "/"));
                 const hasChildren =
                   item.children !== undefined && item.children.length > 0;
                 return (
@@ -256,51 +277,35 @@ export function SiteHeader() {
                   </li>
                 );
               })}
-
-            {/* Ludoteca parent */}
-            <li
-              className={`${styles.navItem} ${hasLudotecaSubmenu ? styles.hasSubmenu : ""} ${
-                isLudotecaActive ? styles.active : ""
-              }`}
-            >
-              {hasLudotecaSubmenu ? (
-                <>
-                  <Link to="/" aria-haspopup="menu" aria-expanded={false}>
-                    Ludoteca
-                    <ChevronDown />
-                  </Link>
-                  <LudotecaSubmenu
-                    role={role}
-                    adminExpanded={false}
-                    onToggleAdmin={() => undefined}
-                  />
-                </>
-              ) : (
-                <Link to="/">Ludoteca</Link>
-              )}
-            </li>
           </ul>
         </nav>
 
         {/* Right-side actions */}
         <div className={styles.headerActions}>
-          {role === "guest" ? (
+          {!isLoggedIn ? (
             !isLoginRoute && (
               <Link to="/login" className={styles.loginAction}>
                 Iniciar sesión
               </Link>
             )
           ) : (
-            <>
-              <span className={styles.userDisplayName}>{member!.display_name}</span>
+            <div className={`${styles.userMenu} ${styles.hasSubmenu}`}>
               <button
                 type="button"
-                className={styles.logoutAction}
-                onClick={handleLogout}
+                className={styles.userMenuTrigger}
+                aria-haspopup="menu"
               >
-                Cerrar sesión
+                <span className={styles.userMenuName}>{member.display_name}</span>
+                <ChevronDown />
               </button>
-            </>
+              <UserSubmenu
+                isAdmin={isAdmin}
+                adminExpanded={false}
+                onToggleAdmin={() => undefined}
+                onLogout={handleLogout}
+                alignRight
+              />
+            </div>
           )}
         </div>
 
@@ -328,7 +333,7 @@ export function SiteHeader() {
       >
         <nav aria-label="Principal">
           <ul className={styles.drawerList}>
-            {role === "guest" ? (
+            {!isLoggedIn ? (
               !isLoginRoute && (
                 <li className={styles.drawerItem}>
                   <Link
@@ -341,15 +346,26 @@ export function SiteHeader() {
                 </li>
               )
             ) : (
-              <li className={`${styles.drawerItem} ${styles.drawerUserRow}`}>
-                <span className={styles.drawerUserDisplayName}>{member!.display_name}</span>
+              <li className={styles.drawerItem}>
                 <button
                   type="button"
-                  className={styles.drawerLogoutAction}
-                  onClick={() => { handleLogout(); closeDrawer(); }}
+                  className={styles.drawerParent}
+                  aria-haspopup="menu"
+                  aria-expanded={userExpanded}
+                  onClick={() => setUserExpanded((prev) => !prev)}
                 >
-                  Cerrar sesión
+                  {member.display_name}
+                  <ChevronDown />
                 </button>
+                {userExpanded && (
+                  <UserSubmenu
+                    isAdmin={isAdmin}
+                    adminExpanded={adminExpanded}
+                    onToggleAdmin={() => setAdminExpanded((prev) => !prev)}
+                    onLogout={handleLogout}
+                    onItemClick={closeDrawer}
+                  />
+                )}
               </li>
             )}
 
@@ -394,39 +410,18 @@ export function SiteHeader() {
                   </li>
                 );
               })}
-
-            {/* Ludoteca in drawer */}
-            <li className={styles.drawerItem}>
-              {hasLudotecaSubmenu ? (
-                <>
-                  <button
-                    type="button"
-                    className={styles.drawerParent}
-                    aria-haspopup="menu"
-                    aria-expanded={ludotecaExpanded}
-                    onClick={() => setLudotecaExpanded((prev) => !prev)}
-                  >
-                    Ludoteca
-                    <ChevronDown />
-                  </button>
-                  {ludotecaExpanded && (
-                    <LudotecaSubmenu
-                      role={role}
-                      adminExpanded={adminExpanded}
-                      onToggleAdmin={() => setAdminExpanded((prev) => !prev)}
-                      onItemClick={closeDrawer}
-                    />
-                  )}
-                </>
-              ) : (
-                <Link to="/" onClick={closeDrawer}>
-                  Ludoteca
-                </Link>
-              )}
-            </li>
           </ul>
         </nav>
       </div>
+      {logoutNotice !== null && (
+        <div
+          className={`${styles.logoutToast} ${logoutNotice.kind === "error" ? styles.logoutToastError : ""}`}
+          role={logoutNotice.kind === "success" ? "status" : "alert"}
+          aria-live={logoutNotice.kind === "success" ? "polite" : "assertive"}
+        >
+          {logoutNotice.message}
+        </div>
+      )}
     </header>
   );
 }

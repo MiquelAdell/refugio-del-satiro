@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Refugio del Sátiro – Inicio":
+        - /url: /inicio
+      - navigation "Principal":
+        - list
+      - link "Iniciar sesión" [ref=e7] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - heading "Validar Membresía" [level=1] [ref=e10]
+      - separator [ref=e11]
+      - paragraph [ref=e12]: Introduce el número de socio en el siguiente campo para validar la membresía del socio o socia.
+      - generic [ref=e13]:
+        - textbox "Número de socio" [ref=e15]:
+          - /placeholder: Buscar socio/a por número...
+        - button "Buscar" [disabled] [ref=e16]
+      - generic [ref=e17]:
+        - paragraph [ref=e18]: La membresía de un socio o socia tiene una duración mínima de 1 año natural o hasta que se realice la próxima reunión.
+        - paragraph [ref=e19]: Ser socio o socia permite el acceso libre a la ludoteca del club además de otorgar ciertos beneficios que pueden ir cambiando segun la temporada y los acuerdo realizados con los socios y otras entidades implicadas.
+  - contentinfo [ref=e20]:
+    - list "Redes sociales" [ref=e22]:
+      - listitem [ref=e23]:
+        - link "WhatsApp" [ref=e24] [cursor=pointer]:
+          - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+          - img "WhatsApp" [ref=e25]
+      - listitem [ref=e26]:
+        - link "Instagram" [ref=e27] [cursor=pointer]:
+          - /url: https://www.instagram.com/refugiosatiro/
+          - img "Instagram" [ref=e28]
+      - listitem [ref=e29]:
+        - link "Facebook" [ref=e30] [cursor=pointer]:
+          - /url: https://www.facebook.com/refugiosatiro
+          - img "Facebook" [ref=e31]
+      - listitem [ref=e32]:
+        - link "Discord" [ref=e33] [cursor=pointer]:
+          - /url: https://discord.gg/XAQ8TvtS3y
+          - img "Discord" [ref=e34]

@@ -96,6 +96,28 @@
   flex-shrink: 0;
 }
 
+.game-detail-classifications {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.game-detail-classifications > div {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.game-detail-classifications dt {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+}
+
+.game-detail-classifications dd {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
 .game-detail-actions {
   display: flex;
   gap: var(--space-md);
@@ -129,6 +151,20 @@
 
 .game-detail-bgg a:hover {
   color: var(--color-brand);
+}
+
+/* ─── Description ─────────────────────────────────────────────────── */
+
+.game-detail-description {
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xl);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-body);
+}
+
+.game-detail-description p + p {
+  margin-top: var(--space-md);
 }
 
 /* ─── History ─────────────────────────────────────────────────────── */

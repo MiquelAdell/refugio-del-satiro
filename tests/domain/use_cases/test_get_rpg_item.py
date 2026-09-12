@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 from backend.domain.use_cases.get_rpg_item import GetRpgItemUseCase
 from tests.domain.use_cases.test_list_games import (
     FakeGameRepository,
@@ -48,6 +50,8 @@ class TestGetRpgItemUseCase:
         assert result.id == 1
         assert result.name == "Pathfinder"
         assert result.description == "A great RPG book."
+        assert result.categories == ("Fantasy", "Mythology")
+        assert result.publication_types == ("Core Rules", "Sourcebook")
         assert result.status == "available"
         assert result.borrower_display_name is None
         assert result.loan_id is None
@@ -66,5 +70,17 @@ class TestGetRpgItemUseCase:
 
         assert result is not None
         assert result.status == "lent"
+        assert result.categories == ("Fantasy", "Mythology")
+        assert result.publication_types == ("Core Rules", "Sourcebook")
         assert result.borrower_display_name == "Alice"
         assert result.loan_id == 100
+
+    def test_returns_none_for_deactivated_rpg_item(self) -> None:
+        rpg = dataclasses.replace(_make_rpg_item(1, "Pathfinder"), is_active=False)
+        use_case = GetRpgItemUseCase(
+            game_repo=FakeGameRepository([rpg]),
+            loan_repo=FakeLoanRepository(),
+            member_repo=FakeMemberRepository(),
+        )
+
+        assert use_case.execute("pathfinder") is None

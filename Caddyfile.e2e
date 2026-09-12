@@ -31,6 +31,23 @@
 }
 
 :8090 {
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Frame-Options "SAMEORIGIN"
+	}
+
+	# Exercise production's canonical-host redirect while keeping the local
+	# listener address-independent. Tests select the redirect branch via Host.
+	@redirect_host expression `{http.request.host} == "{$E2E_REDIRECT_DOMAIN:www.refugiodelsatiro.es}" && {http.request.host} != "{$E2E_CANONICAL_DOMAIN:refugiodelsatiro.es}"`
+	redir @redirect_host https://{$E2E_CANONICAL_DOMAIN:refugiodelsatiro.es}{uri} 301
+
+	# Mirrored pages load the lending app's self-hosted fonts from the root.
+	handle /fonts/* {
+		reverse_proxy localhost:{$E2E_API_PORT:8000}
+	}
+
 	# App (lending/catalog SPA) — strips the /ludoteca prefix before forwarding.
 	handle_path /ludoteca/* {
 		reverse_proxy localhost:{$E2E_API_PORT:8000}

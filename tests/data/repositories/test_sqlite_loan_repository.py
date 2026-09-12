@@ -16,7 +16,7 @@ def _seed_data(
     g1 = game_repo.upsert_by_bgg_id(1, "Catan", "https://c.jpg", 1995)
     g2 = game_repo.upsert_by_bgg_id(2, "Azul", "https://a.jpg", 2017)
     m = member_repo.upsert_by_email(
-        1, "Test", "User", None, None, "test@test.com", "Test User", False
+        1, "Test", "User", None, None, "TEST_email@domain.com", "Test User", False
     )
     return g1.id, g2.id, m.id
 

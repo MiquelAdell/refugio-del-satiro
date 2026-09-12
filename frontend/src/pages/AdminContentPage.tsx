@@ -41,7 +41,7 @@ export function AdminContentPage() {
       const res = await apiFetch<SyncStatusResponse>("/admin/content/status");
       setStatus(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No s'ha pogut carregar l'estat.");
+      setError(err instanceof Error ? err.message : "No se ha podido cargar el estado.");
     }
   }, []);
 
@@ -104,14 +104,14 @@ export function AdminContentPage() {
         method: "POST",
       });
       if (res.already_running) {
-        setError("Ja hi ha un sync en marxa.");
+        setError("Ya hay una sincronización en marcha.");
       } else {
         setEvents([]);
         connectStream();
         await fetchStatus();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No s'ha pogut iniciar el sync.");
+      setError(err instanceof Error ? err.message : "No se ha podido iniciar la sincronización.");
     } finally {
       setStarting(false);
     }
@@ -120,7 +120,7 @@ export function AdminContentPage() {
   if (authLoading) {
     return (
       <div className="admin-content-page">
-        <p>Carregant…</p>
+        <p>Cargando…</p>
       </div>
     );
   }
@@ -138,12 +138,12 @@ export function AdminContentPage() {
   return (
     <div className="admin-content-page">
       <header>
-        <h1>Resincronitzar contingut</h1>
+        <h1>Resincronizar contenido</h1>
         <p className="admin-content-description">
-          Extrau les pàgines públiques de Google Sites i actualitza el mirror
-          servit per Caddy. Els canvis són visibles immediatament al VPS. Per
-          persistir-los al repositori, executa <code>python -m scraper run</code>
-          en local i fes commit manualment.
+          Extrae las páginas públicas de Google Sites y actualiza el mirror
+          servido por Caddy. Los cambios son visibles inmediatamente en el VPS.
+          Para persistirlos en el repositorio, ejecuta{" "}
+          <code>python -m scraper run</code> en local y haz commit manualmente.
         </p>
       </header>
 
@@ -153,23 +153,23 @@ export function AdminContentPage() {
           onClick={() => void handleStart()}
           disabled={running || starting}
         >
-          {running ? "En marxa…" : starting ? "Iniciant…" : "Iniciar resync"}
+          {running ? "En marcha…" : starting ? "Iniciando…" : "Iniciar resync"}
         </Button>
         {status && (
           <dl className="admin-content-status">
             {status.started_at && (
               <>
-                <dt>Iniciat</dt>
+                <dt>Iniciado</dt>
                 <dd>{status.started_at}</dd>
               </>
             )}
             {status.finished_at && (
               <>
-                <dt>Finalitzat</dt>
+                <dt>Finalizado</dt>
                 <dd>{status.finished_at}</dd>
               </>
             )}
-            <dt>Esdeveniments</dt>
+            <dt>Eventos</dt>
             <dd>{status.event_count}</dd>
           </dl>
         )}
@@ -182,7 +182,7 @@ export function AdminContentPage() {
         <div ref={logRef} className="admin-content-log">
           {events.length === 0 ? (
             <p className="admin-content-log-empty">
-              Cap esdeveniment encara. Inicia un sync per veure el progrés.
+              Ningún evento todavía. Inicia una sincronización para ver el progreso.
             </p>
           ) : (
             events.map((event, i) => (

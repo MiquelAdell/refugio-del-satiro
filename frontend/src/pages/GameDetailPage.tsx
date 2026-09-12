@@ -2,10 +2,19 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoanActionFeedback } from "../components/LoanActionFeedback";
 import { LoanHistoryEntry } from "../components/LoanHistoryEntry";
 import { ClockIcon, PlayersIcon } from "../components/MetaIcons";
 import { useAuth } from "../context/AuthContext";
 import { useGameHistory } from "../hooks/useGameHistory";
+import { useMyLoans } from "../hooks/useMyLoans";
+import { displayDescription } from "../lib/description";
+import {
+  getForcedReturnFeedback,
+  type LoanFeedback,
+} from "../lib/loanFeedback";
+import { BORROW_SUCCESS_MESSAGE, getReturnAction } from "../lib/loanActions";
+import type { ReturnLoanResponse } from "../types/loan";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import "./GameDetailPage.css";
@@ -14,10 +23,19 @@ export function GameDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { game, history, loading, error, refetch } = useGameHistory(slug);
   const { member } = useAuth();
+  const {
+    loans: myLoans,
+    loading: myLoansLoading,
+    error: myLoansError,
+    refetch: refetchMyLoans,
+  } = useMyLoans(member !== null);
   const [confirmAction, setConfirmAction] = useState<
-    { readonly action: "borrow"; readonly gameId: number } | { readonly action: "return" } | null
+    | { readonly action: "borrow"; readonly gameId: number }
+    | { readonly action: "return" }
+    | null
   >(null);
   const [acting, setActing] = useState(false);
+  const [loanFeedback, setLoanFeedback] = useState<LoanFeedback | null>(null);
 
   if (loading) {
     return (
@@ -39,17 +57,18 @@ export function GameDetailPage() {
   }
 
   const canBorrow = member !== null && game.status === "available";
-  const canReturn =
-    member !== null &&
-    game.status === "lent" &&
-    game.loan_id !== null &&
-    (member.is_admin || game.borrower_display_name === member.display_name);
+  const activeLoanIds = new Set(myLoans.map((loan) => loan.loan_id));
+  const returnAction =
+    !myLoansLoading && myLoansError === null
+      ? getReturnAction(member, game, activeLoanIds)
+      : null;
 
   // Hook point for the borrow flow. The sibling change
   // `lending-borrow-with-return-date` replaces the ConfirmDialog this opens
   // with the return-date dialog; until then it keeps the live direct-borrow
   // behaviour (confirm → POST /loans).
-  const onBorrow = (gameId: number) => setConfirmAction({ action: "borrow", gameId });
+  const onBorrow = (gameId: number) =>
+    setConfirmAction({ action: "borrow", gameId });
 
   const handleBorrow = async (gameId: number) => {
     setActing(true);
@@ -58,7 +77,9 @@ export function GameDetailPage() {
         method: "POST",
         body: JSON.stringify({ game_id: gameId }),
       });
+      setLoanFeedback({ message: BORROW_SUCCESS_MESSAGE, variant: "status" });
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -70,10 +91,15 @@ export function GameDetailPage() {
   const handleReturn = async () => {
     setActing(true);
     try {
-      await apiFetch<unknown>(`/loans/${game.loan_id}/return`, {
-        method: "PATCH",
-      });
+      const result = await apiFetch<ReturnLoanResponse>(
+        `/loans/${game.loan_id}/return`,
+        {
+          method: "PATCH",
+        },
+      );
+      setLoanFeedback(getForcedReturnFeedback(result.forced_return_email_sent));
       refetch();
+      refetchMyLoans();
     } catch {
       /* error handled silently — refetch on close keeps UI in sync */
     } finally {
@@ -88,6 +114,11 @@ export function GameDetailPage() {
       : game.borrower_display_name
         ? `Prestado a ${game.borrower_display_name}`
         : "Prestado";
+
+  const descriptionParagraphs = displayDescription(game)
+    .split(/\n\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0);
 
   return (
     <div className="game-detail-page">
@@ -125,6 +156,15 @@ export function GameDetailPage() {
             )}
           </div>
 
+          {game.categories.length > 0 && (
+            <dl className="game-detail-classifications">
+              <div>
+                <dt>Categorías</dt>
+                <dd>{game.categories.join(", ")}</dd>
+              </div>
+            </dl>
+          )}
+
           <Badge variant={game.status} className="game-detail-status">
             {statusLabel}
           </Badge>
@@ -140,13 +180,13 @@ export function GameDetailPage() {
                 Solicitar préstamo
               </Button>
             )}
-            {canReturn && (
+            {returnAction && (
               <Button
                 variant="secondary"
                 onClick={() => setConfirmAction({ action: "return" })}
                 disabled={acting}
               >
-                Devolver
+                {returnAction.label}
               </Button>
             )}
             {member === null && game.status === "available" && (
@@ -155,6 +195,11 @@ export function GameDetailPage() {
               </Link>
             )}
           </div>
+
+          <LoanActionFeedback
+            message={loanFeedback?.message ?? null}
+            variant={loanFeedback?.variant}
+          />
 
           <div className="game-detail-bgg">
             <a
@@ -168,10 +213,20 @@ export function GameDetailPage() {
         </div>
       </div>
 
+      {descriptionParagraphs.length > 0 && (
+        <section className="game-detail-description" aria-label="Descripción">
+          {descriptionParagraphs.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
+        </section>
+      )}
+
       <div className="game-detail-history">
         <h2>Historial de préstamos y comentarios</h2>
         {history.length === 0 ? (
-          <p className="game-detail-no-history">Este juego nunca ha sido prestado.</p>
+          <p className="game-detail-no-history">
+            Este juego nunca ha sido prestado.
+          </p>
         ) : (
           <div className="game-detail-history-list">
             {history.map((entry, i) => (
@@ -195,7 +250,7 @@ export function GameDetailPage() {
           message={`¿Quieres devolver "${game.name}"?`}
           onConfirm={() => void handleReturn()}
           onCancel={() => setConfirmAction(null)}
-          confirmLabel="Devolver"
+          confirmLabel={returnAction?.label ?? "Devolver"}
         />
       )}
     </div>

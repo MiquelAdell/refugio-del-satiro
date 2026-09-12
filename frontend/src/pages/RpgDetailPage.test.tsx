@@ -10,8 +10,10 @@ import type { CurrentMember } from "../types/member";
 
 const refetch = vi.fn();
 const useRpgHistoryMock = vi.fn();
+const useMyLoansMock = vi.fn();
 const useAuthMock = vi.fn();
 const apiFetchMock = vi.fn();
+const refetchMyLoans = vi.fn();
 
 vi.mock("../hooks/useRpgHistory", () => ({
   useRpgHistory: () => useRpgHistoryMock(),
@@ -21,12 +23,21 @@ vi.mock("../context/AuthContext", () => ({
   useAuth: () => useAuthMock(),
 }));
 
+vi.mock("../hooks/useMyLoans", () => ({
+  useMyLoans: (...args: unknown[]) => useMyLoansMock(...args),
+}));
+
 vi.mock("../api/client", () => ({
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
 }));
 
 const BORROW_CTA = "Solicitar préstamo";
 const RETURN_CTA = "Devolver";
+const FORCE_RETURN_CTA = "Forzar devolución";
+const BORROW_SUCCESS_MESSAGE =
+  "El préstamo no tiene fecha límite, pero haz un uso responsable: devuélvelo cuando hayas jugado o si finalmente no vas a usarlo.";
+const FORCED_RETURN_WARNING_MESSAGE =
+  "La devolución se ha registrado, pero no se pudo enviar el correo de aviso.";
 const LOGIN_LINK = "Iniciar sesión";
 const HISTORY_HEADING = /Historial de préstamos y comentarios/i;
 
@@ -40,6 +51,9 @@ const item: RpgItem = {
   year_published: 1974,
   bgg_rating: 8.5,
   description: "The original tabletop RPG.",
+  description_es: "",
+  categories: ["Fantasy", "Mythology"],
+  publication_types: ["Core Rules", "Sourcebook"],
   status: "available",
   loan_id: null,
   borrower_display_name: null,
@@ -47,16 +61,30 @@ const item: RpgItem = {
 
 const member: CurrentMember = {
   id: 42,
+  member_number: 42,
+  first_name: "Alice",
+  last_name: "Smith",
+  nickname: "Ali",
+  phone: "600 111 222",
   display_name: "Alice Smith",
   email: "alice@example.com",
   is_admin: false,
+  is_active: true,
+  last_payment: "1/03/2026",
 };
 
 const admin: CurrentMember = {
   id: 99,
+  member_number: 99,
+  first_name: "Admin",
+  last_name: "User",
+  nickname: null,
+  phone: null,
   display_name: "Admin User",
   email: "admin@example.com",
   is_admin: true,
+  is_active: true,
+  last_payment: null,
 };
 
 const historyEntry: LoanHistoryEntry = {
@@ -87,6 +115,20 @@ function setMember(value: CurrentMember | null) {
   useAuthMock.mockReturnValue({ member: value, loading: false });
 }
 
+function setMyLoans(loanIds: readonly number[]) {
+  useMyLoansMock.mockReturnValue({
+    loans: loanIds.map((loan_id) => ({ loan_id })),
+    loading: false,
+    error: null,
+    refetch: refetchMyLoans,
+  });
+}
+
+beforeEach(() => {
+  refetchMyLoans.mockReset();
+  setMyLoans([]);
+});
+
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={["/rol/dungeons-dragons"]}>
@@ -95,6 +137,13 @@ function renderPage() {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+async function confirmReturn(label: string) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: label }));
+  const buttons = screen.getAllByRole("button", { name: label });
+  await user.click(buttons[buttons.length - 1]);
 }
 
 describe("RpgDetailPage loading state", () => {
@@ -127,13 +176,20 @@ describe("RpgDetailPage borrow CTA", () => {
 
     renderPage();
 
-    expect(screen.getByRole("button", { name: BORROW_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: BORROW_CTA }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
   });
 
   it("shows the 'Prestado' status instead of the CTA for a lent item when logged out", () => {
     setHook({
-      item: { ...item, status: "lent", borrower_display_name: null, loan_id: null },
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -173,6 +229,10 @@ describe("RpgDetailPage borrow CTA", () => {
       body: JSON.stringify({ game_id: 5 }),
     });
     expect(refetch).toHaveBeenCalledTimes(1);
+    expect(refetchMyLoans).toHaveBeenCalledTimes(1);
+    const feedback = await screen.findByRole("status");
+    expect(feedback).toHaveTextContent(BORROW_SUCCESS_MESSAGE);
+    expect(feedback).toHaveAttribute("aria-live", "polite");
   });
 });
 
@@ -200,7 +260,9 @@ describe("RpgDetailPage anonymous mode", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 });
@@ -208,7 +270,12 @@ describe("RpgDetailPage anonymous mode", () => {
 describe("RpgDetailPage borrower visibility", () => {
   it("shows no-name 'Prestado' badge when payload omits the name", () => {
     setHook({
-      item: { ...item, status: "lent", borrower_display_name: null, loan_id: null },
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: null,
+        loan_id: null,
+      },
     });
     setMember(null);
 
@@ -227,6 +294,7 @@ describe("RpgDetailPage borrower visibility", () => {
       },
     });
     setMember(member);
+    setMyLoans([7]);
 
     renderPage();
 
@@ -235,7 +303,13 @@ describe("RpgDetailPage borrower visibility", () => {
 });
 
 describe("RpgDetailPage return CTA", () => {
-  it("shows the return CTA to the borrower of a lent item", () => {
+  beforeEach(() => {
+    refetch.mockReset();
+    apiFetchMock.mockReset();
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: null });
+  });
+
+  it("labels the trigger and confirmation 'Devolver' for the borrower", async () => {
     setHook({
       item: {
         ...item,
@@ -245,13 +319,23 @@ describe("RpgDetailPage return CTA", () => {
       },
     });
     setMember(member);
+    setMyLoans([7]);
 
     renderPage();
+    const user = userEvent.setup();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: RETURN_CTA }));
+
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
-  it("shows the return CTA to an admin even when the loan is someone else's", () => {
+  it("labels the trigger and confirmation 'Forzar devolución' for an admin returning another member's loan", async () => {
     setHook({
       item: {
         ...item,
@@ -263,8 +347,37 @@ describe("RpgDetailPage return CTA", () => {
     setMember(admin);
 
     renderPage();
+    const user = userEvent.setup();
 
-    expect(screen.getByRole("button", { name: RETURN_CTA })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: FORCE_RETURN_CTA }));
+
+    expect(
+      screen.getByRole("button", { name: FORCE_RETURN_CTA }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+  });
+
+  it("keeps 'Devolver' for an admin returning their own loan", () => {
+    setHook({
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: admin.display_name,
+        loan_id: 7,
+      },
+    });
+    setMember(admin);
+    setMyLoans([7]);
+
+    renderPage();
+
+    expect(
+      screen.getByRole("button", { name: RETURN_CTA }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
   it("hides the return CTA from a non-admin who is not the borrower", () => {
@@ -281,13 +394,10 @@ describe("RpgDetailPage return CTA", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
   });
 
-  it("calls PATCH /loans/{loan_id}/return and refetches after confirming return", async () => {
-    refetch.mockReset();
-    apiFetchMock.mockReset();
-    apiFetchMock.mockResolvedValue({});
-
+  it("does not infer ownership from a duplicate display name", () => {
     setHook({
       item: {
         ...item,
@@ -297,6 +407,25 @@ describe("RpgDetailPage return CTA", () => {
       },
     });
     setMember(member);
+    setMyLoans([]);
+
+    renderPage();
+
+    expect(screen.queryByRole("button", { name: RETURN_CTA })).toBeNull();
+    expect(screen.queryByRole("button", { name: FORCE_RETURN_CTA })).toBeNull();
+  });
+
+  it("calls PATCH /loans/{loan_id}/return and refetches after confirming return", async () => {
+    setHook({
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: member.display_name,
+        loan_id: 7,
+      },
+    });
+    setMember(member);
+    setMyLoans([7]);
 
     renderPage();
     const user = userEvent.setup();
@@ -310,6 +439,27 @@ describe("RpgDetailPage return CTA", () => {
     });
     expect(refetch).toHaveBeenCalledTimes(1);
   });
+
+  it("shows an alert when a forced-return email cannot be sent", async () => {
+    apiFetchMock.mockResolvedValue({ forced_return_email_sent: false });
+    setHook({
+      item: {
+        ...item,
+        status: "lent",
+        borrower_display_name: "Bob Jones",
+        loan_id: 7,
+      },
+    });
+    setMember(admin);
+
+    renderPage();
+    await confirmReturn(FORCE_RETURN_CTA);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      FORCED_RETURN_WARNING_MESSAGE,
+    );
+    expect(screen.queryByRole("status")).toBeNull();
+  });
 });
 
 describe("RpgDetailPage history section", () => {
@@ -319,7 +469,9 @@ describe("RpgDetailPage history section", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: HISTORY_HEADING })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: HISTORY_HEADING }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 
@@ -342,12 +494,13 @@ describe("RpgDetailPage content", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Dungeons & Dragons" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Dungeons & Dragons" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("1974")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver en RPGGeek" })).toHaveAttribute(
-      "href",
-      "https://rpggeek.com/rpgitem/200",
-    );
+    expect(
+      screen.getByRole("link", { name: "Ver en RPGGeek" }),
+    ).toHaveAttribute("href", "https://rpggeek.com/rpgitem/200");
   });
 
   it("renders the back link to the catalog", () => {
@@ -359,5 +512,38 @@ describe("RpgDetailPage content", () => {
     expect(
       screen.getByRole("link", { name: /Volver al catálogo/i }),
     ).toHaveAttribute("href", "/juegos-de-rol");
+  });
+
+  it("renders the exact description, categories, and publication types", () => {
+    setHook();
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.getByText("Categorías")).toBeInTheDocument();
+    expect(screen.getByText("Fantasy, Mythology")).toBeInTheDocument();
+    expect(screen.getByText("Tipo de publicación")).toBeInTheDocument();
+    expect(screen.getByText("Core Rules, Sourcebook")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Descripción" }),
+    ).toHaveTextContent("The original tabletop RPG.");
+  });
+
+  it("omits classification and description groups when metadata is empty", () => {
+    setHook({
+      item: {
+        ...item,
+        description: "",
+        categories: [],
+        publication_types: [],
+      },
+    });
+    setMember(null);
+
+    renderPage();
+
+    expect(screen.queryByText("Categorías")).toBeNull();
+    expect(screen.queryByText("Tipo de publicación")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Descripción" })).toBeNull();
   });
 });

@@ -1,0 +1,29 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Refugio del Sátiro – Inicio":
+        - /url: /inicio
+      - navigation "Principal":
+        - list
+      - link "Iniciar sesión" [ref=e7] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - main [ref=e8]:
+    - paragraph [ref=e10]: Cargando juegos...
+  - contentinfo [ref=e11]:
+    - list "Redes sociales" [ref=e13]:
+      - listitem [ref=e14]:
+        - link "WhatsApp" [ref=e15] [cursor=pointer]:
+          - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+          - img "WhatsApp" [ref=e16]
+      - listitem [ref=e17]:
+        - link "Instagram" [ref=e18] [cursor=pointer]:
+          - /url: https://www.instagram.com/refugiosatiro/
+          - img "Instagram" [ref=e19]
+      - listitem [ref=e20]:
+        - link "Facebook" [ref=e21] [cursor=pointer]:
+          - /url: https://www.facebook.com/refugiosatiro
+          - img "Facebook" [ref=e22]
+      - listitem [ref=e23]:
+        - link "Discord" [ref=e24] [cursor=pointer]:
+          - /url: https://discord.gg/XAQ8TvtS3y
+          - img "Discord" [ref=e25]

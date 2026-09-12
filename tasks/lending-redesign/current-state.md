@@ -67,7 +67,6 @@ All routes mounted at `/prestamos` via React Router basename.
 | FilterControl | [components/FilterControl.tsx](../../frontend/src/components/FilterControl.tsx) | Toggle buttons for availability filter |
 | ConfirmDialog | [components/ConfirmDialog.tsx](../../frontend/src/components/ConfirmDialog.tsx) | Modal for borrow/return/delete confirmations; keyboard trap, focus mgmt |
 | LoanHistoryEntry | [components/LoanHistoryEntry.tsx](../../frontend/src/components/LoanHistoryEntry.tsx) | Single loan history row (member, dates) |
-| LanguageSelector | [components/LanguageSelector.tsx](../../frontend/src/components/LanguageSelector.tsx) | Inline language switcher (Catalan/Spanish/English) |
 
 ## 4. Styling Approach
 

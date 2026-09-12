@@ -12,9 +12,8 @@ Import association members from a Google Spreadsheet via the Google Sheets API (
 
 Previously tracked as US-003 in the PRD before being deferred.
 
-## UI translations (Spanish and English)
-V1 UI is in Catalan only. Add i18n infrastructure and translations for:
-- Spanish (Castilian) — most members likely speak it
+## UI translations (English)
+V1 UI is in Spanish only. Add i18n infrastructure and a translation for:
 - English — for broader accessibility
 
 Requires choosing an i18n library (e.g., react-i18next), extracting all UI strings, and providing translation files.

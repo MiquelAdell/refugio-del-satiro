@@ -32,11 +32,13 @@ def _make_rpg_item(id: int, name: str = "Test RPG") -> Game:
         max_players=0,
         playing_time=0,
         bgg_rating=7.5,
-        location="armari",
+        location="armario",
         created_at=NOW,
         updated_at=NOW,
         item_type=RPG_ITEM_TYPE,
         description="A great RPG book.",
+        categories=("Fantasy", "Mythology"),
+        publication_types=("Core Rules", "Sourcebook"),
     )
 
 
@@ -53,7 +55,7 @@ def _make_boardgame(id: int, name: str = "Test Game") -> Game:
         max_players=4,
         playing_time=60,
         bgg_rating=7.0,
-        location="armari",
+        location="armario",
         created_at=NOW,
         updated_at=NOW,
         item_type=BOARDGAME_TYPE,
@@ -86,6 +88,9 @@ class TestListRpgItemsUseCase:
         assert len(result) == 1
         assert result[0].id == 1
         assert result[0].name == "Dungeons & Dragons"
+        assert result[0].description == "A great RPG book."
+        assert result[0].categories == ("Fantasy", "Mythology")
+        assert result[0].publication_types == ("Core Rules", "Sourcebook")
 
     def test_returns_all_rpg_items(self) -> None:
         rpg1 = _make_rpg_item(1, "Pathfinder")
@@ -114,6 +119,8 @@ class TestListRpgItemsUseCase:
 
         assert len(result) == 1
         assert result[0].status == "available"
+        assert result[0].categories == ("Fantasy", "Mythology")
+        assert result[0].publication_types == ("Core Rules", "Sourcebook")
         assert result[0].borrower_display_name is None
         assert result[0].loan_id is None
 
@@ -131,5 +138,7 @@ class TestListRpgItemsUseCase:
 
         assert len(result) == 1
         assert result[0].status == "lent"
+        assert result[0].categories == ("Fantasy", "Mythology")
+        assert result[0].publication_types == ("Core Rules", "Sourcebook")
         assert result[0].borrower_display_name == "Bob"
         assert result[0].loan_id == 100

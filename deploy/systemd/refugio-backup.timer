@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Refugio del Satiro database backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 Europe/Madrid
+Persistent=true
+AccuracySec=1min
+Unit=refugio-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -992,7 +992,7 @@ def diagram_password_setup() -> None:
     els.append(rect("link-example", 60, y + 150, 700, 35, bg="#f3f0ff", stroke="#6741d9", frame_id=fid,
                      bound=[{"id": "link-example-t", "type": "text"}]))
     els.append(text("link-example-t", 0, 0,
-                     "Output:  Maria (maria@example.com): https://refugidelsatiro.cat/prestamos/set-password?token=a3f8c9...",
+                     "Output:  Maria (TEST_email@domain.com): https://refugidelsatiro.cat/prestamos/set-password?token=a3f8c9...",
                      size=13, font=3, container_id="link-example", stroke="#6741d9", frame_id=fid))
 
     # --- Phase 2: How the link reaches the member (two options) ---

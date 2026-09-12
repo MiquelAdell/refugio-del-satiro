@@ -11,6 +11,8 @@ browser
    │
    ▼
 Caddy :8090  (Caddyfile.e2e)
+   ├── Host: www.refugiodelsatiro.es ── 301 ──▶  canonical apex URI
+   ├── /fonts/*     ── reverse_proxy ──▶  uvicorn :8000 (frontend/dist fonts)
    ├── /ludoteca/*  ── reverse_proxy ──▶  uvicorn :8000 (serves frontend/dist)
    ├── /prestamos   ── 301 ──▶  /ludoteca/
    ├── /prestamos/* ── 301 ──▶  /ludoteca/<path>?<query>  (query preserved)
