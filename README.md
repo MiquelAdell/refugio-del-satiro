@@ -15,6 +15,10 @@ can enter a member number and see whether that person is a current member
 `/Validacion-Membresia` URL (printed on QR codes) 301-redirects there. The
 page also accepts `?id=<n>` for direct lookups.
 
+`/ludoteca/contacto-prestamos` is a public HTTPS handoff page for printed
+support QR codes. It opens the device's registered email handler with the
+support address prefilled and retains a visible `mailto:` fallback link.
+
 Everything else under `/` is mirrored from the club's Google Sites site by a
 small scraper (see `scraper/`) and served as static files by Caddy.
 

@@ -14,6 +14,7 @@ import { AdminContentPage } from "./pages/AdminContentPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
 import { ValidacionPage } from "./pages/ValidacionPage";
+import { EmailSupportPage } from "./pages/EmailSupportPage";
 
 export default function App() {
   return (
@@ -100,6 +101,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <ForgotPasswordPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/contacto-prestamos"
+                element={
+                  <PageLayout>
+                    <EmailSupportPage />
                   </PageLayout>
                 }
               />
