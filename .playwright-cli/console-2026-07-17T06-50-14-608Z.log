@@ -1,0 +1,30 @@
+[    1244ms] [LOG] Running frontend commit ac15629fff06903c2d2acb33632c467ec9859777 @ https://www.figma.com/proto/75YAWEkSnwNWAbB0jJARnZ/TFM---Servei-de-pr%C3%A9stec-digital?page-id=810%3A21946&node-id=810-21948&viewport=2727%2C-3316%2C0.7&t=WcIIBXNxrwqyccuD-1&scaling=min-zoom&starting-point-node-id=810%3A21986&show-proto-sidebar=1:549
+[    2482ms] [WARNING] Statsig is not ready to log exposures, will retry in 1 seconds @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53
+[    2487ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ https://browser-intake-datadoghq.com/api/v2/rum:0
+[    2686ms] [LOG] [import] git: ac15629fff06903c2d2acb33632c467ec9859777, stamp: FE19803361B7F644 @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53
+[    2945ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://www.figma.com/api/statsig/v1_ruleset:0
+[    2946ms] [ERROR] Failed to fetch v1 ruleset: T: XHR for "/api/statsig/v1_ruleset" failed with status 401
+    at R (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1358:11202)
+    at async Object.N [as get] (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1358:11589)
+    at async https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:993:244094
+    at async p.validate (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1338:4810)
+    at async y (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1319:208599)
+    at async f (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1319:207803)
+    at async Object.write (https://www.figma.com/webpack-artifacts/assets/73806-bd4ce2a1b916f493.min.js.br:1319:207422) @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53
+[    5289ms] [INFO] [PrototypeLib] Booting... (emscripten version 4.0.21) @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53
+[    5384ms] [INFO] [GPU] graphicsAPI:"WebGL 2", vendor:"Google Inc. (Apple)", renderer:"ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)" version:"OpenGL ES 2.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))" @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53
+[   12543ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://www.figma.com/api/files/75YAWEkSnwNWAbB0jJARnZ/prototype/view:0
+[  174235ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :3338
+[  174258ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  174277ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  174277ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  174278ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  174278ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  174278ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176148ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176149ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176149ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176149ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176149ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[  176149ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ :2992
+[ 3732124ms] [LOG] [Livegraph] Connection closed. Code: 4001, reason: connection_lifetime @ https://www.figma.com/webpack-artifacts/assets/vendor-core-23c5dd8685078713.min.js.br:53

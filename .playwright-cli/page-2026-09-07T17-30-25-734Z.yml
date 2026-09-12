@@ -1,0 +1,310 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Refugio del Sátiro – Inicio" [ref=e5] [cursor=pointer]:
+        - /url: /inicio
+      - navigation "Principal" [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - link "Inicio" [ref=e9] [cursor=pointer]:
+              - /url: /inicio
+          - listitem [ref=e10]:
+            - link "Calendario" [ref=e11] [cursor=pointer]:
+              - /url: /calendario
+          - listitem [ref=e12]:
+            - link "Juegos de Rol" [ref=e13] [cursor=pointer]:
+              - /url: /juegos-de-rol
+          - listitem [ref=e19]:
+            - link "Juegos de Mesa" [ref=e20] [cursor=pointer]:
+              - /url: /juegos-de-mesa
+          - listitem [ref=e26]:
+            - link "Eventos" [ref=e27] [cursor=pointer]:
+              - /url: /eventos
+          - listitem [ref=e33]:
+            - link "FAQ" [ref=e34] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e40]:
+            - link "Socios" [ref=e41] [cursor=pointer]:
+              - /url: /socios
+      - link "Iniciar sesión" [ref=e48] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - generic [ref=e50]:
+    - generic [ref=e51]:
+      - generic:
+        - generic:
+          - generic:
+            - button "Saltar al contenido principal"
+          - generic:
+            - button "Saltar a la navegación"
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - generic [ref=e62]:
+            - main [ref=e66]:
+              - heading "El Refugio del Sátiro" [level=1] [ref=e67]
+            - heading "asociación de rol y juegos de mesa en Sabadell" [level=2] [ref=e72]
+          - generic [ref=e75]:
+            - generic [ref=e78]:
+              - generic [ref=e82]:
+                - heading "¿Qué es el refugio del Sátiro?" [level=2]:
+                  - generic [ref=e83]:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - button
+                    - text: ¿Qué es el refugio del Sátiro?
+              - generic [ref=e87]:
+                - paragraph [ref=e88]: El Refugio del Sátiro es una asociación sociocultural sin ánimo de lucro que tiene por objetivo fomentar y promover principalmente los juegos de rol y juegos de mesa.
+                - paragraph [ref=e89]: "Nuestras actividades son de carácter inclusivo: se dirigen a un amplio grupo de personas que van desde adolescentes hasta adultos y mayores."
+              - generic [ref=e93]:
+                - heading "¿Qué hacemos?" [level=2]:
+                  - generic [ref=e94]:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - button
+                    - text: ¿Qué hacemos?
+              - generic [ref=e98]:
+                - paragraph [ref=e99]: Desde El Refugio del Sátiro organizamos distintas actividades como campañas de rol, partidas de rol de una sola sesión, y montones de juegos de mesa.
+                - paragraph [ref=e100]:
+                  - text: También organizamos eventos lúdicos relacionados con este ocio durante todo el año, así como colaboraciones con distintas entidades y ayuntamientos, como el
+                  - link "Ajuntament de Sabadell" [ref=e101] [cursor=pointer]:
+                    - /url: https://web.sabadell.cat/
+                  - text: .
+            - img "Juegos de rol en Sabadell" [ref=e110]
+          - img "Sabadell juegos de mesa y rol" [ref=e122]
+          - generic [ref=e125]:
+            - img "juegos de mesa en sabadell" [ref=e134]
+            - generic [ref=e137]:
+              - generic [ref=e141]:
+                - heading "¿Quiénes somos?" [level=2]:
+                  - generic [ref=e142]:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - button
+                    - text: ¿Quiénes somos?
+              - generic [ref=e146]:
+                - paragraph [ref=e147]: Nuestra asociación se funda en 1996 como alternativa lúdica, en Sabadell. Pronto se convertiría en una de las principales asociaciones juveniles en ofrecer una opción de ocio con gran carácter social y cultural.
+                - paragraph [ref=e148]: Hoy, El Refugio del Sátiro está formado por grupos de todas las edades. Somos apasionados/as de los juegos de mesa y rol que organizamos eventos para todo el mundo que desee participar sin necesidad de ser socio/a.
+                - paragraph [ref=e149]: Además, disponemos de una ludoteca de juegos de mesa accesible de forma pública para disfrutar de ellos solos o con amigos, conociendo personas con las que compartir tus mismos intereses de forma gratuita.
+                - paragraph [ref=e150]: ¡No dudes en contactar con nosotros/as por nuestros canales de comunicación!
+          - generic [ref=e153]:
+            - generic [ref=e156]:
+              - generic [ref=e160]:
+                - heading "¿Dónde y cuándo?" [level=2]:
+                  - generic [ref=e161]:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - button
+                    - text: ¿Dónde y cuándo?
+              - generic [ref=e165]:
+                - paragraph [ref=e166]: Los sábados y domingos en el Centro Cívico de Sant Oleguer.
+                - paragraph [ref=e167]: En horario de tardes, desde las 16:00 a las 20:00h.
+                - paragraph [ref=e168]: "Líneas de autobús (TUS): L80, L5, L55."
+              - iframe [ref=e176]
+            - generic [ref=e179]:
+              - generic [ref=e183]:
+                - heading "Calendario" [level=2]:
+                  - generic [ref=e184]:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - button
+                    - text: Calendario
+              - generic [ref=e188]:
+                - paragraph [ref=e189]: Este es el calendario de actividades de El Refugio del Sátiro.
+                - paragraph [ref=e190]: Este calendario se mantiene actualizado, organizando eventos tanto en nuestras salas como fuera de ellas.
+              - generic [ref=e196]:
+                - link "Abrir Calendar, Refugio del Sátiro en una ventana nueva" [ref=e198] [cursor=pointer]:
+                  - /url: https://www.google.com/calendar/embed?color=%23f83a22&src=2f20790b5f3488738953e7b9d44f6d6eb2dec4c333006dbb22ecc1e1e5fd9168@group.calendar.google.com
+                - iframe [ref=e202]:
+                  - generic [ref=f2e3]:
+                    - progressbar "Loading calendar" [ref=f2e5]
+                    - banner [ref=f2e7]:
+                      - generic [ref=f2e8]:
+                        - generic [ref=f2e11]:
+                          - generic [ref=f2e12]: September 2026
+                          - generic [ref=f2e14]: Sep 2026
+                        - generic [ref=f2e16]:
+                          - generic [ref=f2e17]:
+                            - button "Send feedback to Google" [ref=f2e18] [cursor=pointer]
+                            - tooltip [aria-hidden] [ref=f2e25]: Send feedback to Google
+                          - generic [ref=f2e28]:
+                            - button "Select calendar" [ref=f2e29] [cursor=pointer]
+                            - tooltip [aria-hidden] [ref=f2e35]: Select calendar
+                    - main [ref=f2e36]:
+                      - generic "September 2026" [ref=f2e38]:
+                        - grid [ref=f2e39]:
+                          - row [ref=f2e40]:
+                            - columnheader "Sunday" [ref=f2e41]:
+                              - generic [aria-hidden] [ref=f2e43]: Sun
+                            - columnheader "Monday" [ref=f2e44]:
+                              - generic [aria-hidden] [ref=f2e46]: Mon
+                            - columnheader "Tuesday" [ref=f2e47]:
+                              - generic [aria-hidden] [ref=f2e49]: Tue
+                            - columnheader "Wednesday" [ref=f2e50]:
+                              - generic [aria-hidden] [ref=f2e52]: Wed
+                            - columnheader "Thursday" [ref=f2e53]:
+                              - generic [aria-hidden] [ref=f2e55]: Thu
+                            - columnheader "Friday" [ref=f2e56]:
+                              - generic [aria-hidden] [ref=f2e58]: Fri
+                            - columnheader "Saturday" [ref=f2e59]:
+                              - generic [aria-hidden] [ref=f2e61]: Sat
+                          - row [ref=f2e62]:
+                            - generic [aria-hidden]:
+                              - heading [level=2] [aria-hidden] [ref=f2e71]: "30"
+                              - heading [level=2] [aria-hidden] [ref=f2e72]: "31"
+                              - heading [level=2] [aria-hidden] [ref=f2e73]: Sep 1
+                              - heading [level=2] [aria-hidden] [ref=f2e74]: "2"
+                              - heading [level=2] [aria-hidden] [ref=f2e75]: "3"
+                              - heading [level=2] [aria-hidden] [ref=f2e76]: "4"
+                              - heading [level=2] [aria-hidden] [ref=f2e77]: "5"
+                            - generic [ref=f2e78]:
+                              - gridcell "No events, Sunday, August 30":
+                                - heading "No events, Sunday, August 30" [level=2] [ref=f2e79]
+                              - gridcell "No events, Monday, August 31":
+                                - heading "No events, Monday, August 31" [level=2] [ref=f2e80]
+                              - gridcell "No events, Tuesday, September 1":
+                                - heading "No events, Tuesday, September 1" [level=2] [ref=f2e81]
+                              - gridcell "No events, Wednesday, September 2":
+                                - heading "No events, Wednesday, September 2" [level=2] [ref=f2e82]
+                              - gridcell "No events, Thursday, September 3":
+                                - heading "No events, Thursday, September 3" [level=2] [ref=f2e83]
+                              - gridcell "No events, Friday, September 4":
+                                - heading "No events, Friday, September 4" [level=2] [ref=f2e84]
+                              - gridcell "No events, Saturday, September 5":
+                                - heading "No events, Saturday, September 5" [level=2] [ref=f2e85]
+                          - row [ref=f2e86]:
+                            - generic [aria-hidden]:
+                              - heading [level=2] [aria-hidden] [ref=f2e95]: "6"
+                              - heading [level=2] [aria-hidden] [ref=f2e96]: "7"
+                              - heading [level=2] [aria-hidden] [ref=f2e97]: "8"
+                              - heading [level=2] [aria-hidden] [ref=f2e98]: "9"
+                              - heading [level=2] [aria-hidden] [ref=f2e99]: "10"
+                              - heading [level=2] [aria-hidden] [ref=f2e100]: "11"
+                              - heading [level=2] [aria-hidden] [ref=f2e101]: "12"
+                            - generic [ref=f2e102]:
+                              - gridcell "No events, Sunday, September 6":
+                                - heading "No events, Sunday, September 6" [level=2] [ref=f2e103]
+                              - gridcell "No events, Monday, September 7, today":
+                                - heading "No events, Monday, September 7, today" [level=2] [ref=f2e104]
+                              - gridcell "No events, Tuesday, September 8":
+                                - heading "No events, Tuesday, September 8" [level=2] [ref=f2e105]
+                              - gridcell "No events, Wednesday, September 9":
+                                - heading "No events, Wednesday, September 9" [level=2] [ref=f2e106]
+                              - gridcell "No events, Thursday, September 10":
+                                - heading "No events, Thursday, September 10" [level=2] [ref=f2e107]
+                              - gridcell "No events, Friday, September 11":
+                                - heading "No events, Friday, September 11" [level=2] [ref=f2e108]
+                              - gridcell "No events, Saturday, September 12":
+                                - heading "No events, Saturday, September 12" [level=2] [ref=f2e109]
+                          - row [ref=f2e110]:
+                            - generic [aria-hidden]:
+                              - heading [level=2] [aria-hidden] [ref=f2e119]: "13"
+                              - heading [level=2] [aria-hidden] [ref=f2e120]: "14"
+                              - heading [level=2] [aria-hidden] [ref=f2e121]: "15"
+                              - heading [level=2] [aria-hidden] [ref=f2e122]: "16"
+                              - heading [level=2] [aria-hidden] [ref=f2e123]: "17"
+                              - heading [level=2] [aria-hidden] [ref=f2e124]: "18"
+                              - heading [level=2] [aria-hidden] [ref=f2e125]: "19"
+                            - generic [ref=f2e126]:
+                              - gridcell "No events, Sunday, September 13":
+                                - heading "No events, Sunday, September 13" [level=2] [ref=f2e127]
+                              - gridcell "No events, Monday, September 14":
+                                - heading "No events, Monday, September 14" [level=2] [ref=f2e128]
+                              - gridcell "No events, Tuesday, September 15":
+                                - heading "No events, Tuesday, September 15" [level=2] [ref=f2e129]
+                              - gridcell "No events, Wednesday, September 16":
+                                - heading "No events, Wednesday, September 16" [level=2] [ref=f2e130]
+                              - gridcell "No events, Thursday, September 17":
+                                - heading "No events, Thursday, September 17" [level=2] [ref=f2e131]
+                              - gridcell "No events, Friday, September 18":
+                                - heading "No events, Friday, September 18" [level=2] [ref=f2e132]
+                              - gridcell "No events, Saturday, September 19":
+                                - heading "No events, Saturday, September 19" [level=2] [ref=f2e133]
+                          - row [ref=f2e134]:
+                            - generic [aria-hidden]:
+                              - heading [level=2] [aria-hidden] [ref=f2e143]: "20"
+                              - heading [level=2] [aria-hidden] [ref=f2e144]: "21"
+                              - heading [level=2] [aria-hidden] [ref=f2e145]: "22"
+                              - heading [level=2] [aria-hidden] [ref=f2e146]: "23"
+                              - heading [level=2] [aria-hidden] [ref=f2e147]: "24"
+                              - heading [level=2] [aria-hidden] [ref=f2e148]: "25"
+                              - heading [level=2] [aria-hidden] [ref=f2e149]: "26"
+                            - generic [ref=f2e150]:
+                              - gridcell "No events, Sunday, September 20":
+                                - heading "No events, Sunday, September 20" [level=2] [ref=f2e151]
+                              - gridcell "No events, Monday, September 21":
+                                - heading "No events, Monday, September 21" [level=2] [ref=f2e152]
+                              - gridcell "No events, Tuesday, September 22":
+                                - heading "No events, Tuesday, September 22" [level=2] [ref=f2e153]
+                              - gridcell "No events, Wednesday, September 23":
+                                - heading "No events, Wednesday, September 23" [level=2] [ref=f2e154]
+                              - gridcell "No events, Thursday, September 24":
+                                - heading "No events, Thursday, September 24" [level=2] [ref=f2e155]
+                              - gridcell "No events, Friday, September 25":
+                                - heading "No events, Friday, September 25" [level=2] [ref=f2e156]
+                              - gridcell "No events, Saturday, September 26":
+                                - heading "No events, Saturday, September 26" [level=2] [ref=f2e157]
+                          - row [ref=f2e158]:
+                            - generic [aria-hidden]:
+                              - heading [level=2] [aria-hidden] [ref=f2e167]: "27"
+                              - heading [level=2] [aria-hidden] [ref=f2e168]: "28"
+                              - heading [level=2] [aria-hidden] [ref=f2e169]: "29"
+                              - heading [level=2] [aria-hidden] [ref=f2e170]: "30"
+                              - heading [level=2] [aria-hidden] [ref=f2e171]: Oct 1
+                              - heading [level=2] [aria-hidden] [ref=f2e172]: "2"
+                              - heading [level=2] [aria-hidden] [ref=f2e173]: "3"
+                            - generic [ref=f2e174]:
+                              - gridcell "No events, Sunday, September 27":
+                                - heading "No events, Sunday, September 27" [level=2] [ref=f2e175]
+                              - gridcell "No events, Monday, September 28":
+                                - heading "No events, Monday, September 28" [level=2] [ref=f2e176]
+                              - gridcell "No events, Tuesday, September 29":
+                                - heading "No events, Tuesday, September 29" [level=2] [ref=f2e177]
+                              - gridcell "No events, Wednesday, September 30":
+                                - heading "No events, Wednesday, September 30" [level=2] [ref=f2e178]
+                              - gridcell "No events, Thursday, October 1":
+                                - heading "No events, Thursday, October 1" [level=2] [ref=f2e179]
+                              - gridcell "No events, Friday, October 2":
+                                - heading "No events, Friday, October 2" [level=2] [ref=f2e180]
+                              - gridcell "No events, Saturday, October 3":
+                                - heading "No events, Saturday, October 3" [level=2] [ref=f2e181]
+                    - contentinfo [ref=f2e182]:
+                      - generic [ref=f2e184]:
+                        - button "Add to Google Calendar (opens a new tab)" [ref=f2e185] [cursor=pointer]
+                        - tooltip [aria-hidden] [ref=f2e191]: Add to Google Calendar (opens a new tab)
+              - generic "Suscríbete al calendario desde tu ordenador" [ref=e208] [cursor=pointer]:
+                - link "Suscríbete al calendario desde tu ordenador" [ref=e209]:
+                  - /url: https://calendar.google.com/calendar/u/0?cid=MmYyMDc5MGI1ZjM0ODg3Mzg5NTNlN2I5ZDQ0ZjZkNmViMmRlYzRjMzMzMDA2ZGJiMjJlY2MxZTFlNWZkOTE2OEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t
+                  - paragraph [ref=e211]: Suscríbete al calendario desde tu ordenador
+          - generic [ref=e214]:
+            - link [ref=e222] [cursor=pointer]:
+              - /url: https://www.google.com/url?q=https%3A%2F%2Fchat.whatsapp.com%2FLjAN8Lhau4aCnWKA3dMkmM&sa=D&sntz=1&usg=AOvVaw3C6L8SwIcQZpkOVczC4You
+            - link "¿Más información? ¡Únete al grupo de WhatsApp de El Refugio del Sátiro!" [ref=e233] [cursor=pointer]:
+              - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+        - contentinfo [ref=e234]:
+          - generic [ref=e245]:
+            - link [ref=e246] [cursor=pointer]:
+              - /url: https://www.google.com/url?q=https%3A%2F%2Fchat.whatsapp.com%2FLjAN8Lhau4aCnWKA3dMkmM&sa=D&sntz=1&usg=AOvVaw3C6L8SwIcQZpkOVczC4You
+              - img "Enlace" [ref=e247]
+            - link [ref=e248] [cursor=pointer]:
+              - /url: https://www.google.com/url?q=https%3A%2F%2Fwww.instagram.com%2Frefugiosatiro%2F&sa=D&sntz=1&usg=AOvVaw2Dl_U2SUIhRXgdJO5Hd0ra
+              - img "Instagram" [ref=e249]
+            - link [ref=e250] [cursor=pointer]:
+              - /url: https://www.google.com/url?q=https%3A%2F%2Fwww.facebook.com%2Frefugiosatiro&sa=D&sntz=1&usg=AOvVaw0k5HGQZR4FOR8CGwVVQ8Lu
+              - img "Facebook" [ref=e251]
+            - link [ref=e252] [cursor=pointer]:
+              - /url: https://www.google.com/url?q=https%3A%2F%2Fdiscord.gg%2FXAQ8TvtS3y&sa=D&sntz=1&usg=AOvVaw1D2ljuYe3pWY19ERjwnvQs
+              - img "Enlace" [ref=e253]
+        - generic [ref=e254]:
+          - button [aria-hidden] [ref=e255] [cursor=pointer]
+          - generic:
+            - generic [ref=e261]:
+              - text: Página actualizada
+              - contentinfo
+            - button "Google Sites" [ref=e263] [cursor=pointer]
+            - button "Denunciar abuso" [ref=e265] [cursor=pointer]
+    - generic [ref=e266]:
+      - generic [ref=e267]: Este sitio web emplea cookies de Google para ofrecer sus servicios y analizar el tráfico. La información sobre tu uso de este sitio web se comparte con Google. Al utilizar el sitio web, aceptas el uso de cookies.
+      - generic [ref=e268]:
+        - link "Más información" [ref=e269] [cursor=pointer]:
+          - /url: https://www.google.com/policies/technologies/cookies/
+        - button "Entendido" [ref=e270] [cursor=pointer]
+  - region [ref=e271]

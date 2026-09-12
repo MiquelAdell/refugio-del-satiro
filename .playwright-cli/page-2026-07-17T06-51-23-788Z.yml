@@ -1,0 +1,43 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e2]:
+            - region "Prototype controls" [ref=e3]:
+              - generic [ref=e4]:
+                - button "Skip to content" [ref=e6]
+                - link "File browser" [ref=e8] [cursor=pointer]:
+                  - /url: /
+                - button "Open flows list" [active] [ref=e122]
+                - button "Comment" [ref=e18]
+              - heading "TFM - Servei de préstec digital" [level=1] [ref=e20]
+              - generic [ref=e21]:
+                - button "Follow" [ref=e26]
+                - generic [ref=e35]:
+                  - button "Log in or create account" [ref=e36]
+                  - button "Continue with Google" [ref=e39]
+                - button "Options" [ref=e41]
+                - button "Enter full screen (F)" [ref=e42]
+            - generic [ref=e43]:
+              - generic [ref=e98]:
+                - generic [ref=e99]:
+                  - main:
+                    - paragraph [ref=e100]: Screenreader support is currently disabled. To enable it, use the Accessibility settings from the Options menu.
+                - navigation "Pages" [ref=e123]:
+                  - toolbar "Stepper" [ref=e125]:
+                    - generic [ref=e127]:
+                      - button "Previous frame" [disabled] [ref=e128]
+                      - button "Next frame" [ref=e130]
+                  - button "Restart" [ref=e132]:
+                    - text: Restart
+                    - generic: R
+              - text: Give feedback, ask a question, or just leave a note of appreciation. Click anywhere in the file to leave a comment.
+          - group [ref=e117]:
+            - alert [ref=e119]
+            - alert [ref=e121]
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - paragraph: Open sidebar

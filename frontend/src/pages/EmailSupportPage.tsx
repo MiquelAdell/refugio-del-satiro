@@ -14,7 +14,7 @@ export function EmailSupportPage() {
       <main className="login-form">
         <h1>Contactar por correo</h1>
         <p style={{ lineHeight: 1.5, marginBottom: "var(--space-md)" }}>
-          Estamos abriendo tu aplicación de correo.
+          Envianos un correo explicando que pasa
         </p>
         <p style={{ lineHeight: 1.5, marginBottom: "var(--space-md)" }}>
           Si no se abre, toca el enlace:

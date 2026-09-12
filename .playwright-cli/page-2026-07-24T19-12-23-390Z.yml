@@ -1,0 +1,464 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Refugio del Sátiro – Inicio" [ref=e6] [cursor=pointer]:
+        - /url: /inicio
+      - navigation "Principal":
+        - list
+      - link "Iniciar sesión" [ref=e8] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - heading "Catálogo" [level=1] [ref=e27]
+      - navigation "Tipo de catálogo" [ref=e28]:
+        - link "Juegos de mesa" [ref=e29] [cursor=pointer]:
+          - /url: /ludoteca/juegos-de-mesa
+        - link "Libros de rol" [ref=e30] [cursor=pointer]:
+          - /url: /ludoteca/juegos-de-rol
+      - generic [ref=e31]:
+        - tablist "Buscar y filtrar" [ref=e32]:
+          - tab "Buscador" [ref=e33] [cursor=pointer]
+          - tab "Filtros" [active] [selected] [ref=e34] [cursor=pointer]
+        - tabpanel "Filtros" [ref=e2262]:
+          - group "Filtros y ordenación" [ref=e2263]:
+            - generic [ref=e2264]:
+              - generic [ref=e2265]: Ordenar por
+              - combobox "Ordenar por" [ref=e2266] [cursor=pointer]:
+                - option "Nombre (A-Z)" [selected]
+                - option "Nombre (Z-A)"
+                - option "Valoración BGG (alta a baja)"
+            - generic [ref=e2267]:
+              - generic [ref=e2268]: Género
+              - combobox "Género" [ref=e2269] [cursor=pointer]:
+                - option "Todos"
+                - option "Fantasía Urbana"
+                - option "Fantasía"
+                - option "Horror" [selected]
+                - option "Ciencia Ficción"
+                - option "Mitología"
+                - option "Histórico"
+                - option "Aventura"
+                - option "Moderno"
+                - option "Otros"
+            - generic [ref=e2270]:
+              - generic [ref=e2271]: Tipo de publicación
+              - combobox "Tipo de publicación" [ref=e2272] [cursor=pointer]:
+                - option "Todos" [selected]
+                - option "Manual"
+                - option "Aventura"
+            - generic [ref=e2273]:
+              - generic [ref=e2274]: Disponibilidad
+              - combobox "Disponibilidad" [ref=e2275] [cursor=pointer]:
+                - option "Todos" [selected]
+                - option "Disponible"
+                - option "Prestado"
+            - generic [ref=e2276]:
+              - generic [ref=e2277]: "Valoración mínima: 0.0"
+              - 'generic "Valoración mínima: 0.0" [ref=e2278]':
+                - slider "Valoración mínima" [ref=e2281]
+      - generic "Filtros activos" [ref=e2282]:
+        - status [ref=e2283]:
+          - generic [ref=e2284]: "Género: Horror"
+          - button "Quitar filtro" [ref=e2285] [cursor=pointer]: ×
+      - generic [ref=e40]:
+        - paragraph [ref=e41]: Mostrando 34 de 130
+        - group "Modo de vista" [ref=e42]:
+          - button "Vista de lista" [ref=e43] [cursor=pointer]
+          - button "Vista de cuadrícula" [pressed] [ref=e51] [cursor=pointer]
+      - generic [ref=e57]:
+        - article [ref=e126]:
+          - link "Agent's Handbook — Disponible" [ref=e127] [cursor=pointer]:
+            - /url: /ludoteca/rol/agent-s-handbook
+            - generic [ref=e129]:
+              - generic [ref=e130]: "8.9"
+              - heading "Agent's Handbook" [level=3] [ref=e131]
+              - paragraph [ref=e132]: "De la contraportada: BIENVENIDOS AL APOCALIPSIS Nacida a raíz de la redada llevada a cabo por el Gobierno de EE. UU. en 1928 en la degenerada localidad costera de Innsmouth, Massachusetts, la agencia secreta conocida como Delta Green pasó cuatro décadas luchando contra las fuerzas de la oscuridad con honor, pero sin gloria. Despojados de su autorización tras una desastrosa operación llevada a cabo en Camboya en 1969, los líderes de Delta Green hicieron un pacto secreto: continuar su labor sin autoridad, sin apoyo y sin miedo. Los agentes de Delta Green se cuelan en el sistema, manipulando la burocracia federal mientras hacen retroceder a la oscuridad un día más, aunque a menudo a un coste personal devastador. En DELTA GREEN: EL JUEGO DE ROL, eres uno de esos agentes. Eres a quien llaman cuando horrores sobrenaturales se cuelan en el mundo. Luchas para evitar que el mal cósmico se cobre vidas humanas y la cordura. Conspiras para encubrirlo todo, para que nadie más tenga que ver lo que tú has visto —ni descubrir las terribles verdades que has desvelado—. El AGENT'S HANDBOOK es un libro de reglas exclusivo para jugadores de DELTA GREEN: THE ROLE-PLAYING GAME. Esta nueva encarnación de la galardonada línea de juegos DELTA GREEN incluye: Reglas para crear agentes de todo tipo. Reglas para investigaciones tensas y dinámicas. Los jugadores que utilicen las habilidades de sus agentes de forma ingeniosa tendrán más posibilidades de triunfar… y de sobrevivir. Reglas de combate que ponen los nervios de punta, en las que los desastres aleatorios pueden echar por tierra la planificación más cuidadosa. Reglas de cordura alucinantes que hacen que los agentes se deterioren gradualmente… y, a veces, pierdan los estribos. Reglas para escenas «caseras» en las que los jugadores ven por qué luchan sus agentes. Reglas rápidas e intuitivas para determinar el equipamiento y los recursos. Expedientes sobre las agencias federales que con mayor probabilidad aparecerán en el juego."
+              - list [ref=e133]:
+                - listitem [ref=e134]: Manual
+                - listitem [ref=e138]: "2016"
+              - generic [ref=e142]: Moderno
+        - article [ref=e210]:
+          - 'link "ALIEN: The Roleplaying Game — Disponible" [ref=e211] [cursor=pointer]':
+            - /url: /ludoteca/rol/alien-the-roleplaying-game
+            - generic [ref=e213]:
+              - generic [ref=e214]: "8.2"
+              - 'heading "ALIEN: The Roleplaying Game" [level=3] [ref=e215]'
+              - paragraph [ref=e216]: "De la contraportada: «No puedo mentirte sobre tus posibilidades, pero… tienes toda mi simpatía». El espacio es inmenso, oscuro y no es tu amigo. Los rayos gamma y las ráfagas de neutrinos que brotan de las estrellas moribundas te cocerán vivo, los agujeros negros te harán pedazos y el propio vacío te hará hervir la sangre y te paralizará el cerebro. Intenta gritar y nadie te oirá; aguanta la respiración y te reventarán los pulmones. El espacio tampoco está tan vacío como creerías: sus fronteras no dejan de expandirse. Gobiernos rivales libran una guerra fría de agresión, mientras que corporaciones codiciosas compiten por recursos valiosos. Los colonos alcanzan las estrellas y se juegan la vida: cada nuevo mundo colonizado supone o un festín o una hambruna. Y hay cosas acechando en las sombras de cada asteroide: cosas extrañas, diferentes y mortíferas. Cosas alienígenas. Este es el juego de rol de mesa oficial de ALIEN: un universo de horror corporal y política de riesgo corporativo, donde los seres sintéticos juegan a ser dioses mientras que los camioneros espaciales y los marines acogen a criaturas macabras recién nacidas. Es un universo duro e implacable, y tú no eres más que un elemento prescindible. Mantente con vida si puedes. Este libro de tapa dura, bellamente ilustrado y a todo color, presenta el mundo de ALIEN en el año 2183 y ofrece un conjunto de reglas rápido y eficaz diseñado específicamente para mejorar la experiencia de ALIEN. El juego admite dos modos de juego distintos: El modo «Cinemático» se basa en escenarios predefinidos que emulan el arco dramático de una película de ALIEN. Diseñado para jugarse en una sola sesión, este modo de juego hace hincapié en lo que está en juego y en un desarrollo rápido y brutal. No se espera que todos sobreviváis. El libro de reglas básico contiene un escenario cinematográfico introductorio, «El último día de Hope». El modo de campaña está diseñado para partidas continuadas más largas con el mismo grupo de personajes a lo largo de numerosas sesiones de juego, lo que os permite explorar libremente el universo de ALIEN, al estilo «sandbox». El libro de reglas básico contiene tablas aleatorias y otras potentes herramientas para crear rápidamente sistemas estelares, colonias, misiones, encuentros y PNJ para vuestra campaña. Las reglas del juego se basan en el aclamado motor Year Zero Engine, utilizado en juegos galardonados como «Tales from the Loop», «Forbidden Lands» y «Mutant: Year Zero», pero adaptado y perfeccionado para dar cabida plenamente a los temas centrales de ALIEN: el terror y la acción en la fría oscuridad del espacio."
+              - list [ref=e217]:
+                - listitem [ref=e218]: Manual
+                - listitem [ref=e222]: Aventura
+                - listitem [ref=e226]: "2019"
+              - generic [ref=e230]: Horror
+        - article [ref=e398]:
+          - link "Book of Storyteller Secrets — Disponible" [ref=e399] [cursor=pointer]:
+            - /url: /ludoteca/rol/book-of-storyteller-secrets
+            - generic [ref=e401]:
+              - generic [ref=e402]: "6.9"
+              - heading "Book of Storyteller Secrets" [level=3] [ref=e403]
+              - paragraph [ref=e404]: "Explora las extrañas y maravillosas noches de la Europa medieval oscura. Recorre los solitarios caminos nocturnos al servicio de los príncipes vampiros… o conviértete tú mismo en uno de ellos. Sigue el rastro de un unicornio para obtener su sangre, o adéntrate en las intrigas de las ciudades mercantiles italianas. Lucha contra los asesinos Assamita en Tierra Santa, o ayuda a los incipientes Tremere en su lucha por la supervivencia frente a los antiguos Demnios. «Vampiro: La Edad Media —Libro de los secretos del narrador» incluye: Un atlas de la Europa medieval oscura, con notas sobre las poblaciones de Cainitas. Un mapa desplegable a todo color de Europa. Una gran variedad de antagonistas míticos, incluidas reglas ampliadas para las gárgolas."
+              - list [ref=e405]:
+                - listitem [ref=e406]: Manual
+                - listitem [ref=e410]: "1997"
+              - generic [ref=e414]: Horror
+        - article [ref=e432]:
+          - link "Broken Tales — Disponible" [ref=e433] [cursor=pointer]:
+            - /url: /ludoteca/rol/broken-tales
+            - generic [ref=e435]:
+              - generic [ref=e436]: "8.5"
+              - heading "Broken Tales" [level=3] [ref=e437]
+              - paragraph [ref=e438]: Érase una vez un niño que salvó el mundo de los cuentos de hadas. Su recompensa fue un deseo. Aquel que trama en las sombras vio la oportunidad de corromper el corazón del niño, susurrándole una idea perversa. El niño le pidió al Rey de los Cuentos de Hadas que a los villanos, malditos durante siglos, se les concediera una nueva vida. Esa iba a ser su oportunidad de redención. Así fue como los villanos se volvieron buenos. Pero toda luz necesita una sombra y, a su vez, los héroes se volvieron malvados. En ese momento, todos los cuentos de hadas se hicieron añicos. Broken Tales es un juego de rol de mesa de historias oscuras, que reinterpreta los cuentos de hadas desde una perspectiva al revés. Los jugadores pasarán a formar parte de la Orden, un grupo secreto que opera en nombre del Papado para investigar sucesos sobrenaturales más allá de la comprensión humana. En una Europa del siglo XVIII impregnada de misticismo y horror, los protagonistas de Broken Tales no son otros que los antiguos antagonistas de los cuentos de hadas, arrojados a un nuevo mundo fruto del deseo del Niño Salvador. [de la página web de la editorial]
+              - list [ref=e439]:
+                - listitem [ref=e440]: Manual
+                - listitem [ref=e444]: "2022"
+              - generic [ref=e448]: Fantasía
+        - article [ref=e465]:
+          - link "Candela Obscura — Disponible" [ref=e466] [cursor=pointer]:
+            - /url: /ludoteca/rol/candela-obscura
+            - generic [ref=e468]:
+              - generic [ref=e469]: "7.4"
+              - heading "Candela Obscura" [level=3] [ref=e470]
+              - paragraph [ref=e471]: "[Descripción del editor] Candela Obscura es un nuevo juego de rol de mesa que te pone en la piel de unos investigadores que trabajan para una orden esotérica. En este juego de terror investigativo, personas con diversos talentos se unen bajo el paraguas de la organización Candela Obscura. Investigarás sucesos extraños y te enfrentarás a peligrosas formas de magia, luchando contra una misteriosa fuente de corrupción y desangramiento. Candela Obscura es el primer juego en utilizar el sistema Illuminated Worlds, un sistema de nuevo diseño que emplea dados de seis caras y se presta a un juego narrativo y basado en arcos argumentales."
+              - list [ref=e472]:
+                - listitem [ref=e473]: Manual
+                - listitem [ref=e477]: "2023"
+              - generic [ref=e481]: Horror
+        - article [ref=e482]:
+          - 'link "Clanbook: Assamite (1st edition) — Disponible" [ref=e483] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-assamite-1st-edition
+            - generic [ref=e485]:
+              - generic [ref=e486]: "5.9"
+              - 'heading "Clanbook: Assamite (1st edition)" [level=3] [ref=e487]'
+              - paragraph [ref=e488]: "WW2059: Libro de clanes: Assamita (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido por WW2359: Libro de clanes: Assamita (edición revisada)"
+              - list [ref=e489]:
+                - listitem [ref=e490]: Manual
+                - listitem [ref=e494]: "1995"
+              - generic [ref=e498]: Horror
+        - article [ref=e499]:
+          - 'link "Clanbook: Malkavian (1st Edition) — Disponible" [ref=e500] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-malkavian-1st-edition
+            - generic [ref=e502]:
+              - generic [ref=e503]: "6.0"
+              - 'heading "Clanbook: Malkavian (1st Edition)" [level=3] [ref=e504]'
+              - paragraph [ref=e505]: "WW2053: Libro del clan: Malkavian (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido por WW2353: Libro del clan: Malkavian (edición revisada)"
+              - list [ref=e506]:
+                - listitem [ref=e507]: Manual
+                - listitem [ref=e511]: "1993"
+              - generic [ref=e515]: Horror
+        - article [ref=e516]:
+          - 'link "Clanbook: Nosferatu (1st Edition) — Disponible" [ref=e517] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-nosferatu-1st-edition
+            - generic [ref=e519]:
+              - generic [ref=e520]: "6.8"
+              - 'heading "Clanbook: Nosferatu (1st Edition)" [level=3] [ref=e521]'
+              - paragraph [ref=e522]: "WW2054: Libro de clanes: Nosferatu (1.ª edición) Se trata de un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido posteriormente por una edición revisada."
+              - list [ref=e523]:
+                - listitem [ref=e524]: Manual
+                - listitem [ref=e528]: "1993"
+              - generic [ref=e532]: Horror
+        - article [ref=e533]:
+          - 'link "Clanbook: Ravnos (1st Edition) — Disponible" [ref=e534] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-ravnos-1st-edition
+            - generic [ref=e536]:
+              - generic [ref=e537]: "5.7"
+              - 'heading "Clanbook: Ravnos (1st Edition)" [level=3] [ref=e538]'
+              - paragraph [ref=e539]: "WW2064: Clanbook: Ravnos (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido posteriormente por una edición revisada."
+              - list [ref=e540]:
+                - listitem [ref=e541]: Manual
+                - listitem [ref=e545]: "1997"
+              - generic [ref=e549]: Horror
+        - article [ref=e550]:
+          - 'link "Clanbook: Setites (1st Edition) — Disponible" [ref=e551] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-setites-1st-edition
+            - generic [ref=e553]:
+              - generic [ref=e554]: "6.1"
+              - 'heading "Clanbook: Setites (1st Edition)" [level=3] [ref=e555]'
+              - paragraph [ref=e556]: "WW2060: Clanbook: Setites (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido posteriormente por una edición revisada."
+              - list [ref=e557]:
+                - listitem [ref=e558]: Manual
+                - listitem [ref=e562]: "1995"
+              - generic [ref=e566]: Horror
+        - article [ref=e567]:
+          - 'link "Clanbook: Toreador (1st Edition) — Disponible" [ref=e568] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-toreador-1st-edition
+            - generic [ref=e570]:
+              - generic [ref=e571]: "6.1"
+              - 'heading "Clanbook: Toreador (1st Edition)" [level=3] [ref=e572]'
+              - paragraph [ref=e573]: "WW2056: Clanbook: Toreador (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido posteriormente por una edición revisada."
+              - list [ref=e574]:
+                - listitem [ref=e575]: Manual
+                - listitem [ref=e579]: "1994"
+              - generic [ref=e583]: Horror
+        - article [ref=e584]:
+          - 'link "Clanbook: Tzimisce (1st Edition) — Disponible" [ref=e585] [cursor=pointer]':
+            - /url: /ludoteca/rol/clanbook-tzimisce-1st-edition
+            - generic [ref=e587]:
+              - generic [ref=e588]: "6.8"
+              - 'heading "Clanbook: Tzimisce (1st Edition)" [level=3] [ref=e589]'
+              - paragraph [ref=e590]: "WW2061: Clanbook: Tzimisce (1.ª edición) Un libro de referencia para los directores de juego que dirigen el juego de rol «Vampiro: La Mascarada», que ofrece información sobre un clan, incluidas plantillas de personajes y los poderes del clan. Este libro fue sustituido posteriormente por una edición revisada."
+              - list [ref=e591]:
+                - listitem [ref=e592]: Manual
+                - listitem [ref=e596]: "1995"
+              - generic [ref=e600]: Horror
+        - article [ref=e635]:
+          - link "Cultos Innombrables — Disponible" [ref=e636] [cursor=pointer]:
+            - /url: /ludoteca/rol/cultos-innombrables
+            - generic [ref=e638]:
+              - generic [ref=e639]: "8.4"
+              - heading "Cultos Innombrables" [level=3] [ref=e640]
+              - paragraph [ref=e641]: "From the web page of the publisher, in Spanish Contempla los Mitos de Cthulhu desde una perspectiva totalmente nueva y participa en la guerra secreta por el poder y el favor de los dioses que se libra en el mundo actual. Crea tu propia sociedad para el estudio de lo oculto y usa el poder de los Mitos para tus propios fines intentando no caer en una espiral de locura y destrucción: ahora formas parte de los Cultos Innombrables. Cultos Innombrables es un nuevo manual básico de 290 páginas en el que se reinventan los Mitos, trayéndolos a la actualidad. Entre sus páginas podrás encontrar: Reglas completas de creación de personajes y de juego: acción, cordura, degeneración, cultos, magia… Todo lo que necesitas para jugar está en este libro. Detallada ambientación sobre los Mitos de Cthulhu en la actualidad, incluyendo las criaturas y los dioses principales del terrorífico universo de H. P. Lovecraft, así como numerosos ejemplos de cultos. Consejos para dirigir tu campaña y sacarle todo el partido a la ambientación del juego. Dos aventuras completas listas para jugar. No temas, acércate y descubre la verdad de los Mitos de la mano de Cultos Innombrables. In English Watch the Cthulhu Mythos from a brand new perspective and take part in the secret war for the power and favor of the gods which runs nowadays. Create your own society for the study of the occult lore and use the power of the Mythos for your own shake trying to avoid a spiral of madness and destruction: now you belong to the Nameless Cults. Nameless Cults is a new basic manual of 290 pages where the Mythos are reinvented, bringing them to nowadays. Among the book you can find: Complete rules for character creation and game play: action, sanity, degeneration, cults, magic... All you need for play is inside the book. Detailed description of the setting of the Cthulhu Mythos nowadays, including the main gods and creatures form the terrific univers by H. P. Lovecraft, as well as many cults samples. Suggestions to run your own campaigns and squeeze the game settings. Two complete adventures ready for play. Do not be affraid, get close and discover the truth of the Mythos from the hand of the Nameless Cults"
+              - list [ref=e642]:
+                - listitem [ref=e643]: Manual
+                - listitem [ref=e647]: "2014"
+              - generic [ref=e651]: Aventura
+        - article [ref=e686]:
+          - link "Drácula vs. Hitler — Disponible" [ref=e687] [cursor=pointer]:
+            - /url: /ludoteca/rol/dracula-vs-hitler
+            - generic [ref=e689]:
+              - heading "Drácula vs. Hitler" [level=3] [ref=e690]
+              - paragraph [ref=e691]: "¡Descubre el secreto mejor guardado de la historia! En 1946, nace Helmet Films, una productora de cine cuya verdadera misión es cazar nazis fugitivos. El cine es solo una cortina de humo. En las sombras, monstruos legendarios protagonizan sus películas mientras operan como agentes secretos. ¿Quién sospecharía de Frankenstein, Doctor Jekyll o La cosa del pantano? En Drácula vs. Hitler, te sumergirás en el rol de estos icónicos monstruos del cine clásico. Su verdadera tarea: detener a nazis fugados. Son agentes secretos perfectos, pasando desapercibidos ante los ojos humanos. Drácula vs. Hitler te ofrece reglas para crear escenarios llenos de suspense, una campaña inicial con 3 misiones listas para jugar, 10 monstruos clásicos a los que interpretar y un sinfín de ideas para que diseñes tus propias misiones. ¿Todo preparado para adentrarte en este mundo de espionaje, terror y cine?"
+              - list [ref=e692]:
+                - listitem [ref=e693]: Manual
+                - listitem [ref=e697]: "2024"
+              - generic [ref=e701]: Horror
+        - article [ref=e1003]:
+          - link "Fountains of Bright Crimson — Disponible" [ref=e1004] [cursor=pointer]:
+            - /url: /ludoteca/rol/fountains-of-bright-crimson
+            - generic [ref=e1006]:
+              - generic [ref=e1007]: "6.0"
+              - heading "Fountains of Bright Crimson" [level=3] [ref=e1008]
+              - paragraph [ref=e1009]: "De la contraportada del libro: La Ciudad Santa enloquecida En 1099, los cruzados victoriosos conquistaron Jerusalén y se lanzaron a una épica oleada de matanzas y destrucción. Ahora, un siglo después, las semillas regadas por aquella sangrienta cosecha por fin florecen. Un loco acecha en las noches. Un antiguo vampiro se agita en su letargo. Un manantial sagrado llora lágrimas de sangre. A menos que alguien descubra el secreto más oscuro de Jerusalén, la matanza comenzará de nuevo. La sangre tiñe las aguas «Fuentes de carmesí brillante» es una crónica de aventuras para «Vampiro: La Edad Media». Explora el mayor misterio y la mayor tragedia de la historia caínita de Jerusalén: las Semanas de Sangre. Ahora puede revelarse la espantosa verdad que se esconde tras la matanza de inocentes… si eres lo suficientemente valiente como para conocer las respuestas."
+              - list [ref=e1010]:
+                - listitem [ref=e1011]: Aventura
+                - listitem [ref=e1015]: "1999"
+              - generic [ref=e1019]: Horror
+        - article [ref=e1037]:
+          - link "Glitch — Disponible" [ref=e1038] [cursor=pointer]:
+            - /url: /ludoteca/rol/glitch
+            - generic [ref=e1040]:
+              - heading "Glitch" [level=3] [ref=e1041]
+              - paragraph [ref=e1042]: "Publisher Blurb: En la mitad de la noche un cuerpo extraterrestre penetra en la atmósfera. Tras unos instantes se convierte en un bólido, estallando a pocos kilómetros por encima del centro de la ciudad. Su deslumbrante destello hace que, por un momento, el día se adelante al amanecer. Segundos después la onda expansiva golpea la realidad, los cristales de muchos edificios se rompen y las alarmas de los coches y locales empiezan a aullar. Afortunadamente hay pocos heridos. Es un evento extraordinario, pero no un desastre. Sin embargo, marcará el inicio de una extraña aventura. Glitch es una aventura sobre bugs cósmicos y pesadillas virtuales para Cultos Innombrables."
+              - list [ref=e1043]:
+                - listitem [ref=e1044]: Aventura
+                - listitem [ref=e1048]: "2021"
+              - generic [ref=e1052]: Aventura
+        - article [ref=e1102]:
+          - link "Handler's Guide — Disponible" [ref=e1103] [cursor=pointer]:
+            - /url: /ludoteca/rol/handler-s-guide
+            - generic [ref=e1105]:
+              - generic [ref=e1106]: "8.8"
+              - heading "Handler's Guide" [level=3] [ref=e1107]
+              - paragraph [ref=e1108]: "De la contraportada: TÚ ERES EL APOCALIPSIS Nacida a raíz de la redada que el Gobierno de EE. UU. llevó a cabo en 1928 en la degenerada localidad costera de Innsmouth, Massachusetts, la agencia secreta conocida como Delta Green se enfrenta a las fuerzas de la oscuridad con honor, pero sin gloria. Los agentes de Delta Green luchan para salvar a la humanidad de horrores sobrenaturales, a menudo a un coste personal devastador. En DELTA GREEN: EL JUEGO DE ROL, los jugadores son esos agentes. Luchan para evitar que los terrores más allá del espacio y el tiempo contaminen el mundo y se cobren vidas humanas y la cordura. El «Handler» es el moderador del juego que crea e interpreta su mundo, presenta el horror sobrenatural que investigan y describe las terribles consecuencias de sus sacrificios. La GUÍA DEL HANDLER es un libro de reglas exclusivo para el moderador del juego DELTA GREEN: EL JUEGO DE ROL. Incluye: Una historia del mundo de Delta Green desde la prehistoria hasta la actualidad, con consejos para campañas y ideas para escenarios en cada página. Rituales espeluznantes, entidades sobrenaturales y los Grandes Antiguos que destrozan la realidad. Reglas para crear nuevas amenazas con las que conmocionar y aterrorizar a tus agentes. La misteriosa organización Delta Green, descrita con todo lujo de detalles inquietantes, y la otra conspiración despiadada que afirma ser la verdadera Delta Green. Pautas para crear escenarios y campañas originales utilizando los recursos de este libro. «Operación FULMINATE: Los centinelas del crepúsculo», un escenario de ejemplo listo para jugar."
+              - list [ref=e1109]:
+                - listitem [ref=e1110]: Manual
+                - listitem [ref=e1114]: Aventura
+                - listitem [ref=e1118]: "2017"
+              - generic [ref=e1122]: Moderno
+        - article [ref=e1174]:
+          - link "Kingdom of Nothing — Disponible" [ref=e1175] [cursor=pointer]:
+            - /url: /ludoteca/rol/kingdom-of-nothing
+            - generic [ref=e1177]:
+              - generic [ref=e1178]: "7.3"
+              - heading "Kingdom of Nothing" [level=3] [ref=e1179]
+              - paragraph [ref=e1180]: "Sinopsis de la editorial: Érase una vez, cuando grandes monstruos de cristal gris y granito surgieron a la vida por todo el mundo. Desgarraron, royeron y se abrieron paso a mordiscos a través de la tierra y el lecho rocoso hasta que sus raíces quedaron enterradas en lo más profundo del suelo. Absorbieron la vida de la tierra que los rodeaba. Por sus tendones corría cemento y metal oxidado, y por sus venas bombeaban aguas residuales. Asfixiaban el aire al inhalar con sus pulmones llenos de vapor; y al exhalar, solo escapaban humo y fuego. Con mil extremidades se alzaban y arañaban el cielo. A medida que pasaban los años y estos horrores crecían y crecían más allá de toda razón, partes de ellos morían y se desprendían. La mayoría de las veces, se devoraban sus extremidades muertas y les crecían otras nuevas en su lugar. A veces, sin embargo, esos lugares se dejaban pudrirse. Fue en esos lugares muertos donde los fantasmas vinieron a habitar; en las sombras y los túneles de la pesadilla urbana. En los Lugares Olvidados. Estos fantasmas habitan un mundo que la mayoría nunca ha visto. Existe en desarmonía con la realidad que hemos llegado a conocer, solapándose con ella y contradiciéndola a la vez. Existe en las sombras, los callejones y los túneles del paisaje urbano; en estaciones de tren abandonadas y edificios en ruinas. En estos lugares yacen grandes palacios en descomposición, vastos laberintos dentro de los túneles de la ciudad. Kingdom of Nothing es un juego sobre personas que lo han perdido todo y su lucha por salir a rastras de las grietas por las que se han deslizado. En él, los jugadores asumen el papel de una persona olvidada. Les ocurrió algo tan terriblemente traumático que hizo que sus vidas se derrumbaran y les obligó a acabar en la calle y sin hogar. Una fuerza misteriosa llamada la Nada se ha comido sus recuerdos y ha materializado sus miedos en forma de monstruos retorcidos que amenazan con destruirlos. A lo largo del juego, se enfrentan a aquello que destruyó sus vidas y recuperan sus recuerdos poco a poco. Los jugadores de la mesa colaboran para crear la historia de fondo de tu personaje, al tiempo que tú colaboras para crear la de ellos. A lo largo del juego, los jugadores descubren el intenso drama que llevó a su personaje a perderse en la Nada."
+              - list [ref=e1181]:
+                - listitem [ref=e1182]: Manual
+                - listitem [ref=e1186]: "2010"
+              - generic [ref=e1190]: Horror
+        - article [ref=e1225]:
+          - link "Kult (1st Edition) — Disponible" [ref=e1226] [cursor=pointer]:
+            - /url: /ludoteca/rol/kult-1st-edition
+            - generic [ref=e1228]:
+              - generic [ref=e1229]: "7.6"
+              - heading "Kult (1st Edition)" [level=3] [ref=e1230]
+              - paragraph [ref=e1231]: La muerte es solo el principio... El traqueteo de las cadenas y un hedor nauseabundo me llevaron por más pasillos, todos con paredes de azulejos esmaltados de un gris apagado. Unos tubos de cristal parpadeantes emitían una luz blanco amarillenta. Mis pies descalzos resbalaban sobre el aceite y la sangre del suelo. Las cucarachas se arrastraban por las grietas entre los azulejos de la pared. A lo lejos, alguien gritaba de agonía... Kult es un juego de rol de terror contemporáneo. Se desarrolla aquí y ahora, en la realidad actual. Pero la realidad no es lo que creemos. A nuestro alrededor, el mundo es oscuro y peligroso, y nada es lo que parece. Nuestra realidad es una ilusión, creada para mantenernos cautivos. Llevamos siglos encarcelados por un creador dictatorial. El mundo verdadero, invisible para nosotros, está gobernado por criaturas que dominan tras las falsas fachadas, nuestros carceleros y torturadores. Los personajes de Kult son héroes oscuros, gobernados por el Destino. Cuando las ilusiones se desvanecen, se enfrentan a la verdadera realidad. En las fronteras entre el terror y la locura, los sueños y la muerte...
+              - list [ref=e1232]:
+                - listitem [ref=e1233]: Manual
+                - listitem [ref=e1237]: "1993"
+              - generic [ref=e1241]: Horror
+        - article [ref=e1242]:
+          - link "Kult (1st Edition) — Disponible" [ref=e1243] [cursor=pointer]:
+            - /url: /ludoteca/rol/kult-1st-edition-2
+            - generic [ref=e1245]:
+              - generic [ref=e1246]: "7.6"
+              - heading "Kult (1st Edition)" [level=3] [ref=e1247]
+              - paragraph [ref=e1248]: La muerte es solo el principio... El traqueteo de las cadenas y un hedor nauseabundo me llevaron por más pasillos, todos con paredes de azulejos esmaltados de un gris apagado. Unos tubos de cristal parpadeantes emitían una luz blanco amarillenta. Mis pies descalzos resbalaban sobre el aceite y la sangre del suelo. Las cucarachas se arrastraban por las grietas entre los azulejos de la pared. A lo lejos, alguien gritaba de agonía... Kult es un juego de rol de terror contemporáneo. Se desarrolla aquí y ahora, en la realidad actual. Pero la realidad no es lo que creemos. A nuestro alrededor, el mundo es oscuro y peligroso, y nada es lo que parece. Nuestra realidad es una ilusión, creada para mantenernos cautivos. Llevamos siglos encarcelados por un creador dictatorial. El mundo verdadero, invisible para nosotros, está gobernado por criaturas que dominan tras las falsas fachadas, nuestros carceleros y torturadores. Los personajes de Kult son héroes oscuros, gobernados por el Destino. Cuando las ilusiones se desvanecen, se enfrentan a la verdadera realidad. En las fronteras entre el terror y la locura, los sueños y la muerte...
+              - list [ref=e1249]:
+                - listitem [ref=e1250]: Manual
+                - listitem [ref=e1254]: "1993"
+              - generic [ref=e1258]: Horror
+        - article [ref=e1292]:
+          - link "Legions of Darkness — Disponible" [ref=e1293] [cursor=pointer]:
+            - /url: /ludoteca/rol/legions-of-darkness
+            - generic [ref=e1295]:
+              - generic [ref=e1296]: "7.8"
+              - heading "Legions of Darkness" [level=3] [ref=e1297]
+              - paragraph [ref=e1298]: "Nos estamos acercando al límite... Todo empezó cuando salíamos del centro comercial. Tom había estado tenso toda la noche y, mientras caminábamos hacia el coche, no dejaba de mirar por encima del hombro. Entonces, mientras cruzábamos en coche el aparcamiento a oscuras, vi a tres hombres con trajes oscuros que corrían hacia otro coche. «¡Vámonos de aquí!», —gritó mientras sacaba una escopeta de su chaqueta y se asomaba por la ventanilla. «¿De dónde has sacado eso?», le pregunté. Pero pronto tuve algo más importante de lo que preocuparme. Uno de los hombres se interpuso en la trayectoria del coche. Pisé el freno a fondo, pero ya era demasiado tarde: el impacto lo lanzó contra el parabrisas. Entonces vi su rostro. Unos ojos ciegos, blancos como la leche, parecían mirarme fijamente desde un rostro que era en parte metal y en parte carne en descomposición. Abrió la boca, dejando al descubierto hileras de relucientes dientes de acero y una larga lengua azul. A continuación, atravesó el parabrisas de un puñetazo y se abalanzó sobre mi garganta. Tome disparó. Legions of Darkness es un suplemento de trasfondo para el juego de rol Kult. Contiene más información sobre la ilusión en la que vivimos, la realidad que a veces podemos vislumbrar y las criaturas y organizaciones oscuras que mantienen cautiva a la humanidad. Se describen con gran detalle los arcontes, los ángeles de la muerte y los lictores, y se presentan varios cultos y criaturas nuevos. Legions of Darkness te ofrece información sobre una veintena de cultos y organizaciones, mapas de sus cuarteles generales y lugares de reunión, y descripciones de más de un centenar de personas, dioses y criaturas monstruosas que habitan el mundo de Kult. Nuestra realidad será destruida y la verdad revelada"
+              - list [ref=e1299]:
+                - listitem [ref=e1300]: Manual
+                - listitem [ref=e1304]: "1993"
+              - generic [ref=e1308]: Horror
+        - article [ref=e1381]:
+          - 'link "Mage: The Ascension (20th Anniversary Edition) — Disponible" [ref=e1382] [cursor=pointer]':
+            - /url: /ludoteca/rol/mage-the-ascension-20th-anniversary-edition
+            - generic [ref=e1384]:
+              - generic [ref=e1385]: "7.0"
+              - 'heading "Mage: The Ascension (20th Anniversary Edition)" [level=3] [ref=e1386]'
+              - paragraph [ref=e1387]: "De la contraportada del libro: Os digo esto: somos Divinidad. La realidad está en nuestras manos para moldearla. Para subvertirla. Para dominarla. Tenemos ese poder: todos y todas. No todo el mundo sabe qué hacer con él, ni lo utiliza bien. La mayoría de nosotros nunca nos damos cuenta de lo que somos ni de todo lo que podemos hacer. Los que sí nos damos cuenta… bueno, algunos de nosotros somos monstruos. Manipuladores. Parásitos. Tiranos. Fanáticos. Y el resto de nosotros nunca vemos a ese monstruo en nuestro propio espejo, solo en los reflejos de aquellas personas que no son «nosotros». Pero esta es la verdad: TODOS somos «nosotros». TODOS tenemos un don. TODOS podemos cambiar el mundo. La mayoría de nosotros seguimos dormidos. Unos pocos afortunados despiertan. Y aún menos utilizan ese poder con sabiduría. Y ninguno sin consecuencias. Así pues, la realidad está al alcance de la mano. ¿De qué lado estás? ¿Y caerás… o ascenderás?"
+              - list [ref=e1388]:
+                - listitem [ref=e1389]: Manual
+                - listitem [ref=e1393]: "2015"
+              - generic [ref=e1397]: Horror
+        - article [ref=e1398]:
+          - 'link "Mage: The Awakening — Disponible" [ref=e1399] [cursor=pointer]':
+            - /url: /ludoteca/rol/mage-the-awakening
+            - generic [ref=e1401]:
+              - generic [ref=e1402]: "7.0"
+              - 'heading "Mage: The Awakening" [level=3] [ref=e1403]'
+              - paragraph [ref=e1404]: "El poder de rehacer el mundo En una época ya lejana, los mortales destronaron a los dioses y se apoderaron de los cielos. Y por ello, fueron arrojados al mundo de arcilla, con sus mentes nubladas por la ignorancia. Solo unos pocos recuerdan su derecho de nacimiento: el poder de la magia. Si no pueden reclamar los cielos, crearán sus propios reinos en la Tierra. Un juego narrativo de hechicería moderna - Ofrece todo lo necesario para contar tus propias historias en el mundo oculto de los Despertados, incluyendo detalles sobre las diversas órdenes y caminos de la magia, así como muchos secretos del Mundo de las Tinieblas. Requiere el libro de reglas de El Mundo de las Tinieblas para jugar. - Presenta el sistema de magia más completo y libre jamás creado en un juego, lo que permite a los personajes lanzar prácticamente cualquier hechizo imaginable. - Incluye Boston como escenario totalmente desarrollado y listo para jugar. - Cuenta con ilustraciones del aclamado Michael Kaluta."
+              - list [ref=e1405]:
+                - listitem [ref=e1406]: Manual
+                - listitem [ref=e1410]: "2005"
+              - generic [ref=e1414]: Horror
+        - article [ref=e1685]:
+          - link "Rats in the Walls — Disponible" [ref=e1686] [cursor=pointer]:
+            - /url: /ludoteca/rol/rats-in-the-walls
+            - generic [ref=e1688]:
+              - generic [ref=e1689]: "8.9"
+              - heading "Rats in the Walls" [level=3] [ref=e1690]
+              - paragraph [ref=e1691]: "Descripción del editor: «Rats in the Walls» es un juego de rol de terror cósmico, inspirado en las obras de H. P. Lovecraft (sin el Mito). El objetivo era crear un sistema lo suficientemente sencillo como para dirigir aventuras rápidas de una sola sesión y, al mismo tiempo, lo suficientemente rico como para permitir partidas a largo plazo. El escenario predeterminado son los locos años veinte, pero un apéndice te permite crear personajes medievales."
+              - list [ref=e1692]:
+                - listitem [ref=e1693]: Manual
+                - listitem [ref=e1697]: "2018"
+              - generic [ref=e1701]: Horror
+        - article [ref=e1702]:
+          - link "Ravenloft — Disponible" [ref=e1703] [cursor=pointer]:
+            - /url: /ludoteca/rol/ravenloft
+            - generic [ref=e1705]:
+              - generic [ref=e1706]: "7.1"
+              - heading "Ravenloft" [level=3] [ref=e1707]
+              - paragraph [ref=e1708]: "«Un reino del terror: un mundo de aventuras góticas Una noche de terror eterno. Un mundo gobernado por el miedo y el horror. Vampiros que dominan la noche. Metamorfos que merodean por los bosques. Ghouls sobrenaturales y esqueletos no muertos que acechan a una población aterrorizada. Si hay un mundo que necesita héroes, ese es el de Ravenloft. El escenario de Ravenloft retoma uno de los mundos clásicos de los juegos de rol y lo adapta a la Tercera Edición utilizando el sistema de reglas D20. Los jugadores asumen el papel de valientes aventureros que se enfrentan al mal supremo con la esperanza de salvar el mundo, todo ello en un escenario gótico de grandes aventuras»."
+              - list [ref=e1709]:
+                - listitem [ref=e1710]: Manual
+                - listitem [ref=e1714]: "2001"
+              - generic [ref=e1718]: Horror
+        - article [ref=e1719]:
+          - link "Ravenloft Campaign Setting — Disponible" [ref=e1720] [cursor=pointer]:
+            - /url: /ludoteca/rol/ravenloft-campaign-setting
+            - generic [ref=e1722]:
+              - generic [ref=e1723]: "7.8"
+              - heading "Ravenloft Campaign Setting" [level=3] [ref=e1724]
+              - paragraph [ref=e1725]: "De la contraportada de la caja: Terror en la Tierra de las Nieblas En el año 351 del calendario baroviano, Stradh von Zarovich selló un pacto con la Muerte, un pacto que selló su destino y creó una tierra de pesadillas conocida como Ravenloft. Otros señores de la oscuridad han hecho suyo el Demiplano del Terror, y ¡ay de los héroes que se adentren en él! Las criaturas de la noche se ceban sin piedad con los vivos en esta tierra, y el día no es más que el preludio de otra noche de horror. Esta nueva edición del juego RAVENLOFT combina la caja original «Reino del Terror» con elementos de «Forbidden Lore» y reglas actualizadas de otros complementos. Se han eliminado los dominios destruidos en la infame Gran Conjunción, se han añadido nuevos dominios y se han detallado personajes clave. Esta caja incluye: - Realms of Terror: un libro de reglas de 160 páginas sobre la remodelación de las clases de personajes; pruebas de miedo, horror, locura y poder; maldiciones; hechizos y objetos mágicos, tanto nuevos como antiguos; psiónicos; técnicas de terror; y mucho más. - «Domains and Denizens»: un libro de 128 páginas que describe las tierras oscuras del Núcleo, las islas del terror y numerosos personajes malvados. - Dos mapas que representan los dominios rediseñados del Núcleo y las islas del terror. - Un póster con una pintura del artista Robh Ruppel. - Una baraja de tarokka con cartas bellamente ilustradas para la adivinación en los juegos de rol. - Un biombo de máster diseñado específicamente para su uso en una campaña de RAVENLOFT."
+              - list [ref=e1726]:
+                - listitem [ref=e1727]: Manual
+                - listitem [ref=e1731]: "1994"
+              - generic [ref=e1735]: Horror
+        - article [ref=e1770]:
+          - link "Seasons of Mystery — Disponible" [ref=e1771] [cursor=pointer]:
+            - /url: /ludoteca/rol/seasons-of-mystery
+            - generic [ref=e1773]:
+              - generic [ref=e1774]: "8.6"
+              - heading "Seasons of Mystery" [level=3] [ref=e1775]
+              - paragraph [ref=e1776]: "De la contraportada del libro: Los bosques, grandes y pequeños, permanecen en silencio, envuelvos en un blanco helado; solo la cascada lejana murmura y zumba en la noche. El nisse escucha y, medio dormido, piensa que es el incesante fluir del tiempo, se pregunta hacia dónde se dirige, y de qué fuente brota. – VIKTOR RYDBERG En estas páginas encontrarás cuatro casos escalofriantes para Vaesen – Juego de rol de terror nórdico. Este libro contiene cuatro misterios independientes, uno para cada estación del año: - Un baile con la muerte – Viaja a los verdes valles de Dalarna en primavera para investigar unos extraños sucesos en un pueblo remoto. - «Corazón de fuego» – Durante la ola de calor del siglo, viaja al sur, a las fundiciones de Häryd, y enfréntate a un temible adversario. - «El diablo en el páramo» – En los páramos otoñales de Dinamarca, te verás envuelto en una lucha entre las costumbres ancestrales y los designios de la modernidad. - Un cuento de invierno: cruza el mar Báltico y enfréntate a los bosques invernales de Ingria, donde un ser desconocido acecha en la noche bajo las estrellas centelleantes."
+              - list [ref=e1777]:
+                - listitem [ref=e1778]: Aventura
+                - listitem [ref=e1782]: "2022"
+              - generic [ref=e1786]: Fantasía
+        - article [ref=e1899]:
+          - 'link "The End of the World: Wrath of the Gods — Disponible" [ref=e1900] [cursor=pointer]':
+            - /url: /ludoteca/rol/the-end-of-the-world-wrath-of-the-gods
+            - generic [ref=e1902]:
+              - generic [ref=e1903]: "7.3"
+              - 'heading "The End of the World: Wrath of the Gods" [level=3] [ref=e1904]'
+              - paragraph [ref=e1905]: "Descripción de la editorial: Extrañas criaturas humanoides, que apestan a algas, salen tambaleándose de los océanos de la Tierra mientras un horror insoportable surge de R'lyeh. El gigantesco lobo Fenrir despierta bajo la cordillera de los Escandinavos, mientras Jörmungandr, la serpiente del mundo, se retuerce al salir del Pacífico. Los terremotos sacuden el mundo mientras la propia Tierra intenta erradicar a la humanidad. Lo sobrenatural se ha entrelazado irrevocablemente con lo físico, y necesitarás todas tus habilidades y talentos solo para sobrevivir un día más. ¡El mundo temblará bajo la ira de los dioses! ¡Lo sobrenatural irrumpe en el mundo físico en *La ira de los dioses*, el segundo libro de la línea de juegos de rol *El fin del mundo*! Con los escenarios incluidos en este libro, podrás alzar las armas junto a los héroes de antaño y los dioses nórdicos, o huir del terror alucinante de Cthulhu. Podrás esconderte de los Cuatro Jinetes mientras se desarrollan los acontecimientos del Apocalipsis, hablar con Quetzalcóatl a medida que se desata el apocalipsis maya, o luchar contra bestias salvajes mientras la propia Tierra se vuelve contra nosotros. ¡«La ira de los dioses» te acerca tanto como sea posible (y seguro) a los poderes sobrenaturales que acabarán con la civilización! Este juego de rol te ofrece la oportunidad de jugar como tú mismo en medio del tumulto del apocalipsis, utilizando un elegante sistema de reglas narrativo. «La ira de los dioses» contiene cinco escenarios únicos, cada uno de los cuales ofrece una visión diferente del fin de la humanidad a manos de la ira divina. Cada escenario incluye además una fase de apocalipsis y una fase postapocalíptica, lo que te permite sobrevivir al pánico inicial y labrarte un camino en la vida tras el fin del mundo."
+              - list [ref=e1906]:
+                - listitem [ref=e1907]: Manual
+                - listitem [ref=e1911]: Aventura
+                - listitem [ref=e1915]: "2015"
+              - generic [ref=e1919]: Horror
+        - article [ref=e1971]:
+          - link "The Walking Dead Universe Roleplaying Core Rules — Disponible" [ref=e1972] [cursor=pointer]:
+            - /url: /ludoteca/rol/the-walking-dead-universe-roleplaying-core-rules
+            - generic [ref=e1974]:
+              - generic [ref=e1975]: "8.3"
+              - heading "The Walking Dead Universe Roleplaying Core Rules" [level=3] [ref=e1976]
+              - paragraph [ref=e1977]: "Descripción de la editorial: Cuenta tu propia historia en el universo de «The Walking Dead» con el juego de rol oficial."
+              - list [ref=e1978]:
+                - listitem [ref=e1979]: Manual
+                - listitem [ref=e1983]: "2023"
+              - generic [ref=e1987]: Horror
+        - article [ref=e2022]:
+          - 'link "Vampire: The Dark Ages — Disponible" [ref=e2023] [cursor=pointer]':
+            - /url: /ludoteca/rol/vampire-the-dark-ages
+            - generic [ref=e2025]:
+              - generic [ref=e2026]: "7.4"
+              - 'heading "Vampire: The Dark Ages" [level=3] [ref=e2027]'
+              - paragraph [ref=e2028]: "Este es el libro básico de «Vampiro: La Edad Media». Este juego se deriva de «Vampiro: La Mascarada» y, a diferencia de otros juegos ambientados en el Mundo de las Tinieblas, no se desarrolla en la época moderna, sino en la Edad Media. En este juego, los jugadores encarnan a vampiros (los Cainitas). Libran sus propias guerras por el poder, al tiempo que intentan no dejarse llevar por la Bestia. Durante la Edad Media, los vampiros siguen siendo menos cautelosos de lo que lo son en épocas posteriores. Y, a menudo, no necesitan serlo. Los humanos están mucho menos organizados; lo que ocurre en una cabaña aislada tiene menos probabilidades de llamar la atención que algo que suceda en un bloque de pisos del siglo XX. No hay enemigos con armas de alta tecnología. Por otro lado, también hay mucho que temer. Hay pocos lugares donde esconderse del sol. La civilización no ha ganado tanto terreno a la naturaleza salvaje, y los hombres lobo abundan en esa naturaleza salvaje. Además, por la noche ocurre muy poco. Hay pocas tiendas que abastezcan a los vampiros, y las actividades nocturnas de los Cainitas tienen muchas más probabilidades de llamar una atención no deseada. Este libro trata principalmente de los diferentes personajes que un jugador puede crear. Las habilidades de un personaje vienen determinadas en gran medida por su clan, que es el mismo que el del vampiro que lo engendró. Para el «abrazo» —la creación de un nuevo vampiro—, un vampiro suele seleccionar a una persona que encaje en su clan. Otro aspecto importante es el Camino que seguirá el personaje: el código mortal al que se adhiere y que le impide ceder a la Bestia y convertirse en un monstruo sin razón."
+              - list [ref=e2029]:
+                - listitem [ref=e2030]: Manual
+                - listitem [ref=e2034]: "1996"
+              - generic [ref=e2038]: Horror
+        - article [ref=e2039]:
+          - 'link "Vampiro: La Mascarada (20 aniversario) — Disponible" [ref=e2040] [cursor=pointer]':
+            - /url: /ludoteca/rol/vampiro-la-mascarada-20-aniversario
+            - generic [ref=e2042]:
+              - generic [ref=e2043]: "8.1"
+              - 'heading "Vampiro: La Mascarada (20 aniversario)" [level=3] [ref=e2044]'
+              - paragraph [ref=e2045]: "De la página web de la editorial: ¿A quién va dirigido? Este libro está dedicado a todos los seguidores de White Wolf que han vivido, amado y recorrido este largo camino con nosotros durante las últimas dos décadas. A los incondicionales que nunca se rindieron, nunca dejaron de creer y mantuvieron vivo el Mundo de las Tinieblas. Esto va dirigido a todos los santos, pecadores, malhechores, gamberros, poetas y marginados que han estado con nosotros todo este tiempo. Esta es su «Mascarada» original en todo su esplendor, y nuestra forma de darles las gracias y darles la bienvenida a casa. ¿Qué incluye? Los trece clanes originales, variantes de clanes y linajes, con sus Disciplinas características actualizadas a partir de las reglas de juego de mesa de *Vampiro: La Mascarada - Revisada* Reglas para la creación y el desarrollo de personajes, desde Neonato hasta Matusalén Todas las Disciplinas, desde el nivel uno hasta el nueve Escenario actualizado a las noches modernas Nuevas ilustraciones originales a todo color de Tim Bradstreet y otros artistas clásicos de «La Mascarada» Un proceso de desarrollo basado en una «prueba de juego abierta a la comunidad»"
+              - list [ref=e2046]:
+                - listitem [ref=e2047]: Manual
+                - listitem [ref=e2051]: "2011"
+              - generic [ref=e2055]: Horror
+        - article [ref=e2141]:
+          - 'link "Werewolf: The Apocalypse (20th Anniversary Edition) — Disponible" [ref=e2142] [cursor=pointer]':
+            - /url: /ludoteca/rol/werewolf-the-apocalypse-20th-anniversary-edition
+            - generic [ref=e2144]:
+              - generic [ref=e2145]: "8.4"
+              - 'heading "Werewolf: The Apocalypse (20th Anniversary Edition)" [level=3] [ref=e2146]'
+              - paragraph [ref=e2147]: "De la introducción: Quienes tengáis este libro entre las manos probablemente no necesitéis que os presente «Hombre Lobo: El Apocalipsis». Ya conocéis el horror salvaje y la exultación gozosa de la Furia. Conocéis la tragedia de un pueblo guerrero que se volvió contra los suyos, y la última esperanza que aún arde mientras sus corazones conserven la voluntad de luchar. Conocéis la gloria de la lucha contra un dios de la Entropía y la Corrupción, y el triunfo de salvar aunque solo sea un pequeño alma mortal. Conocéis el dolor de un mundo y la belleza del espíritu. Este libro es para vosotros. Hombre Lobo: El Apocalipsis —Edición del 20.º Aniversario—. La profecía del Fénix se cumplirá. La naturaleza de la bestia. Hace veinte años, un juego sobre hombres lobo irrumpió en las estanterías como un martillazo. Nadie sabía muy bien qué esperar. «Vampiro: La Mascarada» había aludido a los hombres lobo: sabíamos que existían, que eran terriblemente fuertes y que odiaban a los vampiros. Y, por supuesto, sabíamos qué esperar de las películas de hombres lobo: criaturas que enloquecían a la luz de la luna llena. Pero tenía que haber algo más que eso, ¿verdad? Y lo había. Había mucho más. Mientras que los vampiros se agrupaban en clanes, los hombres lobo formaban tribus. Nacían de humanos o de lobos, o de ninguno de los dos. Y aunque eran, en todos los sentidos, los monstruos físicamente poderosos y aterradores que esperábamos, también eran increíblemente espirituales. «Hombre Lobo» abrió una faceta completamente nueva del Mundo de las Tinieblas: el mundo espiritual. Seguían odiando a los vampiros, pero se definían por una lucha totalmente nueva, una batalla contra el horror cósmico que incorporaba una reflexión sobre las cosas horribles que los humanos se hacen unos a otros y al mundo en el que vivimos. Incluso aprendimos un nuevo nombre para estas criaturas: los Garou. Han pasado veinte años desde que «Hombre Lobo: El Apocalipsis» se abrió paso a zarpazos en el mundo. A día de hoy, sigue siendo difícil encontrar muchos juegos como este. «Hombre Lobo» es un juego con un enfoque de precisión milimétrica, mezclado con —y casi contradicho por— una notable combinación de componentes. Puede seguir un rumbo estrecho y preciso en la historia de la guerra de una manada o un sept contra el Wyrm, o bien ramificarse hacia historias de política, tragedia, espiritualidad, historia, ecología… la totalidad de la experiencia humana y mucho, mucho más allá. No importa qué te interese como Narrador o como jugador, todo puede ser relevante para la lucha de los Garou. Cómo utilizar este libro: Aunque este libro no incluye todo el material de toda la trayectoria de la línea de juegos, pretende ser lo suficientemente exhaustivo como para abarcar, al menos en parte, todas las áreas del juego. La organización es la siguiente: Capítulo uno: «Un mundo de oscuridad» describe el escenario general, así como los fundamentos de la Nación Garou y su lucha. Capítulo dos: «Los Garou» profundiza en las razas, los auspicios y las tribus que definen lo que significa ser un hombre lobo. Capítulo tres: «Personaje y rasgos» detalla la creación de personajes y los rasgos que definen a un personaje Garou. Capítulo cuatro: «Dones, ritos y fetiches» abarca los numerosos poderes espirituales que otorgan a los Garou una ventaja considerable. Capítulo cinco: «Reglas» proporciona los sistemas básicos de resolución del juego. Capítulo seis: «Sistemas y drama» profundiza en esos fundamentos, ofreciendo subsistemas más detallados para gestionar elementos más complejos del juego, como el combate. Capítulo Siete: «El Mundo de los Espíritus» explora la Umbra, el lado oculto del mundo. Capítulo Ocho: «Narración» es una recopilación de consejos y técnicas para los Narradores, útiles a la hora de preparar y dirigir crónicas apasionantes en el mundo de Hombre Lobo. Capítulo Nueve: Aliados detalla a aquellos que están del mismo bando que los Garou en la guerra, como los espíritus, los Kinfolk y las demás Razas Transformadoras. También ofrece una visión general de las Tribus Perdidas. Por el contrario, el Capítulo Diez: Enemigos es una galería de los peores enemigos a los que se enfrentan los Garou, siervos del Wyrm, del Tejedor y más allá. Por último, el Apéndice añade reglas opcionales diversas y detalles de subfacciones, como los campamentos tribales."
+              - list [ref=e2148]:
+                - listitem [ref=e2149]: Manual
+                - listitem [ref=e2153]: "2013"
+              - generic [ref=e2157]: Horror
+        - article [ref=e2158]:
+          - 'link "Werewolf: The Apocalypse (Revised Edition) — Disponible" [ref=e2159] [cursor=pointer]':
+            - /url: /ludoteca/rol/werewolf-the-apocalypse-revised-edition
+            - generic [ref=e2161]:
+              - generic [ref=e2162]: "7.3"
+              - 'heading "Werewolf: The Apocalypse (Revised Edition)" [level=3] [ref=e2163]'
+              - paragraph [ref=e2164]: "Esta edición es la última, antes de que White Wolf haya puesto fin al antiguo Mundo de las Tinieblas. El libro contiene todas las reglas básicas necesarias para un juego de rol (creación de personajes, tiradas de habilidad, etc.). Una gran parte de este voluminoso libro contiene información de trasfondo sobre la sociedad de los hombres lobo (Garou), sus poderes mágicos (Dones), el mundo paralelo «Umbra», los enemigos de los hombres lobo e información para el director de juego, o mejor dicho, el Narrador. Esta edición incluye la «Profecía del Fénix», una historia sobre los siete signos que anuncian el fin del mundo: el Apocalipsis."
+              - list [ref=e2165]:
+                - listitem [ref=e2166]: Manual
+                - listitem [ref=e2170]: "2000"
+              - generic [ref=e2174]: Horror
+        - article [ref=e2208]:
+          - link "World of Darkness — Disponible" [ref=e2209] [cursor=pointer]:
+            - /url: /ludoteca/rol/world-of-darkness
+            - generic [ref=e2211]:
+              - generic [ref=e2212]: "7.3"
+              - heading "World of Darkness" [level=3] [ref=e2213]
+              - paragraph [ref=e2214]: "Donde las sombras se alargan Vivimos nuestros días sin tener la más mínima idea de los verdaderos terrores que acechan a nuestro alrededor. Solo en contadas ocasiones nuestras experiencias levantan el velo de las sombras y revelan el horror que nos rodea. Estos atisbos de lo sobrenatural pueden llevarnos a refugiarnos en mentiras reconfortantes —«Los monstruos no existen»— o despertar nuestra morbosa curiosidad. Sin embargo, solo unos pocos son capaces de superar su miedo y atreverse a mirar más allá. Abandonad toda esperanza, los que entráis El libro de reglas de World of Darkness presenta una versión de nuestro mundo contemporáneo en la que lo sobrenatural es real. Los jugadores se unen para contar historias de misterio y terror, en las que la temática, la atmósfera y la trama son más importantes para las experiencias de un personaje que sus armas o su equipamiento. En su interior encontrarás reglas para la creación de personajes, la resolución de pruebas, el combate y cualquier actividad que tu personaje intente llevar a cabo mientras se adentra en las sombras. Este es el libro de reglas básico del nuevo juego de rol Mundo de las Tinieblas (WoD) de White Wolf Game Studio, publicado en 2004. Este conjunto de reglas unifica el sistema Storytelling. Para jugar a los nuevos juegos de WoD, necesitas este libro de reglas básico y, si lo deseas, el suplemento correspondiente al escenario en el que quieras jugar, como «Vampiro: El Réquiem», que contiene reglas específicas para ese escenario."
+              - list [ref=e2215]:
+                - listitem [ref=e2216]: Manual
+                - listitem [ref=e2220]: "2004"
+              - generic [ref=e2224]: Horror
+      - link "Con datos de BoardGameGeek" [ref=e2260] [cursor=pointer]:
+        - /url: https://boardgamegeek.com/
+        - img "Con datos de BoardGameGeek" [ref=e2261]
+  - contentinfo [ref=e12]:
+    - list "Redes sociales" [ref=e14]:
+      - listitem [ref=e15]:
+        - link "WhatsApp" [ref=e16] [cursor=pointer]:
+          - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+          - img "WhatsApp" [ref=e17]
+      - listitem [ref=e18]:
+        - link "Instagram" [ref=e19] [cursor=pointer]:
+          - /url: https://www.instagram.com/refugiosatiro/
+          - img "Instagram" [ref=e20]
+      - listitem [ref=e21]:
+        - link "Facebook" [ref=e22] [cursor=pointer]:
+          - /url: https://www.facebook.com/refugiosatiro
+          - img "Facebook" [ref=e23]
+      - listitem [ref=e24]:
+        - link "Discord" [ref=e25] [cursor=pointer]:
+          - /url: https://discord.gg/XAQ8TvtS3y
+          - img "Discord" [ref=e26]

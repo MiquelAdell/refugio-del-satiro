@@ -1,0 +1,35 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Refugio del Sátiro – Inicio" [ref=e6] [cursor=pointer]:
+        - /url: /inicio
+      - navigation "Principal":
+        - list
+      - link "Iniciar sesión" [ref=e8] [cursor=pointer]:
+        - /url: /ludoteca/login
+  - main [ref=e9]:
+    - main [ref=e11]:
+      - heading "Contactar por correo" [level=1] [ref=e12]
+      - paragraph [ref=e13]: Estamos abriendo tu aplicación de correo.
+      - paragraph [ref=e14]: "Si no se abre, toca el enlace:"
+      - paragraph [ref=e15]:
+        - link "refugiodelsatiro+prestamos@gmail.com" [ref=e16] [cursor=pointer]:
+          - /url: mailto:refugiodelsatiro+prestamos@gmail.com?subject=Incidencia%20con%20un%20prestamo
+  - contentinfo [ref=e17]:
+    - list "Redes sociales" [ref=e19]:
+      - listitem [ref=e20]:
+        - link "WhatsApp" [ref=e21] [cursor=pointer]:
+          - /url: https://chat.whatsapp.com/LjAN8Lhau4aCnWKA3dMkmM
+          - img "WhatsApp" [ref=e22]
+      - listitem [ref=e23]:
+        - link "Instagram" [ref=e24] [cursor=pointer]:
+          - /url: https://www.instagram.com/refugiosatiro/
+          - img "Instagram" [ref=e25]
+      - listitem [ref=e26]:
+        - link "Facebook" [ref=e27] [cursor=pointer]:
+          - /url: https://www.facebook.com/refugiosatiro
+          - img "Facebook" [ref=e28]
+      - listitem [ref=e29]:
+        - link "Discord" [ref=e30] [cursor=pointer]:
+          - /url: https://discord.gg/XAQ8TvtS3y
+          - img "Discord" [ref=e31]

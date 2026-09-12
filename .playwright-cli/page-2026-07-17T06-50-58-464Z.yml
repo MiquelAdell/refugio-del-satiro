@@ -1,0 +1,79 @@
+- generic [active]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e2]:
+            - region "Prototype controls" [ref=e3]:
+              - generic [ref=e4]:
+                - button "Skip to content" [ref=e6]
+                - link "File browser" [ref=e8] [cursor=pointer]:
+                  - /url: /
+                - button "Close flows list" [ref=e17]
+                - button "Comment" [ref=e18]
+              - heading "TFM - Servei de préstec digital" [level=1] [ref=e20]
+              - generic [ref=e21]:
+                - button "Follow" [ref=e26]
+                - generic [ref=e35]:
+                  - button "Log in or create account" [ref=e36]
+                  - button "Continue with Google" [ref=e39]
+                - button "Options" [ref=e41]
+                - button "Enter full screen (F)" [ref=e42]
+            - generic [ref=e43]:
+              - navigation "Flows" [ref=e45]:
+                - generic [ref=e46]:
+                  - generic [ref=e47]:
+                    - generic [ref=e48]:
+                      - generic [ref=e49]: Flows
+                      - button "Close" [ref=e50]
+                    - link "Inici" [ref=e60]
+                  - region "Flow description" [ref=e67]:
+                    - generic [ref=e75]:
+                      - paragraph [ref=e76]:
+                        - text: Aquest és el punt d'inici per a
+                        - strong [ref=e77]: tots els escenaris definits
+                        - text: ". Aquests són:"
+                      - list [ref=e78]:
+                        - listitem [ref=e79]: L'Àlex vol consultar els jocs de la ludoteca del club i demanar-ne un en préstec.
+                        - listitem [ref=e80]: L'Àlex vol demanar en préstec un joc que té algú altre.
+                        - listitem [ref=e81]: L'Àlex vol consultar quins jocs són els més populars.
+                        - listitem [ref=e82]: L'Àlex vol conèixer gent amb els matexiso gustos.
+                        - listitem [ref=e83]: L'Àlex vol sol·licitar un nou joc per la ludoteca.
+                        - listitem [ref=e84]: La Nora necessita fer una reserva per al pròxim esdeveniment.
+                        - listitem [ref=e85]: La Nora vol afegir els nous jocs que el club ha comprat.
+                        - listitem [ref=e86]: La Nora vol gestionar els socis i administradors.
+                        - listitem [ref=e87]: La Nora vol crear una insígnia per al pròxim esdeveniment.
+                      - paragraph [ref=e88]
+                      - paragraph [ref=e89]:
+                        - text: Per completar els escenaris 1, 2, 3, 4 i 5, fer servir l'usuari de l'
+                        - strong [ref=e90]: Àlex
+                        - text: .
+                      - paragraph [ref=e91]
+                      - paragraph [ref=e92]:
+                        - text: Per completar els escenaris 6, 7, 8 i 9, fer servir l'usuari de la
+                        - strong [ref=e93]: Nora
+                        - text: .
+                      - paragraph [ref=e94]
+                      - paragraph [ref=e95]:
+                        - strong [ref=e96]: Nota
+                        - text: ": Per l'escenari 1, per a poder finalitzar-lo, pitjar R i després el botó \"He recibido notificación de recogida de juego\" per continuar."
+              - generic [ref=e98]:
+                - generic [ref=e99]:
+                  - main:
+                    - paragraph [ref=e100]: Screenreader support is currently disabled. To enable it, use the Accessibility settings from the Options menu.
+                - generic:
+                  - navigation "Pages":
+                    - generic:
+                      - toolbar "Stepper":
+                        - generic:
+                          - generic:
+                            - button "Previous frame" [disabled]
+                            - button "Next frame"
+                    - generic:
+                      - button "Restart":
+                        - text: Restart
+                        - generic: R
+              - text: Give feedback, ask a question, or just leave a note of appreciation. Click anywhere in the file to leave a comment.
+          - group [ref=e117]:
+            - alert [ref=e119]
+            - alert [ref=e121]

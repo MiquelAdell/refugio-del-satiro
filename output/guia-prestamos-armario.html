@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guía de préstamos - Refugio del Sátiro</title>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    @font-face { font-family: "Open Sans"; src: url("../frontend/public/fonts/open-sans-variable.woff2") format("woff2"); }
+    @font-face { font-family: "Oswald"; src: url("../frontend/public/fonts/oswald-variable.woff2") format("woff2"); }
+    body { margin: 0; font-family: "Open Sans", Arial, Helvetica, sans-serif; color: #333333; background: #ffffff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sheet { width: 210mm; height: 297mm; padding: 10mm 15mm 8mm; position: relative; overflow: hidden; }
+    .top { display: flex; gap: 8mm; align-items: center; border-bottom: 1.5mm solid #be0000; padding-bottom: 4mm; }
+    .logo { width: 25mm; height: 25mm; object-fit: contain; background: #be0000; padding: 2mm; }
+    h1, h2 { font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 600; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 27pt; line-height: 1; color: #1f1f1f; letter-spacing: 0; }
+    .subtitle { margin: 2.5mm 0 0; color: #6d6d6d; font-size: 11pt; font-weight: 600; }
+    .important { background: #000000; color: white; border-radius: 0; margin: 5mm 0 4mm; padding: 4mm 6mm; text-align: center; font-size: 15pt; font-weight: 700; line-height: 1.2; }
+    .important span { color: #ffffff; text-decoration: underline; text-decoration-color: #be0000; text-decoration-thickness: 1.2mm; text-underline-offset: 1.4mm; }
+    h2 { color: #1f1f1f; font-size: 15pt; margin: 0 0 3mm; }
+    .steps, .rules, .qrs { width: 100%; border-collapse: separate; }
+    .steps { border-spacing: 4mm 0; margin: 0 -4mm 4mm; width: calc(100% + 8mm); table-layout: fixed; }
+    .step { width: 33.333%; border: 1px solid #efefef; border-radius: 0; padding: 3mm 3.5mm; vertical-align: top; }
+    .num { width: 8mm; height: 8mm; border-radius: 50%; display: grid; place-items: center; background: #be0000; color: #ffffff; font-weight: 800; font-size: 11pt; margin-bottom: 2mm; }
+    .step strong { display: block; font-size: 11.5pt; line-height: 1.15; margin-bottom: 2mm; }
+    .step p { margin: 0; font-size: 9.5pt; line-height: 1.32; }
+    .rules { border-spacing: 3mm 3mm; margin: 0 -3mm 4mm; width: calc(100% + 6mm); table-layout: fixed; }
+    .rule { width: 50%; background: #efefef; border-radius: 0; padding: 3mm 4mm; vertical-align: top; }
+    .rule > b { color: #1f1f1f; display: block; margin-bottom: 1mm; font-size: 10.5pt; }
+    .rule p b { display: inline; }
+    .rule p { margin: 0; font-size: 9.4pt; line-height: 1.28; }
+    .email { font-size: 8.3pt; font-weight: 700; }
+    .qr-wrap { border-top: 1px solid #efefef; padding-top: 3mm; }
+    .qrs { border-spacing: 4mm 0; margin: 0 -4mm; width: calc(100% + 8mm); table-layout: fixed; }
+    .qr-card, .qr-card.primary { width: 33.333%; border: 1px solid #efefef; border-radius: 0; padding: 3.5mm; text-align: center; background: #ffffff; vertical-align: top; }
+    .qr-card.primary { border-top: 1.2mm solid #be0000; }
+    .qr-card img, .qr-card.primary img { width: 29mm; height: 29mm; display: block; margin: 0 auto 2mm; image-rendering: pixelated; }
+    .qr-title { font-family: "Oswald", "Arial Narrow", sans-serif; text-transform: uppercase; font-size: 12pt; color: #1f1f1f; font-weight: 600; line-height: 1.15; }
+    .qr-copy { margin: 1.5mm 0 0; font-size: 8.5pt; line-height: 1.25; }
+    .url { font-size: 7.4pt; color: #6d6d6d; margin-top: 1.5mm; word-break: break-all; }
+    .footer { margin-top: 3mm; text-align: center; color: #6d6d6d; font-size: 8.5pt; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="top">
+      <img class="logo" src="../frontend/public/branding/logo.png" alt="Refugio del Sátiro" />
+      <div>
+        <h1>Préstamo de juegos</h1>
+        <p class="subtitle">Guía rápida de la ludoteca</p>
+      </div>
+    </header>
+
+    <p class="important">El sistema de préstamo online solo se puede usar <span>cuando estás en el armario.</span></p>
+
+    <h2>En tres pasos</h2>
+    <table class="steps"><tr>
+      <td class="step">
+        <div class="num">1</div>
+        <strong>Entra en la ludoteca</strong>
+        <p>Escanea el QR o visita la web. Inicia sesión con tu correo y contraseña.</p>
+      </td>
+      <td class="step">
+        <div class="num">2</div>
+        <strong>Busca el juego</strong>
+        <p>Comprueba que esté disponible.<br />Hay juegos en el armario y en el sótano.</p>
+      </td>
+      <td class="step">
+        <div class="num">3</div>
+        <strong>Registra el préstamo</strong>
+        <p>Pulsa <b>Prestar</b>, confirma y llévate el juego. Al devolverlo, regístralo también en la web.</p>
+      </td>
+    </tr></table>
+
+    <h2>Recuerda</h2>
+    <table class="rules"><tr>
+      <td class="rule">
+        <b>Solo para socios y socias activos</b>
+        <p>El catálogo se puede consultar sin cuenta; para pedir prestado necesitas iniciar sesión.</p>
+      </td>
+      <td class="rule">
+        <b>Sin fecha límite, con responsabilidad</b>
+        <p>Devuelve el juego cuando termines de usarlo o ya no lo necesites, para que otras personas puedan disfrutarlo.</p>
+      </td>
+    </tr><tr>
+      <td class="rule">
+        <b>¿Es la primera vez?</b>
+        <p>En el inicio de sesión, pulsa <b>¿Olvidaste tu contraseña?</b> y usa el correo de socio o socia.</p>
+      </td>
+      <td class="rule">
+        <b>Antes de salir</b>
+        <p>Verifica que el préstamo aparece en <b>Mis préstamos</b>. Así el inventario queda actualizado.</p>
+      </td>
+    </tr></table>
+
+    <section class="qr-wrap" aria-label="Enlaces útiles">
+    <table class="qrs"><tr>
+      <td class="qr-card primary">
+        <img src="qrs/qr-ludoteca.svg" alt="QR de la ludoteca" />
+        <div class="qr-title">Abrir la ludoteca</div>
+        <div class="url">refugiodelsatiro.es/ludoteca/</div>
+      </td>
+      <td class="qr-card">
+        <img src="qrs/qr-password.svg" alt="QR para recuperar la contraseña" />
+        <div class="qr-title">¿Olvidaste tu contraseña?</div>
+        <p class="qr-copy">Recibe un enlace de acceso en tu correo.</p>
+        <div class="url">refugiodelsatiro.es/ludoteca/forgot-password</div>
+      </td>
+      <td class="qr-card">
+        <img src="qrs/qr-email.svg" alt="QR para enviar un correo por problemas con préstamos" />
+        <div class="qr-title">¿Tienes un problema?</div>
+        <p class="qr-copy">Envianos un correo explicando que pasa</p>
+        <div class="url">refugiodelsatiro+prestamos@gmail.com</div>
+      </td>
+    </tr></table>
+    </section>
+
+    <p class="footer">Refugio del Sátiro · Gracias por cuidar los juegos compartidos</p>
+  </main>
+</body>
+</html>
