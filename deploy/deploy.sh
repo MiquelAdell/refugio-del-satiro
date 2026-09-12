@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 # Run from the project root on the server to deploy or update.
-# Usage: ./deploy/deploy.sh
+# Usage: ./deploy/deploy.sh [commit]
 set -euo pipefail
 
-echo "==> Pulling latest code"
-git pull
+if [ "$#" -gt 1 ]; then
+    echo "Usage: $0 [commit]" >&2
+    exit 64
+fi
+
+if [ "$#" -eq 1 ]; then
+    release_sha="$1"
+    echo "==> Using pinned release $release_sha"
+    git rev-parse --verify "$release_sha^{commit}" >/dev/null
+    git checkout --detach "$release_sha"
+else
+    echo "==> Pulling latest code"
+    git pull
+fi
 
 echo "==> Building and starting containers"
 docker compose up -d --build
