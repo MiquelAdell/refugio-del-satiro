@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 import pytest
 
 from scraper.config import SKIP_PATHS, ScraperConfig
-from scraper.enumerator import DiscoveredPage, EnumerationResult, enumerate_pages
+from scraper.enumerator import DiscoveredPage, enumerate_pages
 from scraper.fetcher import FetchResult
 
 # ---------------------------------------------------------------------------
