@@ -23,7 +23,6 @@ on:
         type: choice
         options:
           - production
-          - verify-staging
 
 concurrency:
   group: deploy-${{ github.event_name == 'push' && 'staging' || inputs.target }}
@@ -55,31 +54,10 @@ jobs:
   deploy-production:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.target == 'production'
     runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Deploy pinned main commit to production
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.PRODUCTION_DEPLOY_HOST }}
-          username: ${{ secrets.PRODUCTION_DEPLOY_USER }}
-          key: ${{ secrets.PRODUCTION_DEPLOY_SSH_KEY }}
-          port: ${{ secrets.PRODUCTION_DEPLOY_PORT || 22 }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${{ secrets.PRODUCTION_DEPLOY_DIR }}"
-            git fetch --prune origin main
-            release_sha="$(git rev-parse origin/main)"
-            test "$release_sha" = "${{ github.sha }}"
-            git checkout --detach "$release_sha"
-            ./deploy/deploy.sh "$release_sha"
-
-  verify-staging-access:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'verify-staging'
-    runs-on: ubuntu-latest
+    # The production VPS remains stored in the legacy staging environment.
     environment: staging
     steps:
-      - name: Verify read-only SSH access
+      - name: Deploy pinned main commit to production
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.STAGING_DEPLOY_HOST }}
@@ -90,7 +68,8 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.STAGING_DEPLOY_DIR }}"
-            test "$(git rev-parse --is-inside-work-tree)" = "true"
-            printf 'checkout=%s\n' "$PWD"
-            printf 'commit=%s\n' "$(git rev-parse --short HEAD)"
-            printf 'branch=%s\n' "$(git branch --show-current || true)"
+            git fetch --prune origin main
+            release_sha="$(git rev-parse origin/main)"
+            test "$release_sha" = "${{ github.sha }}"
+            git checkout --detach "$release_sha"
+            ./deploy/deploy.sh "$release_sha"
