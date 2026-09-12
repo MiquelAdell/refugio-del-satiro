@@ -51,7 +51,9 @@ export default defineConfig({
     {
       command: "caddy run --config Caddyfile.e2e --adapter caddyfile",
       cwd: "..",
-      url: "http://localhost:8090/",
+      // The source mirror intentionally has no root index page in CI; the
+      // application route is the reliable Caddy readiness endpoint.
+      url: "http://localhost:8090/ludoteca/",
       reuseExistingServer: true,
     },
   ],
