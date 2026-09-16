@@ -71,6 +71,30 @@ class TestSqliteLoanRepository:
         active = loan_repo.list_active_by_member_id(member_id)
         assert len(active) == 2
 
+    def test_list_active_excludes_returned_loans_and_orders_newest_first(
+        self,
+        loan_repo: SqliteLoanRepository,
+        _seed_data: tuple[int, int, int],
+        db_conn: sqlite3.Connection,
+    ) -> None:
+        game1_id, game2_id, member_id = _seed_data
+        oldest = loan_repo.create(game1_id, member_id)
+        newest = loan_repo.create(game2_id, member_id)
+        db_conn.execute(
+            "UPDATE loans SET borrowed_at = ? WHERE id = ?",
+            ("2026-09-10T12:00:00Z", oldest.id),
+        )
+        db_conn.execute(
+            "UPDATE loans SET borrowed_at = ? WHERE id = ?",
+            ("2026-09-11T12:00:00Z", newest.id),
+        )
+        db_conn.commit()
+        loan_repo.mark_returned(oldest.id)
+
+        active = loan_repo.list_active()
+
+        assert [loan.id for loan in active] == [newest.id]
+
     def test_list_by_game_id_includes_returned(
         self, loan_repo: SqliteLoanRepository, _seed_data: tuple[int, int, int]
     ) -> None:

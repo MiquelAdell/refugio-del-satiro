@@ -232,3 +232,107 @@ def test_my_loans_exposes_slug_and_item_type() -> None:
         ("pathfinder", "rpgitem"),
     ]
     conn.close()
+
+
+class TestAdminActiveLoansApi:
+    def test_admin_receives_active_loans_with_game_and_borrower_details(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        admin = _member(member_repo, 1, is_admin=True)
+        borrower = _member(member_repo, 2)
+        boardgame = game_repo.upsert_by_bgg_id(
+            1,
+            "Catan",
+            "https://example.invalid/catan-thumb.jpg",
+            image_url="https://example.invalid/catan-image.jpg",
+        )
+        rpg_item = game_repo.upsert_by_bgg_id(
+            2,
+            "Pathfinder",
+            "https://example.invalid/pathfinder-thumb.jpg",
+            image_url="https://example.invalid/pathfinder-image.jpg",
+            item_type="rpgitem",
+        )
+        returned_game = game_repo.upsert_by_bgg_id(3, "Azul", "")
+        loan_repo = SqliteLoanRepository(conn)
+        older_loan = loan_repo.create(boardgame.id, borrower.id)
+        newer_loan = loan_repo.create(rpg_item.id, admin.id)
+        returned_loan = loan_repo.create(returned_game.id, borrower.id)
+        conn.execute(
+            "UPDATE loans SET borrowed_at = ? WHERE id = ?",
+            ("2026-09-10T12:00:00Z", older_loan.id),
+        )
+        conn.execute(
+            "UPDATE loans SET borrowed_at = ? WHERE id = ?",
+            ("2026-09-11T12:00:00Z", newer_loan.id),
+        )
+        conn.commit()
+        loan_repo.mark_returned(returned_loan.id)
+
+        response = client.get("/api/admin/loans/active", headers=_auth(admin))
+
+        assert response.status_code == 200
+        assert response.json() == [
+            {
+                "loan_id": newer_loan.id,
+                "game_id": rpg_item.id,
+                "game_name": "Pathfinder",
+                "game_slug": "pathfinder",
+                "item_type": "rpgitem",
+                "game_thumbnail_url": "https://example.invalid/pathfinder-thumb.jpg",
+                "game_image_url": "https://example.invalid/pathfinder-image.jpg",
+                "member_id": admin.id,
+                "member_display_name": "Member 1",
+                "borrowed_at": "2026-09-11T12:00:00+00:00",
+            },
+            {
+                "loan_id": older_loan.id,
+                "game_id": boardgame.id,
+                "game_name": "Catan",
+                "game_slug": "catan",
+                "item_type": "boardgame",
+                "game_thumbnail_url": "https://example.invalid/catan-thumb.jpg",
+                "game_image_url": "https://example.invalid/catan-image.jpg",
+                "member_id": borrower.id,
+                "member_display_name": "Member 2",
+                "borrowed_at": "2026-09-10T12:00:00+00:00",
+            },
+        ]
+        conn.close()
+
+    def test_active_loans_requires_administrator(self) -> None:
+        client, conn = _setup_client()
+        member = _member(SqliteMemberRepository(conn), 1)
+
+        unauthenticated = client.get("/api/admin/loans/active")
+        non_admin = client.get("/api/admin/loans/active", headers=_auth(member))
+
+        assert unauthenticated.status_code == 401
+        assert unauthenticated.json() == {"detail": "Es necesario iniciar sesión."}
+        assert non_admin.status_code == 403
+        assert non_admin.json() == {"detail": "Acceso restringido a administradores."}
+        conn.close()
+
+    def test_active_loans_skip_records_with_missing_game_or_member(self) -> None:
+        client, conn = _setup_client()
+        game_repo = SqliteGameRepository(conn)
+        member_repo = SqliteMemberRepository(conn)
+        admin = _member(member_repo, 1, is_admin=True)
+        borrower = _member(member_repo, 2)
+        first_game = game_repo.upsert_by_bgg_id(1, "Catan", "")
+        second_game = game_repo.upsert_by_bgg_id(2, "Azul", "")
+        loan_repo = SqliteLoanRepository(conn)
+        loan_repo.create(first_game.id, borrower.id)
+        loan_repo.create(second_game.id, borrower.id)
+        conn.execute("PRAGMA foreign_keys = OFF")
+        conn.execute("DELETE FROM games WHERE id = ?", (first_game.id,))
+        conn.execute("DELETE FROM members WHERE id = ?", (borrower.id,))
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = ON")
+
+        response = client.get("/api/admin/loans/active", headers=_auth(admin))
+
+        assert response.status_code == 200
+        assert response.json() == []
+        conn.close()
