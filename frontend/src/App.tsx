@@ -13,6 +13,7 @@ import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { AdminContentPage } from "./pages/AdminContentPage";
 import { AdminBggPage } from "./pages/AdminBggPage";
+import { AdminLoansPage } from "./pages/AdminLoansPage";
 import { RpgCatalogPage } from "./pages/RpgCatalogPage";
 import { RpgDetailPage } from "./pages/RpgDetailPage";
 import { ValidacionPage } from "./pages/ValidacionPage";
@@ -99,6 +100,14 @@ export default function App() {
                 element={
                   <PageLayout>
                     <AdminBggPage />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/admin/prestamos"
+                element={
+                  <PageLayout>
+                    <AdminLoansPage />
                   </PageLayout>
                 }
               />

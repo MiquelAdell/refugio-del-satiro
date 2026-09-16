@@ -35,6 +35,7 @@ interface AdminSubmenuLink {
 // so they omit the `/ludoteca` prefix — the router prepends it.
 const ADMIN_SUBMENU: readonly AdminSubmenuLink[] = [
   { label: "Miembros", to: "/admin/members" },
+  { label: "Préstamos activos", to: "/admin/prestamos" },
   { label: "Contenido GSite", to: "/admin/content" },
   { label: "Datos BGG", to: "/admin/bgg" },
 ];

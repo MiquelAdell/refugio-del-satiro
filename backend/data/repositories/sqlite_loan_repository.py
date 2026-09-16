@@ -42,6 +42,12 @@ class SqliteLoanRepository:
         ).fetchall()
         return [_row_to_loan(row) for row in rows]
 
+    def list_active(self) -> list[Loan]:
+        rows = self._conn.execute(
+            "SELECT * FROM loans WHERE returned_at IS NULL ORDER BY borrowed_at DESC"
+        ).fetchall()
+        return [_row_to_loan(row) for row in rows]
+
     def list_by_game_id(self, game_id: int) -> list[Loan]:
         rows = self._conn.execute(
             "SELECT * FROM loans WHERE game_id = ? ORDER BY borrowed_at DESC",

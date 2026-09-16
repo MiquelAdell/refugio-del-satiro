@@ -13,6 +13,11 @@ export interface ActiveLoan {
   readonly borrowed_at: string;
 }
 
+export interface AdminActiveLoan extends ActiveLoan {
+  readonly member_id: number;
+  readonly member_display_name: string;
+}
+
 export interface LoanHistoryEntry {
   readonly member_display_name: string | null;
   readonly borrowed_at: string;

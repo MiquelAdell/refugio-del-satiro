@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import csv
 import io
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from pydantic import BaseModel
 
 from backend.api.dependencies import (
     CurrentMember,
+    GameRepo,
     LoanRepo,
     MemberRepo,
     TokenRepo,
@@ -16,6 +17,7 @@ from backend.api.dependencies import (
 )
 from backend.data.email_client import EmailClient
 from backend.domain.entities.member import Member
+from backend.domain.use_cases.get_active_loans import GetActiveLoansUseCase
 from backend.domain.use_cases.import_members import (
     ImportMembersUseCase,
     MemberImportValidationError,
@@ -103,6 +105,32 @@ class ImportMembersResponse(BaseModel):
     total_rows: int
     skipped_rows: int
     deactivation_skip_reason: str | None
+
+
+class ActiveLoanListItem(BaseModel):
+    loan_id: int
+    game_id: int
+    game_name: str
+    game_slug: str
+    item_type: Literal["boardgame", "rpgitem"]
+    game_thumbnail_url: str
+    game_image_url: str
+    member_id: int
+    member_display_name: str
+    borrowed_at: str
+
+
+@router.get("/loans/active", response_model=list[ActiveLoanListItem])
+def list_active_loans(
+    _admin: AdminMember,
+    game_repo: GameRepo,
+    loan_repo: LoanRepo,
+    member_repo: MemberRepo,
+) -> list[ActiveLoanListItem]:
+    return [
+        ActiveLoanListItem(**loan.__dict__)
+        for loan in GetActiveLoansUseCase(loan_repo, game_repo, member_repo).execute()
+    ]
 
 
 @router.get("/members", response_model=list[MemberListItem])

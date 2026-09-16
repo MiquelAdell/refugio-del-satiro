@@ -325,11 +325,12 @@ describe("SiteHeader", () => {
       expect(screen.getByText("Administración").tagName).toEqual("BUTTON");
     });
 
-    it("renders Miembros, Contenido GSite and Datos BGG as nested items for admin", () => {
+    it("renders all admin links as nested items for admin", () => {
       setAdmin();
       renderHeader();
 
       expect(screen.getByText("Miembros").tagName).toEqual("A");
+      expect(screen.getByText("Préstamos activos").tagName).toEqual("A");
       expect(screen.getByText("Contenido GSite").tagName).toEqual("A");
       expect(screen.getByText("Datos BGG").tagName).toEqual("A");
     });
@@ -368,6 +369,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
+      expect(screen.queryByText("Préstamos activos")).toBeNull();
       expect(screen.queryByText("Contenido GSite")).toBeNull();
     });
 
@@ -376,6 +378,7 @@ describe("SiteHeader", () => {
       renderHeader();
 
       expect(screen.queryByText("Miembros")).toBeNull();
+      expect(screen.queryByText("Préstamos activos")).toBeNull();
       expect(screen.queryByText("Contenido GSite")).toBeNull();
     });
   });
@@ -400,6 +403,18 @@ describe("SiteHeader", () => {
       const contenidoLink = allLinks.find((el) => el.textContent?.trim() === "Contenido GSite");
       expect(contenidoLink).not.toBeUndefined();
       expect(contenidoLink!.getAttribute("href")).toEqual("/admin/content");
+    });
+
+    it("Préstamos activos link has href /admin/prestamos", () => {
+      setAdmin();
+      const { container } = renderHeader();
+
+      const allLinks = Array.from(container.querySelectorAll("a"));
+      const activeLoansLink = allLinks.find(
+        (el) => el.textContent?.trim() === "Préstamos activos"
+      );
+      expect(activeLoansLink).not.toBeUndefined();
+      expect(activeLoansLink!.getAttribute("href")).toEqual("/admin/prestamos");
     });
   });
 
@@ -590,6 +605,7 @@ describe("SiteHeader", () => {
 
       // Miembros and Contenido links are now visible inside the drawer
       expect(within(drawer).getByText("Miembros").tagName).toEqual("A");
+      expect(within(drawer).getByText("Préstamos activos").tagName).toEqual("A");
       expect(within(drawer).getByText("Contenido GSite").tagName).toEqual("A");
 
       const miembrosLinks = within(drawer)
@@ -598,8 +614,12 @@ describe("SiteHeader", () => {
       const contenidoLinks = within(drawer)
         .getAllByRole("menuitem")
         .filter((el) => el.textContent?.trim() === "Contenido GSite");
+      const activeLoansLinks = within(drawer)
+        .getAllByRole("menuitem")
+        .filter((el) => el.textContent?.trim() === "Préstamos activos");
 
       expect(miembrosLinks.length).toEqual(1);
+      expect(activeLoansLinks.length).toEqual(1);
       expect(contenidoLinks.length).toEqual(1);
     });
 
