@@ -12,6 +12,8 @@ import type {
   OkResponse,
 } from "../types/admin";
 import { memberGenders } from "../types/admin";
+import type { GameWithStatus } from "../types/game";
+import type { RpgItem } from "../types/rpg";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import "./AdminMembersPage.css";
@@ -51,6 +53,15 @@ export function AdminMembersPage() {
   const [sortKey, setSortKey] = useState<keyof AdminMember>("display_name");
   const [sortAsc, setSortAsc] = useState(true);
   const [editTarget, setEditTarget] = useState<AdminMember | null>(null);
+  const [loanTarget, setLoanTarget] = useState<AdminMember | null>(null);
+  const [loanGames, setLoanGames] = useState<readonly LoanCatalogItem[]>([]);
+  const [loanGamesLoading, setLoanGamesLoading] = useState(false);
+  const [loanQuery, setLoanQuery] = useState("");
+  const [selectedLoanGameId, setSelectedLoanGameId] = useState<number | null>(
+    null,
+  );
+  const [loanError, setLoanError] = useState<string | null>(null);
+  const [loanSubmitting, setLoanSubmitting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] =
     useState<ImportMembersResponse | null>(null);
@@ -199,6 +210,55 @@ export function AdminMembersPage() {
       setError(
         err instanceof Error ? err.message : "Error actualizando el socio.",
       );
+    }
+  };
+
+  const handleOpenLoanDialog = async (target: AdminMember) => {
+    setLoanTarget(target);
+    setLoanGames([]);
+    setLoanQuery("");
+    setSelectedLoanGameId(null);
+    setLoanError(null);
+    setLoanGamesLoading(true);
+    try {
+      const [games, rpgItems] = await Promise.all([
+        apiFetch<GameWithStatus[]>("/juegos"),
+        apiFetch<RpgItem[]>("/rol"),
+      ]);
+      setLoanGames(
+        [...games, ...rpgItems].filter((game) => game.status === "available"),
+      );
+    } catch (err) {
+      setLoanError(
+        err instanceof Error ? err.message : "Error cargando los juegos.",
+      );
+    } finally {
+      setLoanGamesLoading(false);
+    }
+  };
+
+  const handleCreateLoan = async () => {
+    if (loanTarget === null || selectedLoanGameId === null) return;
+
+    setLoanSubmitting(true);
+    setLoanError(null);
+    try {
+      await apiFetch<unknown>("/admin/loans", {
+        method: "POST",
+        body: JSON.stringify({
+          game_id: selectedLoanGameId,
+          member_id: loanTarget.id,
+        }),
+      });
+      setSuccessMessage(`Préstamo creado para ${loanTarget.display_name}.`);
+      setLoanTarget(null);
+      await fetchMembers();
+    } catch (err) {
+      setLoanError(
+        err instanceof Error ? err.message : "Error creando el préstamo.",
+      );
+    } finally {
+      setLoanSubmitting(false);
     }
   };
 
@@ -419,6 +479,16 @@ export function AdminMembersPage() {
                       >
                         Enviar enlace de acceso
                       </Button>
+                      {m.is_active && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => void handleOpenLoanDialog(m)}
+                          disabled={actionLoading === m.id}
+                        >
+                          Crear préstamo
+                        </Button>
+                      )}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -492,8 +562,188 @@ export function AdminMembersPage() {
           onClose={() => setEditTarget(null)}
         />
       )}
+
+      <CreateLoanDialog
+        member={loanTarget}
+        games={loanGames}
+        loading={loanGamesLoading}
+        query={loanQuery}
+        selectedGameId={selectedLoanGameId}
+        error={loanError}
+        submitting={loanSubmitting}
+        onQueryChange={setLoanQuery}
+        onSelectGame={setSelectedLoanGameId}
+        onSubmit={() => void handleCreateLoan()}
+        onClose={() => setLoanTarget(null)}
+      />
     </div>
   );
+}
+
+interface CreateLoanDialogProps {
+  readonly member: AdminMember | null;
+  readonly games: readonly LoanCatalogItem[];
+  readonly loading: boolean;
+  readonly query: string;
+  readonly selectedGameId: number | null;
+  readonly error: string | null;
+  readonly submitting: boolean;
+  readonly onQueryChange: (query: string) => void;
+  readonly onSelectGame: (gameId: number) => void;
+  readonly onSubmit: () => void;
+  readonly onClose: () => void;
+}
+
+type LoanCatalogItem = GameWithStatus | RpgItem;
+
+function isRpgItem(game: LoanCatalogItem): game is RpgItem {
+  return "publication_types" in game;
+}
+
+function normalizedGameSearchText(game: LoanCatalogItem): string {
+  const commonFields = [
+    game.name,
+    game.slug,
+    game.bgg_id,
+    game.bgg_rating,
+    game.description,
+    game.description_es,
+  ];
+  const typeFields = isRpgItem(game)
+    ? game.publication_types
+    : [
+        game.location,
+        game.min_players,
+        game.max_players,
+        String(game.min_players) + "-" + String(game.max_players),
+        game.playing_time,
+        game.min_age,
+        game.primary_tag,
+      ];
+
+  return [...commonFields, ...typeFields]
+    .join(" ")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("es");
+}
+
+function CreateLoanDialog({
+  member,
+  games,
+  loading,
+  query,
+  selectedGameId,
+  error,
+  submitting,
+  onQueryChange,
+  onSelectGame,
+  onSubmit,
+  onClose,
+}: CreateLoanDialogProps) {
+  const normalizedQuery = query
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .toLocaleLowerCase("es");
+  const matchingGames = games.filter((game) =>
+    normalizedGameSearchText(game).includes(normalizedQuery),
+  );
+  const selectedGame = games.find((game) => game.id === selectedGameId);
+
+  return (
+    <Dialog
+      open={member !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title="Crear préstamo"
+      description={
+        member === null
+          ? undefined
+          : `Selecciona un juego disponible para ${member.display_name}.`
+      }
+    >
+      <div className="admin-loan-dialog">
+        <label className="admin-form-field" htmlFor="admin-loan-game-search">
+          <span>Buscar juego</span>
+          <input
+            id="admin-loan-game-search"
+            type="search"
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Nombre, tipo, ubicación, jugadores…"
+            autoComplete="off"
+          />
+        </label>
+
+        {loading ? (
+          <p>Cargando juegos disponibles…</p>
+        ) : matchingGames.length === 0 ? (
+          <p className="admin-loan-empty">No hay juegos disponibles que coincidan.</p>
+        ) : (
+          <ul className="admin-loan-game-list" aria-label="Juegos disponibles">
+            {matchingGames.map((game) => (
+              <li key={game.id}>
+                <button
+                  type="button"
+                  className={`admin-loan-game-option ${
+                    selectedGameId === game.id
+                      ? "admin-loan-game-option--selected"
+                      : ""
+                  }`}
+                  aria-pressed={selectedGameId === game.id}
+                  onClick={() => onSelectGame(game.id)}
+                >
+                  <div className="admin-loan-game-cover">
+                    {game.thumbnail_url || game.image_url ? (
+                      <img
+                        src={game.thumbnail_url || game.image_url}
+                        alt=""
+                      />
+                    ) : (
+                      <span aria-hidden="true">?</span>
+                    )}
+                  </div>
+                  <div className="admin-loan-game-info">
+                    <strong>{game.name}</strong>
+                    <span>{gameMetadata(game)}</span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {error && <p className="admin-form-error" role="alert">{error}</p>}
+
+        <div className="admin-form-actions">
+          <Button variant="secondary" onClick={onClose} disabled={submitting}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={onSubmit}
+            disabled={selectedGame === undefined || submitting}
+          >
+            {submitting ? "Creando…" : "Crear préstamo"}
+          </Button>
+        </div>
+      </div>
+    </Dialog>
+  );
+}
+
+function gameMetadata(game: LoanCatalogItem): string {
+  if (isRpgItem(game)) {
+    return ["Juego de rol", game.publication_types.join(", ") || null]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return ["Juego de mesa", game.location, game.year_published || null]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /* ---- Create member inline form ---- */

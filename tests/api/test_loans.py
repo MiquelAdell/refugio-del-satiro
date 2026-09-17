@@ -90,6 +90,86 @@ def _auth(member: Member) -> dict[str, str]:
     return {"Cookie": f"session_token={create_jwt(member.id, _settings.jwt_secret)}"}
 
 
+class TestAdminCreateLoanApi:
+    def test_admin_creates_loan_for_active_member(self) -> None:
+        client, conn = _setup_client()
+        game = SqliteGameRepository(conn).upsert_by_bgg_id(1, "Catan", "")
+        member_repo = SqliteMemberRepository(conn)
+        admin = _member(member_repo, 1, is_admin=True)
+        borrower = _member(member_repo, 2)
+
+        response = client.post(
+            "/api/admin/loans",
+            json={"game_id": game.id, "member_id": borrower.id},
+            headers=_auth(admin),
+        )
+
+        loan = SqliteLoanRepository(conn).get_active_by_game_id(game.id)
+        assert response.status_code == 201
+        assert loan is not None
+        assert response.json() == {
+            "id": loan.id,
+            "game_id": game.id,
+            "member_id": borrower.id,
+            "borrowed_at": loan.borrowed_at.isoformat(),
+            "returned_at": None,
+        }
+        conn.close()
+
+    def test_non_admin_cannot_create_loan_for_member(self) -> None:
+        client, conn = _setup_client()
+        game = SqliteGameRepository(conn).upsert_by_bgg_id(1, "Catan", "")
+        member_repo = SqliteMemberRepository(conn)
+        member = _member(member_repo, 1)
+        borrower = _member(member_repo, 2)
+
+        response = client.post(
+            "/api/admin/loans",
+            json={"game_id": game.id, "member_id": borrower.id},
+            headers=_auth(member),
+        )
+
+        assert response.status_code == 403
+        assert response.json() == {"detail": "Acceso restringido a administradores."}
+        conn.close()
+
+    def test_admin_cannot_create_loan_for_inactive_member(self) -> None:
+        client, conn = _setup_client()
+        game = SqliteGameRepository(conn).upsert_by_bgg_id(1, "Catan", "")
+        member_repo = SqliteMemberRepository(conn)
+        admin = _member(member_repo, 1, is_admin=True)
+        inactive_member = _member(member_repo, 2)
+        member_repo.set_active(inactive_member.id, False)
+
+        response = client.post(
+            "/api/admin/loans",
+            json={"game_id": game.id, "member_id": inactive_member.id},
+            headers=_auth(admin),
+        )
+
+        assert response.status_code == 409
+        assert response.json() == {"detail": "Socio no encontrado."}
+        conn.close()
+
+    def test_admin_cannot_create_loan_for_already_lent_game(self) -> None:
+        client, conn = _setup_client()
+        game = SqliteGameRepository(conn).upsert_by_bgg_id(1, "Catan", "")
+        member_repo = SqliteMemberRepository(conn)
+        admin = _member(member_repo, 1, is_admin=True)
+        borrower = _member(member_repo, 2)
+        SqliteLoanRepository(conn).create(game.id, borrower.id)
+
+        response = client.post(
+            "/api/admin/loans",
+            json={"game_id": game.id, "member_id": borrower.id},
+            headers=_auth(admin),
+        )
+
+        assert response.status_code == 409
+        assert response.json() == {"detail": "Este juego ya está prestado."}
+        conn.close()
+
+
 class TestReturnLoanApi:
     def test_borrower_return_reports_email_not_applicable(self) -> None:
         notifier = FakeNotifier(True)
