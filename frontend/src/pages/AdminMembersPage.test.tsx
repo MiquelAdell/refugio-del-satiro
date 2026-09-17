@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminMembersPage } from "./AdminMembersPage";
 import type { AdminMember, ImportMembersResponse } from "../types/admin";
+import type { GameWithStatus } from "../types/game";
+import type { RpgItem } from "../types/rpg";
 
 const useAuthMock = vi.fn();
 const apiFetchMock = vi.fn();
@@ -75,6 +77,35 @@ const roleMembers: readonly AdminMember[] = [
     is_admin: true,
     is_active: true,
     active_loan_count: 1,
+  },
+];
+
+const loanGames: readonly GameWithStatus[] = [
+  {
+    id: 10, bgg_id: 100, name: "Cascadia", slug: "cascadia",
+    thumbnail_url: "", image_url: "", year_published: 2021,
+    min_players: 1, max_players: 4, playing_time: 45, min_age: 10,
+    bgg_rating: 7.8, location: "Armario", description: "", description_es: "",
+    categories: ["Acción y destreza"], primary_tag: "Familiar",
+    status: "available", borrower_display_name: null, loan_id: null,
+  },
+  {
+    id: 11, bgg_id: 101, name: "Juego prestado", slug: "juego-prestado",
+    thumbnail_url: "", image_url: "", year_published: 2020,
+    min_players: 2, max_players: 4, playing_time: 30, min_age: 8,
+    bgg_rating: 7.1, location: "Sótano", description: "", description_es: "",
+    categories: ["Familiar"], primary_tag: "Cartas",
+    status: "lent", borrower_display_name: "Nora Admin", loan_id: 2,
+  },
+];
+
+const loanRpgItems: readonly RpgItem[] = [
+  {
+    id: 12, bgg_id: 102, name: "La llamada de Cthulhu", slug: "llamada-cthulhu",
+    thumbnail_url: "", image_url: "", year_published: 2020, bgg_rating: 8.2,
+    description: "", description_es: "", categories: ["Horror"],
+    publication_types: ["Manual"], status: "available",
+    borrower_display_name: null, loan_id: null,
   },
 ];
 
@@ -227,5 +258,96 @@ describe("AdminMembersPage member roles", () => {
         .slice(1)
         .map((row) => within(row).getAllByRole("cell")[0]?.textContent),
     ).toEqual(["Alex Socio", "Nora Admin"]);
+  });
+});
+
+describe("AdminMembersPage admin-created loans", () => {
+  beforeEach(() => {
+    useAuthMock.mockReset();
+    apiFetchMock.mockReset();
+    apiUploadMock.mockReset();
+    useAuthMock.mockReturnValue({
+      member: {
+        id: 99,
+        display_name: "Admin User",
+        email: "admin@example.invalid",
+        is_admin: true,
+      },
+      loading: false,
+    });
+    apiFetchMock.mockImplementation((path: string) => {
+      if (path === "/admin/members") return Promise.resolve(roleMembers);
+      if (path === "/juegos") return Promise.resolve(loanGames);
+      if (path === "/rol") return Promise.resolve(loanRpgItems);
+      if (path === "/admin/loans") return Promise.resolve({});
+      return Promise.reject(new Error("Unexpected path"));
+    });
+  });
+
+  it("creates a loan after searching an available item by supported metadata", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const memberRow = await screen.findByRole("row", { name: /Alex Socio/ });
+    await user.click(
+      within(memberRow).getByRole("button", { name: "Crear préstamo" }),
+    );
+
+    const search = await screen.findByRole("searchbox", {
+      name: "Buscar juego",
+    });
+    expect(await screen.findByText("La llamada de Cthulhu")).toBeInTheDocument();
+    expect(screen.getByText("Juego de rol · Manual")).toBeInTheDocument();
+
+    await user.type(search, "accion");
+
+    expect(screen.queryByText("Cascadia")).toBeNull();
+
+    await user.clear(search);
+    await user.type(search, "armario");
+
+    expect(await screen.findByText("Cascadia")).toBeInTheDocument();
+    expect(screen.queryByText("Juego prestado")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Cascadia/ }));
+    await user.click(
+      screen.getByRole("button", { name: /^Crear préstamo$/ }),
+    );
+
+    await waitFor(() =>
+      expect(apiFetchMock).toHaveBeenCalledWith("/admin/loans", {
+        method: "POST",
+        body: JSON.stringify({ game_id: 10, member_id: 1 }),
+      }),
+    );
+    expect(
+      await screen.findByText("Préstamo creado para Alex Socio."),
+    ).toBeInTheDocument();
+  });
+
+  it("does not offer loan creation for inactive members", async () => {
+    apiFetchMock.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/admin/members"
+          ? [
+              ...roleMembers,
+              {
+                ...roleMembers[0],
+                id: 3,
+                display_name: "Inés Inactiva",
+                is_active: false,
+              },
+            ]
+          : loanGames,
+      ),
+    );
+    renderPage();
+
+    const inactiveRow = await screen.findByRole("row", {
+      name: /Inés Inactiva/,
+    });
+    expect(
+      within(inactiveRow).queryByRole("button", { name: "Crear préstamo" }),
+    ).toBeNull();
   });
 });

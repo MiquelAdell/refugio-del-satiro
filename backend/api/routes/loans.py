@@ -10,6 +10,7 @@ from backend.api.dependencies import (
     MemberRepo,
     ReturnNotifier,
 )
+from backend.api.routes.admin import AdminMember
 from backend.domain.use_cases.borrow_game import BorrowGameError, BorrowGameUseCase
 from backend.domain.use_cases.return_game import ReturnGameError, ReturnGameUseCase
 
@@ -18,6 +19,10 @@ router = APIRouter(prefix="/api", tags=["loans"])
 
 class BorrowRequest(BaseModel):
     game_id: int
+
+
+class AdminBorrowRequest(BorrowRequest):
+    member_id: int
 
 
 class LoanResponse(BaseModel):
@@ -43,6 +48,37 @@ def borrow_game(
     game_repo: GameRepo,
     loan_repo: LoanRepo,
 ) -> LoanResponse:
+    use_case = BorrowGameUseCase(game_repo, loan_repo)
+    try:
+        loan = use_case.execute(body.game_id, member.id)
+    except BorrowGameError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
+    return LoanResponse(
+        id=loan.id,
+        game_id=loan.game_id,
+        member_id=loan.member_id,
+        borrowed_at=loan.borrowed_at.isoformat(),
+        returned_at=None,
+    )
+
+
+@router.post(
+    "/admin/loans", response_model=LoanResponse, status_code=status.HTTP_201_CREATED
+)
+def create_admin_loan(
+    body: AdminBorrowRequest,
+    _admin: AdminMember,
+    game_repo: GameRepo,
+    loan_repo: LoanRepo,
+    member_repo: MemberRepo,
+) -> LoanResponse:
+    member = member_repo.get_by_id(body.member_id)
+    if member is None or not member.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Socio no encontrado.",
+        )
+
     use_case = BorrowGameUseCase(game_repo, loan_repo)
     try:
         loan = use_case.execute(body.game_id, member.id)
