@@ -79,9 +79,12 @@ nav/footer get layered in later by the React app / site-wide templates.
    inside that subtree. Return the inner HTML plus the set of referenced
    image URLs.
 4. **Rehost assets** (`asset_fetcher.py`). For each image URL pointing at
-   `googleusercontent.com` / `ggpht.com`, download once, save as
+   `googleusercontent.com`, `ggpht.com`, or Google Sites'
+   `sitesv-images-rt` endpoint, download once, save as
    `<content-sha1>.<ext>` under `_assets/`. Content-addressed so Sites'
    per-request URL rotation doesn't cause filename churn.
+   If any required Google image cannot be downloaded, the scraper preserves
+   the prior mirrored page rather than publishing an image-broken replacement.
 5. **Rewrite** (`orchestrator._process_content_html` + `linker.py`).
    `<a href>` pointing at our hosts → canonical relative path. External
    links → add `target="_blank" rel="noopener noreferrer"`. `<img src>` and
@@ -116,8 +119,9 @@ Want to start stripping something Sites ships (e.g. the Report-abuse
 trailer) → add a CSS selector to `STRIP_SELECTORS` in
 `scraper/config.py`. Today it's empty — we mirror Sites 1:1.
 
-Add a host we want to rehost → add the substring to
-`REHOSTED_IMAGE_HOST_SUBSTRINGS`.
+Google-hosted image URL shapes are matched in `asset_fetcher.should_rehost()`
+by their stable host and path families. Add a new family there, with a test,
+if Sites changes it again.
 
 ## Triggers
 

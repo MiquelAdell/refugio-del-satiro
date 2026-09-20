@@ -53,13 +53,6 @@ STRIP_SELECTORS: tuple[str, ...] = ("script", "noscript")
 # we'd rather fail loud than write a chrome-only page.
 SANITY_CONTENT_SELECTOR = 'div[jsname="ZBtY8b"]'
 
-# Host patterns we rehost locally (images + background-image urls).
-REHOSTED_IMAGE_HOST_SUBSTRINGS: tuple[str, ...] = (
-    "googleusercontent.com",
-    "ggpht.com",
-    "gstatic.com/images",
-)
-
 # Redirect rules written into Caddy. Maps an old path to the canonical one.
 REDIRECTS: tuple[tuple[str, str], ...] = (
     ("/inicio", "/"),

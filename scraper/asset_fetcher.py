@@ -5,13 +5,29 @@ from __future__ import annotations
 import hashlib
 import mimetypes
 from pathlib import Path
+from urllib.parse import urlparse
 
-from scraper.config import REHOSTED_IMAGE_HOST_SUBSTRINGS
 from scraper.fetcher import Fetcher
 
 
 def should_rehost(url: str) -> bool:
-    return any(host in url for host in REHOSTED_IMAGE_HOST_SUBSTRINGS)
+    """Return whether a remote Google-served image must be localised.
+
+    Google Sites rotates both image hosts and URL shapes. Match the stable
+    host/path families rather than a literal URL prefix, including account
+    scoped ``/u/<id>/sitesv-images-rt/`` image URLs.
+    """
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    path = parsed.path.lower()
+    return (
+        host.endswith(".googleusercontent.com")
+        or host == "googleusercontent.com"
+        or host.endswith(".ggpht.com")
+        or host == "ggpht.com"
+        or (host == "gstatic.com" and path.startswith("/images/"))
+        or (host == "sites.google.com" and "/sitesv-images-rt/" in path)
+    )
 
 
 def _extension_from(content_type: str, url: str) -> str:
