@@ -52,6 +52,10 @@ class RunSummary:
     errors: int
 
 
+class AssetDownloadError(RuntimeError):
+    """Raised when a page cannot be safely rewritten with local assets."""
+
+
 async def _emit(sink: EventSink | None, event: ScraperEvent) -> None:
     if sink is None:
         return
@@ -72,6 +76,7 @@ async def _rehost_and_rewrite(
     rehost_map: dict[str, str] = {}
     downloaded = 0
     reused = 0
+    failed_urls: list[str] = []
 
     for url in image_urls:
         if not should_rehost(url):
@@ -90,14 +95,7 @@ async def _rehost_and_rewrite(
                 fetcher, url, assets_dir=assets_dir
             )
         except Exception as exc:
-            await _emit(
-                sink,
-                ScraperEvent(
-                    kind="warning",
-                    message=f"asset download failed: {url}",
-                    data={"error": str(exc)},
-                ),
-            )
+            failed_urls.append(f"{url} ({exc})")
             continue
         rehost_map[url] = f"/_assets/{filename}"
         if was_downloaded:
@@ -120,6 +118,12 @@ async def _rehost_and_rewrite(
                     data={"url": url, "filename": filename},
                 ),
             )
+
+    if failed_urls:
+        raise AssetDownloadError(
+            "refusing to write a page with external Google image URLs: "
+            + "; ".join(failed_urls)
+        )
 
     # <img src> + srcset
     for img in soup.find_all("img"):
@@ -322,14 +326,28 @@ async def run(
                 ),
             )
 
-            asset_filenames, downloaded, reused = await _rehost_and_rewrite(
-                fetcher=fetcher,
-                soup=stripped.document,
-                image_urls=stripped.image_urls,
-                assets_dir=assets_dir,
-                sink=sink,
-                dry_run=dry_run,
-            )
+            try:
+                asset_filenames, downloaded, reused = await _rehost_and_rewrite(
+                    fetcher=fetcher,
+                    soup=stripped.document,
+                    image_urls=stripped.image_urls,
+                    assets_dir=assets_dir,
+                    sink=sink,
+                    dry_run=dry_run,
+                )
+            except AssetDownloadError as exc:
+                errors += 1
+                if previous := previous_by_path.get(canonical):
+                    new_pages.append(previous)
+                await _emit(
+                    sink,
+                    ScraperEvent(
+                        kind="error",
+                        message=f"asset rehost failed: {url}",
+                        data={"path": canonical, "error": str(exc)},
+                    ),
+                )
+                continue
             total_downloaded += downloaded
             total_reused += reused
 

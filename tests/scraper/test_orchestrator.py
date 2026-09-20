@@ -16,7 +16,9 @@ import pytest
 from scraper.config import ScraperConfig
 from scraper.enumerator import DiscoveredPage, EnumerationResult
 from scraper.fetcher import FetchResult
+from scraper.manifest import Manifest, PageRecord
 from scraper.orchestrator import run
+from scraper.writer import write_manifest
 
 # ---------------------------------------------------------------------------
 # Fixture HTML
@@ -64,6 +66,16 @@ _ROOT_HTML_EMPTY_NAV = """\
 _ROOT_PAGE = DiscoveredPage(canonical_path="/", source_path="/")
 
 _NAV_JSON = "_nav.json"
+_OUTPUT_FILE = "index.html"
+_SESSION_IMAGE_URL = (
+    "https://sites.google.com/u/0/sitesv-images-rt/"
+    "AMxu72u5T6YlyI1FLbjF0O7HQOXCanRUzt44pqY3NyFxozSGzLlLeGo4YdS8"
+)
+
+_ROOT_HTML_WITH_SESSION_IMAGE = _ROOT_HTML.replace(
+    "Main content area",
+    f'<img alt="Source image" src="{_SESSION_IMAGE_URL}">',
+)
 
 
 def _make_config(tmp_path: Path) -> ScraperConfig:
@@ -95,6 +107,17 @@ def _make_fetcher_mock(html: str) -> MagicMock:
     """Return a context-manager mock whose `get()` returns *html*."""
     fetcher_instance = AsyncMock()
     fetcher_instance.get = AsyncMock(return_value=_fetch_result(html))
+    fetcher_cm = MagicMock()
+    fetcher_cm.__aenter__ = AsyncMock(return_value=fetcher_instance)
+    fetcher_cm.__aexit__ = AsyncMock(return_value=False)
+    return fetcher_cm
+
+
+def _make_fetcher_mock_with_asset_failure(html: str) -> MagicMock:
+    fetcher_instance = AsyncMock()
+    fetcher_instance.get = AsyncMock(
+        side_effect=(_fetch_result(html), RuntimeError("image returned 403"))
+    )
     fetcher_cm = MagicMock()
     fetcher_cm.__aenter__ = AsyncMock(return_value=fetcher_instance)
     fetcher_cm.__aexit__ = AsyncMock(return_value=False)
@@ -248,3 +271,46 @@ class TestOrchestratorNavExtraction:
             await run(config)
 
         assert not (tmp_path / _NAV_JSON).exists()
+
+    @pytest.mark.asyncio
+    async def test_asset_failure_preserves_previous_page(self, tmp_path: Path) -> None:
+        previous_content = "<html><body>Previous safe mirror</body></html>"
+        (tmp_path / _OUTPUT_FILE).write_text(previous_content, encoding="utf-8")
+        previous_page = PageRecord(
+            url="https://www.refugiodelsatiro.es/",
+            path="/",
+            output_file=_OUTPUT_FILE,
+            title="Previous page",
+            content_sha256="previous-sha",
+            asset_filenames=("previous-image.jpg",),
+            scraped_at="2026-09-20T00:00:00+00:00",
+            nav_sha256=None,
+        )
+        write_manifest(
+            tmp_path,
+            Manifest(generated_at="2026-09-20T00:00:00+00:00", pages=(previous_page,)),
+            "_manifest.json",
+        )
+        config = _make_config(tmp_path)
+        enumeration = EnumerationResult(
+            pages=(_ROOT_PAGE,),
+            missing_required=(),
+            unexpected_paths=(),
+        )
+
+        with (
+            patch(
+                "scraper.orchestrator.Fetcher",
+                return_value=_make_fetcher_mock_with_asset_failure(
+                    _ROOT_HTML_WITH_SESSION_IMAGE
+                ),
+            ),
+            patch(
+                "scraper.orchestrator.enumerate_pages",
+                new=AsyncMock(return_value=enumeration),
+            ),
+        ):
+            summary = await run(config)
+
+        assert summary.errors == 1
+        assert (tmp_path / _OUTPUT_FILE).read_text(encoding="utf-8") == previous_content
